@@ -12,9 +12,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using TeamCherry.Localization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SilkenSisters.SceneManagement;
 
 // Idea by AidaCamelia0516
 
@@ -47,27 +50,105 @@ using UnityEngine.SceneManagement;
 namespace SilkenSisters
 {
 
+    public class FSMEditor
+    {
+
+        public Dictionary<string, FsmState> states = new Dictionary<string, FsmState>();
+        public Dictionary<string, Dictionary<string, FsmTransition>> transitions = new Dictionary<string, Dictionary<string, FsmTransition>>();
+        public Dictionary<string, FsmEvent> events = new Dictionary<string, FsmEvent>();
+
+        public static bool fsmEditorLog = false;
+
+        public void compileFSM(ref PlayMakerFSM fsm)
+        {
+            foreach (FsmEvent ev in fsm.FsmEvents)
+            {
+                this.events[ev.Name] = ev;
+            }
+
+            int i = 0;
+            foreach (FsmState state in fsm.FsmStates)
+            {
+
+                states[state.Name] = state;
+                transitions[state.Name] = new Dictionary<string, FsmTransition>();
+
+                if (fsmEditorLog) SilkenSisters.Log.LogInfo($"Index: {i} State: {states[state.Name].Name}. {state.Transitions.Length} Transitions");
+
+                foreach (FsmTransition transition in state.Transitions)
+                {
+                    transitions[state.Name][transition.EventName] = transition;
+                    if (fsmEditorLog) SilkenSisters.Log.LogInfo($"   Transition : {transitions[state.Name][transition.EventName].EventName}, {transitions[state.Name][transition.EventName].ToState}");
+                }
+                foreach (FsmStateAction action in state.Actions)
+                {
+                    if (fsmEditorLog) SilkenSisters.Log.LogInfo($"       Action : {action.GetType()}");
+                }
+                if (fsmEditorLog) SilkenSisters.Log.LogInfo($"");
+                i++;
+            }
+        }
+    }
+
+    public class InvokeMethod : FsmStateAction
+    {
+        private readonly Action _action;
+
+        public InvokeMethod(Action action)
+        {
+            _action = action;
+        }
+
+        public override void OnEnter()
+        {
+            _action.Invoke();
+
+            Finish();
+        }
+    }
+
+
     // TODO - adjust the plugin guid as needed
     [BepInAutoPlugin(id: "io.github.al3ks1s.silkensisters")]
     [BepInDependency("org.silksong-modding.fsmutil")]
     public partial class SilkenSisters : BaseUnityPlugin
     {
-        private static GameObject laceNPC;
-        private static FsmOwnerDefault laceNPCFSMOwner;
 
-        private static GameObject laceBoss;
-        private static FsmOwnerDefault laceBossFSMOwner;
-        private static GameObject laceBossScene;
-        private static FsmOwnerDefault laceBossSceneFSMOwner;
+        public static Scene organScene;
+
+        private static bool isMemory = false;
+
+        private GameObject laceNPCCache;
+        private GameObject lace2BossSceneCache;
+        private GameObject lace1BossSceneCache;
+
+        private GameObject challengeDialogCache;
+        private GameObject wakeupPointCache;
+        private GameObject deepMemoryCache;
+
+        private GameObject laceNPCInstance;
+        private FsmOwnerDefault laceNPCFSMOwner;
+
+        private GameObject lace2BossInstance;
+        private GameObject lace2BossSceneInstance;
+
+        private FsmOwnerDefault laceBossFSMOwner;
+
+        private GameObject lace1BossInstance;
+        private GameObject lace1BossSceneInstance;
+
+        private GameObject challengeDialogInstance;
+        private GameObject wakeupPointInstance;
+        private GameObject deepMemoryInstance;
+
+        
+        private GameObject phantomBossScene;
+        private FsmOwnerDefault phantomBossSceneFSMOwner;
+
+
         private static bool laceBoss2Active = false;
-
-
-        private static GameObject phantomBoss;
-        private static GameObject phantomBossScene;
-        private static FsmOwnerDefault phantomBossSceneFSMOwner;
         private static bool phantomSpeedToggle = false;
         private static bool phantomDragoonToggle = false;
-
 
         private static GameObject hornet;
         private static FsmOwnerDefault hornetFSMOwner;
@@ -90,24 +171,16 @@ namespace SilkenSisters
 
             StartCoroutine(WaitAndPatch());
 
+            SceneManager.sceneLoaded += onSceneLoaded;
+
             Harmony.CreateAndPatchAll(typeof(SilkenSisters));
         }
-
-
+       
         private IEnumerator WaitAndPatch()
         {
             yield return new WaitForSeconds(2f); // Give game time to init Language
             Harmony.CreateAndPatchAll(typeof(Language_Get_Patch));
         }
-
-        
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(GetAngleToTarget2D), "DoGetAngle")]
-        private static void setAngleListenerS(GetAngleToTarget2D __instance)
-        {
-            SilkenSisters.Log.LogInfo($"DoGetAngle  Angle detected {__instance.storeAngle} to object {__instance.target.Name}");
-        }
-
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ClampAngle), "DoClamp")]
@@ -131,62 +204,10 @@ namespace SilkenSisters
             SilkenSisters.Log.LogInfo($"DoVelocity  Set to angle {__instance.fsm.FindFloatVariable("Angle")}");
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(CheckAlertRange), "Apply")]
-        private static void setRangeListener(CheckAlertRange __instance)
-        {
-            //SilkenSisters.Log.LogInfo($"AlertRng    Is in range {__instance.isCurrentlyInRange}");
-        }
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(FsmState), "OnEnter")]
         private static void setEventListener(FsmState __instance)
         {
-
-            if (SilkenSisters.hornet != null)
-            {
-                if (__instance.Fsm.GameObjectName == SilkenSisters.hornet.gameObject.name)
-                {
-                    //SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, fsm: {__instance.Fsm.Name} Entering state {__instance.Name}, {__instance.Actions.Length} actions");
-                }
-            }
-
-            if (__instance.Fsm.GameObject.name == "Phantom" && __instance.Name == "Idle")
-            {
-                SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}, {__instance.Actions.Length} actions");
-                if (__instance.Actions.Length > 0)
-                {
-                    foreach (FsmStateAction action in __instance.Actions)
-                    {
-                        SilkenSisters.Log.LogInfo($"    Action for state {__instance.Name}: {action.GetType()}");
-                    }
-                }
-            }
-
-            if (__instance.Fsm.GameObject.name == "Corpse Lace2(Clone)")
-            {
-                SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}, {__instance.Actions.Length} actions");
-                if (__instance.Actions.Length > 0)
-                {
-                    foreach (FsmStateAction action in __instance.Actions)
-                    {
-                        SilkenSisters.Log.LogInfo($"    Action for state {__instance.Name}: {action.GetType()}");
-                    }
-                }
-            }
-
-            if (__instance.Fsm.GameObject.name == "NPC")
-            {
-                SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}, {__instance.Actions.Length} actions");
-                if (__instance.Actions.Length > 0)
-                {
-                    foreach (FsmStateAction action in __instance.Actions)
-                    {
-                        SilkenSisters.Log.LogInfo($"    Action for state {__instance.Name}: {action.GetType()}");
-                    }
-                }
-            }
-
             // Enable Corpse Lace Hooking
             if (__instance.Fsm.GameObject.name == "Corpse Lace2(Clone)" && __instance.Name == "Start" && SilkenSisters.laceBoss2Active)
             {
@@ -194,6 +215,14 @@ namespace SilkenSisters
                 GameObject laceCorpse = __instance.Fsm.GameObject;
                 GameObject laceCorpseNPC = GameObject.Find($"{__instance.Fsm.GameObject.name}/NPC");
                 SilkenSisters.Log.LogInfo($"{laceCorpseNPC}");
+
+                FSMEditor e1 = new FSMEditor();
+                PlayMakerFSM fsm1 = laceCorpse.GetComponent<PlayMakerFSM>();
+                e1.compileFSM(ref fsm1);
+
+                FSMEditor e2 = new FSMEditor();
+                PlayMakerFSM fsm2 = laceCorpseNPC.GetComponent<PlayMakerFSM>();
+                e1.compileFSM(ref fsm2);
 
                 SilkenSisters.Log.LogInfo("Fixing facing");
                 PlayMakerFSM laceCorpseFSM = FsmUtil.GetFsmPreprocessed(laceCorpse, "Control");
@@ -205,7 +234,6 @@ namespace SilkenSisters
                 SendEventByName lace_death_event = new SendEventByName();
                 lace_death_event.sendEvent = "INTERACT";
                 lace_death_event.delay = 0f;
-
                 FsmOwnerDefault owner = new FsmOwnerDefault();
                 owner.gameObject = laceCorpseNPC;
                 owner.ownerOption = OwnerDefaultOption.SpecifyGameObject;
@@ -261,54 +289,152 @@ namespace SilkenSisters
                     }
                 }
             }
+                            
+        }
+
+
+        private void onSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            Logger.LogInfo($"Scene loaded : {scene.name}");
+
+            string[] excludedScenes = new string[]{ "Menu_Title", "Pre_Menu_Loader", "Pre_Menu_Intro", "Quit_To_Menu" };
+
+            if (scene.name == "Organ_01")
+            {
+                organScene = scene;
+                preloadOrgan();
+            } 
+        }
+        private async Task preloadOrgan()
+        {
+            await cacheGameObjects();
+
+            if (!isMemory)
+            {
+                setupDeepMemoryZone();
+                setupWakeupPoint();
+            }
+        }
+
+        private async Task cacheGameObjects()
+        {
+            if (deepMemoryCache == null)
+            {
+                laceNPCCache = await SceneObjectManager.loadObjectFromScene("Coral_19", "Encounter Scene Control/Lace Meet/Lace NPC Blasted Bridge");
+                lace2BossSceneCache = await SceneObjectManager.loadObjectFromScene("Song_Tower_01", "Boss Scene");
+
+                //lace1BossSceneCache;
+
+                challengeDialogCache = await SceneObjectManager.loadObjectFromScene("Cradle_03", "Boss Scene/Intro Sequence");
+                wakeupPointCache = await SceneObjectManager.loadObjectFromScene("Memory_Coral_Tower", "Door Get Up");
+                deepMemoryCache = await SceneObjectManager.loadObjectFromScene("Coral_Tower_01", "Memory Group");
+
+                if (
+                    laceNPCCache == null ||
+                    lace2BossSceneCache == null ||
+                    challengeDialogCache == null ||
+                    wakeupPointCache == null ||
+                    deepMemoryCache == null
+                    )
+                {
+                    Logger.LogWarning("One of the item requested could not be found");
+                }
+
+            }
+        }
+
+        private void setupFight()
+        {
+            registerPhantom();
+            spawnChallengeSequence();
+            spawnLaceBoss2();
+            spawnLaceNpc();
+            setupPhantom();
+        }
+
+        private void registerPhantom()
+        {
+            Logger.LogInfo($"Trying to register phantom");
+            phantomBossScene = SceneObjectManager.findObjectInCurrentScene("Boss Scene");
+            Logger.LogInfo($"{phantomBossScene}");
+
+            if (phantomBossScene != null)
+            {
+                Logger.LogInfo($"Registering FSMOwner");
+                phantomBossSceneFSMOwner = new FsmOwnerDefault();
+                phantomBossSceneFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
+                phantomBossSceneFSMOwner.GameObject = phantomBossScene;
+            }
+        }
+
+        private void enableFight()
+        {
+            Logger.LogInfo("Toggling fight");
+            SilkenSisters.isMemory = true;
         }
 
         private void setupPhantom()
         {
-            if (SilkenSisters.phantomBossScene != null && SilkenSisters.phantomBoss != null)
+            Logger.LogInfo($"Trying to set up phantom : phantom available? {phantomBossScene != null}");
+            Logger.LogInfo($"{phantomBossScene}");
+            if (phantomBossScene != null)
             {
+                GameObject phantomBoss = SceneObjectManager.findChildObject(phantomBossScene, "Phantom");
 
-                PlayMakerFSM phantomSceneFSM = FsmUtil.GetFsmPreprocessed(SilkenSisters.phantomBossScene, "Control");
-                PlayMakerFSM phantomBossFSM = FsmUtil.GetFsmPreprocessed(SilkenSisters.phantomBoss, "Control");
-                
+                Logger.LogInfo($"Phantom setup begin");
+
+                PlayMakerFSM phantomSceneFSM = FsmUtil.GetFsmPreprocessed(phantomBossScene, "Control");
+                PlayMakerFSM phantomBossFSM = FsmUtil.GetFsmPreprocessed(phantomBoss, "Control");
+
                 // Disable phantom's arena detectors
-                ((PlayMakerUnity2DProxy)SilkenSisters.phantomBossScene.GetComponent(typeof(PlayMakerUnity2DProxy))).enabled = false;
-                ((BoxCollider2D)SilkenSisters.phantomBossScene.GetComponent(typeof(BoxCollider2D))).enabled = false;
+                ((PlayMakerUnity2DProxy)phantomBossScene.GetComponent(typeof(PlayMakerUnity2DProxy))).enabled = false;
+                ((BoxCollider2D)phantomBossScene.GetComponent(typeof(BoxCollider2D))).enabled = false;
 
                 // Trigger lace jump
+                Logger.LogInfo($"Trigger lace jump");
                 SendEventByName lace_jump_event = new SendEventByName();
                 lace_jump_event.sendEvent = "ENTER";
                 lace_jump_event.delay = 0;
                 FsmEventTarget target = new FsmEventTarget();
-                target.gameObject = SilkenSisters.laceNPCFSMOwner;
+                target.gameObject = laceNPCFSMOwner;
                 target.target = FsmEventTarget.EventTarget.GameObject;
                 lace_jump_event.eventTarget = target;
 
                 phantomSceneFSM.AddAction("Organ Hit", lace_jump_event);
 
                 // FG Column - enable LaceBoss Object
+                Logger.LogInfo($"Enable laceBoss {laceBossFSMOwner} {laceBossFSMOwner.gameObject}");
                 ActivateGameObject activate_lace_boss = new ActivateGameObject();
                 activate_lace_boss.activate = true;
-                activate_lace_boss.gameObject = SilkenSisters.laceBossFSMOwner;
+                activate_lace_boss.gameObject = laceBossFSMOwner;
                 activate_lace_boss.recursive = false;
-
 
                 phantomBossFSM.AddAction("Appear", activate_lace_boss);
 
-                // Trigger lace boss
+                // Trigger lace 
+                Logger.LogInfo($"Trigger lace boss");
                 SendEventByName lace_boss_start = new SendEventByName();
                 lace_boss_start.sendEvent = "BATTLE START FIRST";
                 lace_boss_start.delay = 0;
                 FsmEventTarget target_boss = new FsmEventTarget();
-                target_boss.gameObject = SilkenSisters.laceBossFSMOwner;
+                target_boss.gameObject = laceBossFSMOwner;
                 target_boss.target = FsmEventTarget.EventTarget.GameObject;
                 lace_boss_start.eventTarget = target_boss;
 
                 phantomBossFSM.AddAction("To Idle", lace_boss_start);
 
+                Logger.LogInfo($"Setup lace toggles");
+                InvokeMethod meth = new InvokeMethod(toggleLaceFSM);
+                phantomBossFSM.AddAction("Final Parry", meth);
+
+                InvokeMethod meth2 = new InvokeMethod(toggleLaceFSM);
+                phantomBossFSM.AddAction("End Recover", meth2);
+
+                Logger.LogInfo($"Change boss title");
                 phantomSceneFSM.GetAction<DisplayBossTitle>("Start Battle", 3).bossTitle = "SILKEN_SISTERS";
 
-                // Skip cutscene
+                // Skip 
+                Logger.LogInfo($"Skip cutscene interaction");
                 phantomBossFSM.GetAction<Wait>("Time Freeze", 4).time = 0.001f;
                 phantomBossFSM.GetAction<ScaleTime>("Time Freeze", 5).timeScale = 1f;
 
@@ -318,9 +444,38 @@ namespace SilkenSisters
                 phantomBossFSM.GetAction<Wait>("Parry Ready", 4).finishEvent = FsmEvent.GetFsmEvent("PARRY");
 
                 phantomBossFSM.ChangeTransition("Death Explode", "FINISHED", "End Recover");
-                phantomBossFSM.DisableAction("End Recover", 3);
+                phantomBossFSM.AddAction("End Recover", phantomBossFSM.GetAction<SetPositionToObject2D>("Get Control", 2));
+                phantomBossFSM.AddAction("End Recover", phantomBossFSM.GetAction<SetPositionToObject2D>("Get Control", 4));
 
-                SilkenSisters.phantomBoss.transform.SetPositionX(77.04f);
+                phantomBossFSM.DisableAction("Set Data", 0);
+                phantomBossFSM.DisableAction("Set Data", 1);
+                phantomBossFSM.DisableAction("Set Data", 2);
+
+                Logger.LogInfo($"Reset playerdata on death and end");
+                HutongGames.PlayMaker.Actions.SetPlayerDataBool enablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+                enablePhantom.boolName = "defeatedPhantom";
+                enablePhantom.value = true;
+
+                HutongGames.PlayMaker.Actions.SetPlayerDataBool world_normal = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+                world_normal.boolName = "blackThreadWorld";
+                world_normal.value = true;
+
+                phantomBossFSM.InsertAction("Hornet Dead", enablePhantom, 0);
+                phantomBossFSM.InsertAction("Hornet Dead", world_normal, 0);
+                phantomBossFSM.InsertAction("End", enablePhantom, 0);
+                phantomBossFSM.InsertAction("End", world_normal, 0);
+
+                phantomBoss.transform.SetPositionX(77.1797f);
+
+
+                ActivateGameObject disableChallengeObject = new ActivateGameObject();
+                FsmOwnerDefault disableOwner = new FsmOwnerDefault();
+                disableOwner.ownerOption = OwnerDefaultOption.SpecifyGameObject;
+                disableOwner.gameObject = challengeDialogInstance;
+                disableChallengeObject.activate = false;
+                disableChallengeObject.gameObject = disableOwner;
+                disableChallengeObject.fsm = challengeDialogInstance.GetComponent<PlayMakerFSM>().fsm;
+                //phantomBossFSM.AddAction("Appear", disableChallengeObject);
 
                 Logger.LogInfo($"Finished setting up phantom");
             }
@@ -329,319 +484,281 @@ namespace SilkenSisters
         private void spawnChallengeSequence()
         {
 
-            Scene cur_scene = SceneManager.GetActiveScene();
-            Logger.LogInfo($"Current scene {SceneManager.GetActiveScene().name}");
-            Logger.LogInfo("Loading Cradle scene");
+            challengeDialogInstance = GameObject.Instantiate(challengeDialogCache);
+            // Challenge region 84.375 106.8835 3.64 - 84,2341 112,4307 4,9999
+            // Challenge dialog 83,9299 105,8935 2,504
 
-            PlayerData __instance = PlayerData.instance;
+            GameObject challengeRegion = SceneObjectManager.findChildObject(challengeDialogInstance, "Challenge Region"); // GameObject.Find($"{challengeDialog.name}/Challenge Region");
 
-            AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "aa", "StandaloneWindows64", "scenes_scenes_scenes", "cradle_03.bundle"));
-            AsyncOperation op = SceneManager.LoadSceneAsync("Cradle_03", LoadSceneMode.Additive);
+            challengeDialogInstance.transform.position = new Vector3(84.45f, 105.8935f, 2.504f);
+            Logger.LogInfo($"Setting dialog position at {challengeDialogInstance.transform.position}");
 
-            op.completed += (AsyncOperation obj) =>
-            {
-                Scene scene = SceneManager.GetSceneByName("Cradle_03");
+            Logger.LogInfo($"Disabling Cradle specific things");
+            SceneObjectManager.findChildObject(challengeDialogInstance, "Challenge Glows/Cradle__0013_loom_strut_based (2)").SetActive(false);
+            SceneObjectManager.findChildObject(challengeDialogInstance, "Challenge Glows/Cradle__0013_loom_strut_based (3)").SetActive(false);
 
-                Logger.LogInfo($"Scene {scene.name} successfully loaded");
+            PlayMakerFSM challengeDialogFSM = challengeDialogInstance.GetFsmPreprocessed("First Challenge");
+            PlayMakerFSM challengeDialogRegionFSM = challengeRegion.GetFsmPreprocessed("Challenge");
 
-                GameObject go = GameObject.Find("Boss Scene/Intro Sequence");
-                Logger.LogInfo($"Found sequence? {go}");
-                GameObject challengeDialog = Instantiate(go);
-                Logger.LogInfo($"Copying challenge dialog, new id: {challengeDialog.name}");
-                Logger.LogInfo($"Moving ${challengeDialog.name} to {cur_scene.name}");
-                SceneManager.MoveGameObjectToScene(challengeDialog, cur_scene);
-                // Challenge region 84.375 106.8835 3.64 - 84,2341 112,4307 4,9999
-                // Challenge dialog 83,9299 105,8935 2,504
+            Logger.LogInfo("Disabling Silk's intro");
+            challengeDialogFSM.GetTransition("Idle", "CHALLENGE START").FsmEvent = FsmEvent.GetFsmEvent("QUICK START");
 
-                GameObject challengeRegion = GameObject.Find($"{challengeDialog.name}/Challenge Region");
+            // Trigger phantom boss scene
+            Logger.LogInfo($"Setting battle trigger");
+            SendEventByName battle_begin_event = new SendEventByName();
+            battle_begin_event.sendEvent = "ENTER";
+            battle_begin_event.delay = 0;
+            FsmEventTarget target = new FsmEventTarget();
+            target.gameObject = phantomBossSceneFSMOwner;
+            target.target = FsmEventTarget.EventTarget.GameObject;
+            battle_begin_event.eventTarget = target;
 
-                challengeDialog.transform.position = new Vector3(84.45f, 105.8935f, 2.504f);
-                GameObject.Find($"{challengeDialog.name}/Challenge Region").transform.SetPositionX(84.2341f); // 0,1451 0,99
-                GameObject.Find($"{challengeDialog.name}/Challenge Region").transform.SetPositionY(107.0495f);
-                GameObject.Find($"{challengeDialog.name}/Challenge Region").transform.SetPositionZ(4.9999f);
-                Logger.LogInfo($"Setting dialog position at {challengeDialog.transform.position}");
+            challengeDialogRegionFSM.AddAction("Challenge Complete", battle_begin_event);
+            challengeDialogRegionFSM.GetAction<GetXDistance>("Straight Back?", 1).gameObject.ownerOption = OwnerDefaultOption.UseOwner;
 
-                Logger.LogInfo($"Disabling Cradle specific things");
-                GameObject.Find($"{challengeDialog.name}/Challenge Glows/Cradle__0013_loom_strut_based (2)").SetActive(false);
-                GameObject.Find($"{challengeDialog.name}/Challenge Glows/Cradle__0013_loom_strut_based (3)").SetActive(false);
+            PlayMakerFSM HornetSpecialSFM = SilkenSisters.hornet.GetComponents<PlayMakerFSM>().First(f => f.FsmName == "Silk Specials");
+            Logger.LogInfo($"{HornetSpecialSFM.FsmName}");
+            challengeDialogRegionFSM.DisableAction("Hornet Voice", 0);
+            challengeDialogRegionFSM.AddAction("Hornet Voice", HornetSpecialSFM.GetStateAction("Standard", 0));
 
-                PlayMakerFSM challengeDialogFSM = challengeDialog.GetFsmPreprocessed("First Challenge");
-                PlayMakerFSM challengeDialogRegionFSM = challengeRegion.GetFsmPreprocessed("Challenge");
-
-                Logger.LogInfo("Disabling Silk's intro");
-                challengeDialogFSM.GetTransition("Idle", "CHALLENGE START").FsmEvent = FsmEvent.GetFsmEvent("QUICK START");
-
-                Logger.LogInfo("Attributing the dialog disable to challenge region");
-                ActivateGameObject disableChallengeObject = new ActivateGameObject();
-                FsmOwnerDefault disableOwner = new FsmOwnerDefault();
-                disableOwner.ownerOption = OwnerDefaultOption.SpecifyGameObject;
-                disableOwner.gameObject = challengeDialog;
-                disableChallengeObject.activate = false;
-                disableChallengeObject.gameObject = disableOwner;
-                Logger.LogInfo($"Adding action {disableChallengeObject} to {challengeDialogRegionFSM}");
-                challengeDialogRegionFSM.AddAction("Challenge Complete", disableChallengeObject);
-
-                // Trigger phantom boss scene
-                Logger.LogInfo($"Setting battle trigger");
-                SendEventByName battle_begin_event = new SendEventByName();
-                battle_begin_event.sendEvent = "ENTER";
-                battle_begin_event.delay = 0;
-                FsmEventTarget target = new FsmEventTarget();
-                target.gameObject = SilkenSisters.phantomBossSceneFSMOwner;
-                target.target = FsmEventTarget.EventTarget.GameObject;
-                battle_begin_event.eventTarget = target;
-
-                challengeDialogRegionFSM.AddAction("Challenge Complete", battle_begin_event);
-                challengeDialogRegionFSM.GetAction<GetXDistance>("Straight Back?", 1).gameObject.ownerOption = OwnerDefaultOption.UseOwner;
-
-                PlayMakerFSM HornetSpecialSFM = SilkenSisters.hornet.GetComponents<PlayMakerFSM>().First(f => f.FsmName == "Silk Specials");
-                Logger.LogInfo($"{HornetSpecialSFM.FsmName}");
-                challengeDialogRegionFSM.DisableAction("Hornet Voice", 0);
-                challengeDialogRegionFSM.AddAction("Hornet Voice", HornetSpecialSFM.GetStateAction("Standard", 0));
-
-                Logger.LogInfo($"Unloading {scene.name} scene");
-                SceneManager.UnloadScene(scene.name);
-                Logger.LogInfo($"Unloading bundle {bundle.name}");
-                bundle.Unload(false);
-            };
+            challengeDialogInstance.SetActive(true);
         }
 
         private void toggleLaceFSM()
         {
-            if (SilkenSisters.laceBoss != null)
+            if (lace2BossInstance != null)
             {
-                PlayMakerFSM pfsm = SilkenSisters.laceBoss.GetComponents<PlayMakerFSM>().First(pfsm => pfsm.FsmName == "Control");
-                pfsm.SetState("Idle");
+                Logger.LogInfo("Pausing Lace");
+                PlayMakerFSM pfsm = SceneObjectManager.findChildObject(lace2BossInstance, "Lace Boss2 New") .GetComponents<PlayMakerFSM>().First(pfsm => pfsm.FsmName == "Control");
                 pfsm.fsm.manualUpdate = !pfsm.fsm.manualUpdate;
             }
         }
 
+        private void toggleDoor()
+        {
+            wakeupPointInstance.SetActive(!wakeupPointInstance.activeSelf);
+            Logger.LogInfo($"Set door to {wakeupPointInstance.activeSelf}");
+        }
+
+        private void setupWakeupPoint()
+        {
+            if (wakeupPointInstance == null) {
+                wakeupPointInstance = GameObject.Instantiate(wakeupPointCache);
+                wakeupPointInstance.SetActive(false);
+                DontDestroyOnLoad(wakeupPointInstance);
+                Logger.LogInfo(wakeupPointInstance);
+                SceneObjectManager.findChildObject(wakeupPointInstance, "door_wakeInMemory").name = "door_wakeInMemory_phantom";
+                wakeupPointInstance.transform.position = new Vector3(115.4518f, 104.5621f, 0.004f);
+
+                InvokeMethod inv = new InvokeMethod(setupFight);
+                FsmUtil.GetFsmPreprocessed(SceneObjectManager.findChildObject(wakeupPointInstance, "door_wakeInMemory_phantom"), "Wake Up").AddAction("Get Up", inv);
+            }
+        }
+        
+        private void setupDeepMemoryZone()
+        {
+            deepMemoryCache.GetComponent<TestGameObjectActivator>().playerDataTest.TestGroups[0].Tests[0].FieldName = "defeatedPhantom";
+            deepMemoryCache.GetComponent<TestGameObjectActivator>().playerDataTest.TestGroups[0].Tests[0].BoolValue = false;
+            deepMemoryInstance = Instantiate(deepMemoryCache);
+
+            deepMemoryInstance.transform.position = new Vector3(59.249f, 56.7457f, -3.1141f);
+
+            GameObject before = SceneObjectManager.findChildObject(deepMemoryInstance, "before"); // deep_memory.transform.GetComponentsInChildren<Transform>(true).First(tf => tf.name == "before").gameObject;
+            GameObject.Destroy(SceneObjectManager.findChildObject(before, "CK_ground_hit0004").gameObject);
+
+            PlayMakerFSM memoryFSM = deepMemoryInstance.GetFsmPreprocessed("To Memory");
+
+            memoryFSM.GetAction<BeginSceneTransition>("Transition Scene", 4).sceneName = "Organ_01";
+            memoryFSM.GetAction<BeginSceneTransition>("Transition Scene", 4).entryGateName = "door_wakeInMemory_phantom";
+
+            HutongGames.PlayMaker.Actions.SetPlayerDataBool enablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+            enablePhantom.boolName = "defeatedPhantom";
+            enablePhantom.value = false;
+
+            HutongGames.PlayMaker.Actions.SetPlayerDataBool world_normal = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+            world_normal.boolName = "blackThreadWorld";
+            world_normal.value = false;
+
+            InvokeMethod door = new InvokeMethod(toggleDoor);
+            memoryFSM.InsertAction("Transition Scene", door, 4);
+
+            InvokeMethod setIsMemory = new InvokeMethod(enableFight);
+            memoryFSM.InsertAction("Transition Scene", setIsMemory, 4);
+            
+            memoryFSM.InsertAction("Transition Scene", enablePhantom, 4);
+            memoryFSM.InsertAction("Transition Scene", world_normal, 4);
+
+            PlayMakerFSM pickupFSM = FsmUtil.GetFsmPreprocessed(before, "activate memory on tool pickup");
+            pickupFSM.GetTransition("State 1", "PICKED UP").fsmEvent = FsmEvent.GetFsmEvent("FINISHED");
+            
+            deepMemoryInstance.SetActive(true);
+        }
+
         private void spawnLaceNpc()
         {
-
             Logger.LogInfo($"Spawning lace on the organ bench");
 
-            Scene cur_scene = SceneManager.GetActiveScene();
-            Logger.LogInfo($"Current scene {SceneManager.GetActiveScene().name}");
-            Logger.LogInfo("Loading coral scene");
+            laceNPCInstance = GameObject.Instantiate(laceNPCCache);
 
-            AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "aa", "StandaloneWindows64", "scenes_scenes_scenes", "coral_19.bundle"));
-            AsyncOperation op = SceneManager.LoadSceneAsync("Coral_19", LoadSceneMode.Additive);
+            Logger.LogInfo($"Disabling lace npc range detection");
+            SceneObjectManager.findChildObject(laceNPCInstance, "Start Range").SetActive(false);
 
-            op.completed += (AsyncOperation obj) =>
-            {
+            laceNPCFSMOwner = new FsmOwnerDefault();
+            laceNPCFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
+            laceNPCFSMOwner.GameObject = laceNPCInstance;
 
-                Scene scene = SceneManager.GetSceneByName("Coral_19");
+            GameObject hornet = GameObject.Find("Hero_Hornet(Clone)");
+            Logger.LogInfo($"Hornet positon at {hornet.transform.position}");
 
-                Logger.LogInfo($"Scene {scene.name} successfully loaded");
+            laceNPCInstance.transform.position = new Vector3(81.9569f, 106.1943f, 2.7021f);
+            laceNPCInstance.transform.SetScaleX(-0.9f);
+            laceNPCInstance.transform.SetScaleY(0.9f);
+            laceNPCInstance.transform.SetScaleZ(0.9f);
+            Logger.LogInfo($"Setting lace position at {laceNPCInstance.transform.position}");
 
-                GameObject go = GameObject.Find("Lace NPC Blasted Bridge");
-                GameObject lace = Instantiate(go);
+            PlayMakerFSM laceFSM = (PlayMakerFSM)laceNPCInstance.GetComponent(typeof(PlayMakerFSM));
 
-                Logger.LogInfo($"Copying lace npc, new id: {lace.name}");
-                Logger.LogInfo($"Moving {lace.name} to {cur_scene.name}");
-                SceneManager.MoveGameObjectToScene(lace, cur_scene);
-
-                Logger.LogInfo($"Disabling lace npc range detection");
-                GameObject.Find($"{lace.name}/Start Range").SetActive(false);
-
-                SilkenSisters.laceNPC = lace;
-                SilkenSisters.laceNPCFSMOwner = new FsmOwnerDefault();
-                SilkenSisters.laceNPCFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
-                SilkenSisters.laceNPCFSMOwner.GameObject = SilkenSisters.laceNPC;
-
-                GameObject hornet = GameObject.Find("Hero_Hornet(Clone)");
-                Logger.LogInfo($"Hornet positon at {hornet.transform.position}");
-
-                lace.transform.position = new Vector3(81.9569f, 106.1943f, 2.7021f);
-                lace.transform.SetScaleX(-0.9f);
-                lace.transform.SetScaleY(0.9f);
-                lace.transform.SetScaleZ(0.9f);
-                Logger.LogInfo($"Setting lace position at {lace.transform.position}");
-
-
-                PlayMakerFSM laceFSM = (PlayMakerFSM)lace.GetComponent(typeof(PlayMakerFSM));
-                Logger.LogInfo($"FSM: {laceFSM.name}");
-                Logger.LogInfo($"FSM states {laceFSM.FsmStates.Length}");
-
-                //transitions["Dormant"]["ENTER"].ToState = states["Sit Antic"].Name;
-                //transitions["Dormant"]["ENTER"].ToFsmState = states["Sit Antic"];
-
-                laceFSM.ChangeTransition("Take Control", "LAND", "Sit Up");
-                laceFSM.ChangeTransition("Take Control", "LAND", "Sit Up");
-                laceFSM.GetTransition("Take Control", "LAND").fsmEvent = FsmEvent.GetFsmEvent("FINISHED");
-                laceFSM.DisableAction("Take Control", 3);
+            laceFSM.ChangeTransition("Take Control", "LAND", "Sit Up");
+            laceFSM.ChangeTransition("Take Control", "LAND", "Sit Up");
+            laceFSM.GetTransition("Take Control", "LAND").fsmEvent = FsmEvent.GetFsmEvent("FINISHED");
+            laceFSM.DisableAction("Take Control", 3);
                 
-                Wait w2 = new Wait();
-                w2.time = 2f;
-                laceFSM.DisableAction("Sit Up", 4);
-                laceFSM.AddAction("Sit Up", w2);
+            Wait w2 = new Wait();
+            w2.time = 2f;
+            laceFSM.DisableAction("Sit Up", 4);
+            laceFSM.AddAction("Sit Up", w2);
 
-                SetPosition laceTargetPos = laceFSM.GetAction<SetPosition>("Sit Up", 3);
+            SetPosition laceTargetPos = laceFSM.GetAction<SetPosition>("Sit Up", 3);
 
-                laceTargetPos.vector = new Vector3(81.9569f, 106.6942f, 2.7021f);
-                laceTargetPos.x = 81.9569f;
-                laceTargetPos.y = 106.6942f;
-                laceTargetPos.z = 2.7021f;
+            laceTargetPos.vector = new Vector3(81.9569f, 106.6942f, 2.7021f);
+            laceTargetPos.x = 81.9569f;
+            laceTargetPos.y = 106.6942f;
+            laceTargetPos.z = 2.7021f;
 
-                laceFSM.ChangeTransition("Sit Up", "FINISHED", "Jump Antic");
+            laceFSM.ChangeTransition("Sit Up", "FINISHED", "Jump Antic");
                 
-                Logger.LogInfo("Setting actions to give back hornet control");
-                SendMessage message_control_idle = new SendMessage();
-                FunctionCall fc_control_idle = new FunctionCall();
-                fc_control_idle.FunctionName = "StartControlToIdle";
+            Logger.LogInfo("Setting actions to give back hornet control");
+            SendMessage message_control_idle = new SendMessage();
+            FunctionCall fc_control_idle = new FunctionCall();
+            fc_control_idle.FunctionName = "StartControlToIdle";
                 
-                message_control_idle.functionCall = fc_control_idle;
-                message_control_idle.gameObject = SilkenSisters.hornetFSMOwner;
-                message_control_idle.options = SendMessageOptions.DontRequireReceiver;
+            message_control_idle.functionCall = fc_control_idle;
+            message_control_idle.gameObject = SilkenSisters.hornetFSMOwner;
+            message_control_idle.options = SendMessageOptions.DontRequireReceiver;
 
-                SendMessage message_control_regain = new SendMessage();
-                FunctionCall fc_control_regain = new FunctionCall();
-                fc_control_regain.FunctionName = "RegainControl";
-                message_control_regain.functionCall = fc_control_regain;
-                message_control_regain.gameObject = SilkenSisters.hornetFSMOwner;
-                message_control_regain.options = SendMessageOptions.DontRequireReceiver;
+            SendMessage message_control_regain = new SendMessage();
+            FunctionCall fc_control_regain = new FunctionCall();
+            fc_control_regain.FunctionName = "RegainControl";
+            message_control_regain.functionCall = fc_control_regain;
+            message_control_regain.gameObject = SilkenSisters.hornetFSMOwner;
+            message_control_regain.options = SendMessageOptions.DontRequireReceiver;
 
-                laceFSM.AddAction("Jump Away", message_control_regain);
-                laceFSM.AddAction("Jump Away", message_control_idle);
+            laceFSM.AddAction("Jump Away", message_control_regain);
+            laceFSM.AddAction("Jump Away", message_control_idle);
 
-                Logger.LogInfo($"Unloading {scene.name} scene");
-                SceneManager.UnloadScene(scene.name);
-                Logger.LogInfo($"Unloading bundle {bundle.name}");
-                bundle.Unload(false);
-
-            };
+            laceNPCInstance.SetActive(true);
         }
 
         private void spawnLaceBoss2()
         {
             // Spawn pos : 78,7832 104,5677 0,004
             // Constraints left: 72,4, right: 96,52, bot: 104
-            Scene cur_scene = SceneManager.GetActiveScene();
-            Logger.LogInfo($"Current scene {SceneManager.GetActiveScene().name}");
-            Logger.LogInfo("Loading song tower scene");
 
             // Needed to get her loaded in the scene
             bool has_beaten_lace = PlayerData.instance.defeatedLaceTower;
             Logger.LogInfo($"Has beaten lace? {has_beaten_lace}, saving for later");
             PlayerData.instance.defeatedLaceTower = false;
-
-            AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "aa", "StandaloneWindows64", "scenes_scenes_scenes", "song_tower_01.bundle"));
+            
             AssetBundle laceboss_bundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "aa", "StandaloneWindows64", "localpoolprefabs_assets_laceboss.bundle"));
-            AsyncOperation op = SceneManager.LoadSceneAsync("Song_Tower_01", LoadSceneMode.Additive);
+            
+            lace2BossSceneInstance = Instantiate(lace2BossSceneCache);
+            lace2BossSceneInstance.SetActive(true);
 
-            op.completed += (AsyncOperation obj) =>
-            {
-                Scene scene = SceneManager.GetSceneByName("Song_Tower_01");
+            Logger.LogInfo($"Trying to find Lace Boss from scene {lace2BossSceneInstance.gameObject.name}");
+            lace2BossInstance = SceneObjectManager.findChildObject(lace2BossSceneInstance, "Lace Boss2 New"); //GameObject.Find($"{laceBossScene.gameObject.name}/Lace Boss2 New");
+            Logger.LogInfo($"Lace object: {lace2BossInstance}");
 
-                Logger.LogInfo($"Scene {scene.name} loaded");
+            Logger.LogInfo($"Disabling unwanted LaceBossScene items");
+            SceneObjectManager.findChildObject(lace2BossSceneInstance, "Flower Effect Hornet").SetActive(false);
+            SceneObjectManager.findChildObject(lace2BossSceneInstance, "Slam Particles").SetActive(false);
+            SceneObjectManager.findChildObject(lace2BossSceneInstance, "steam hazard").SetActive(false);
+            SceneObjectManager.findChildObject(lace2BossSceneInstance, "Silk Heart Memory Return").SetActive(false);
 
+            Logger.LogInfo($"Moving lace arena objects");
+            SceneObjectManager.findChildObject(lace2BossSceneInstance, "Arena L").transform.position = new Vector3(72f, 104f, 0f);
+            SceneObjectManager.findChildObject(lace2BossSceneInstance, "Arena R").transform.position = new Vector3(97f, 104f, 0f);
+            SceneObjectManager.findChildObject(lace2BossSceneInstance, "Centre").transform.position = new Vector3(84.5f, 104f, 0f);
 
-                GameObject go = null;
-                foreach (GameObject sgo in scene.GetRootGameObjects())
-                {
-                    if (sgo.name == "Boss Scene")
-                    {
-                        go = sgo;
-                    }
-                }
+            SceneObjectManager.findChildObject(lace2BossInstance, "Pt DashPetal").SetActive(false);
+            SceneObjectManager.findChildObject(lace2BossInstance, "Pt SkidPetal").SetActive(false);
+            SceneObjectManager.findChildObject(lace2BossInstance, "Pt RisingPetal").SetActive(false);
+            SceneObjectManager.findChildObject(lace2BossInstance, "Pt MovePetal").SetActive(false);
 
-                //GameObject go = GameObject.Find("Boss Scene");
-                Logger.LogInfo($"Trying to copy {go.name}");
-                GameObject laceBossScene = Instantiate(go);
+            laceBossFSMOwner = new FsmOwnerDefault();
+            laceBossFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
+            laceBossFSMOwner.GameObject = lace2BossInstance;
 
-                Logger.LogInfo($"Moving {laceBossScene.name} to {cur_scene.name}");
-                SceneManager.MoveGameObjectToScene(laceBossScene, cur_scene);
+            // Disabling the check so that we don't need to track it further
+            Logger.LogInfo($"Disabling defeated check");
+            DeactivateIfPlayerdataTrue comp = (DeactivateIfPlayerdataTrue)lace2BossInstance.GetComponent(typeof(DeactivateIfPlayerdataTrue));
+            comp.enabled = false;
+            PlayerData.instance.defeatedLaceTower = has_beaten_lace; // Putting back the value
 
-                Logger.LogInfo($"Trying to find Lace Boss from scene {laceBossScene.gameObject.name}");
-                GameObject lace = GameObject.Find($"{laceBossScene.gameObject.name}/Lace Boss2 New");
-                Logger.LogInfo($"Lace object: {lace}");
+            ConstrainPosition laceBossConstraint = (ConstrainPosition)lace2BossInstance.GetComponent(typeof(ConstrainPosition));
+            laceBossConstraint.SetXMin(72.4f);
+            laceBossConstraint.SetXMax(96.52f);
+            laceBossConstraint.SetYMin(104f);
+            laceBossConstraint.constrainX = true;
+            laceBossConstraint.constrainY = true;
 
-                Logger.LogInfo($"Disabling unwanted LaceBossScene items");
-                GameObject.Find($"{laceBossScene.gameObject.name}/Flower Effect Hornet").SetActive(false);
-                GameObject.Find($"{laceBossScene.gameObject.name}/Slam Particles").SetActive(false);
-                GameObject.Find($"{laceBossScene.gameObject.name}/steam hazard").SetActive(false);
-                GameObject.Find($"{laceBossScene.gameObject.name}/Silk Heart Memory Return").SetActive(false);
+            // Finite state machine edition
+            PlayMakerFSM laceBossFSM = FsmUtil.GetFsmPreprocessed(lace2BossInstance, "Control");
+            Logger.LogInfo(laceBossFSM.FsmName);
 
-                GameObject.Find($"{laceBossScene.gameObject.name}/{lace.gameObject.name}/Pt DashPetal").SetActive(false);
-                GameObject.Find($"{laceBossScene.gameObject.name}/{lace.gameObject.name}/Pt SkidPetal").SetActive(false);
-                GameObject.Find($"{laceBossScene.gameObject.name}/{lace.gameObject.name}/Pt RisingPetal").SetActive(false);
-                GameObject.Find($"{laceBossScene.gameObject.name}/{lace.gameObject.name}/Pt MovePetal").SetActive(false);
+            // Reroute states
+            Logger.LogInfo("Rerouting states");
+            laceBossFSM.ChangeTransition("Init", "REFIGHT", "Start Battle Wait");
+            laceBossFSM.ChangeTransition("Start Battle Wait", "BATTLE START REFIGHT", "Refight Engarde");
+            laceBossFSM.ChangeTransition("Start Battle Wait", "BATTLE START FIRST", "Refight Engarde");
 
-                Logger.LogInfo($"Moving lace arena objects");
-                GameObject.Find($"{laceBossScene.gameObject.name}/Arena L").transform.position = new Vector3(72f, 104f, 0f);
-                GameObject.Find($"{laceBossScene.gameObject.name}/Arena R").transform.position = new Vector3(97f, 104f, 0f);
-                GameObject.Find($"{laceBossScene.gameObject.name}/Centre").transform.position = new Vector3(84.5f, 104f, 0f);
-
-                SilkenSisters.laceBoss = lace;
-                SilkenSisters.laceBossFSMOwner = new FsmOwnerDefault();
-                SilkenSisters.laceBossFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
-                SilkenSisters.laceBossFSMOwner.GameObject = SilkenSisters.laceBoss;
-
-                // Disabling the check so that we don't need to track it further
-                Logger.LogInfo($"Disabling defeated check");
-                DeactivateIfPlayerdataTrue comp = (DeactivateIfPlayerdataTrue)lace.GetComponent(typeof(DeactivateIfPlayerdataTrue));
-                comp.enabled = false;
-                PlayerData.instance.defeatedLaceTower = has_beaten_lace; // Putting back the value
-
-                ConstrainPosition laceBossConstraint = (ConstrainPosition)lace.GetComponent(typeof(ConstrainPosition));
-                laceBossConstraint.SetXMin(72.4f);
-                laceBossConstraint.SetXMax(96.52f);
-                laceBossConstraint.SetYMin(104f);
-                laceBossConstraint.constrainX = true;
-                laceBossConstraint.constrainY = true;
-
-                // Finite state machine edition
-                PlayMakerFSM laceBossFSM = FsmUtil.GetFsmPreprocessed(laceBoss, "Control");
-                Logger.LogInfo(laceBossFSM.FsmName);
-
-                // Reroute states
-                Logger.LogInfo("Rerouting states");
-                laceBossFSM.ChangeTransition("Init", "REFIGHT", "Start Battle Wait");
-                laceBossFSM.ChangeTransition("Start Battle Wait", "BATTLE START REFIGHT", "Refight Engarde");
-                laceBossFSM.ChangeTransition("Start Battle Wait", "BATTLE START FIRST", "Refight Engarde");
-
-                // Lengthen the engarde state
-                Wait wait_engarde = new Wait();
-                wait_engarde.time = 1f;
-                Logger.LogInfo("Increase engarde time");
-                laceBossFSM.AddAction("Refight Engarde", wait_engarde);
+            // Lengthen the engarde state
+            Wait wait_engarde = new Wait();
+            wait_engarde.time = 1f;
+            Logger.LogInfo("Increase engarde time");
+            laceBossFSM.AddAction("Refight Engarde", wait_engarde);
                 
+            // Change floor height
+            Logger.LogInfo("Fix floor heights");
+            laceBossFSM.GetAction<SetPosition2d>("ComboSlash 1", 0).y = 104.5677f;
+            laceBossFSM.GetAction<SetPosition2d>("Charge Antic", 2).y = 104.5677f;
+            laceBossFSM.GetAction<SetPosition2d>("Counter Antic", 1).y = 104.5677f;
 
-                // Change floor height
-                Logger.LogInfo("Fix floor heights");
-                laceBossFSM.GetAction<SetPosition2d>("ComboSlash 1", 0).y = 104.5677f;
-                laceBossFSM.GetAction<SetPosition2d>("Charge Antic", 2).y = 104.5677f;
-                laceBossFSM.GetAction<SetPosition2d>("Counter Antic", 1).y = 104.5677f;
+            Logger.LogInfo("Fixing Counter Teleport");
+            laceBossFSM.GetAction<SetPosition>("Counter TeleIn", 4).y = 110f;
+            ClampPosition clamp_pos = new ClampPosition();
+            clamp_pos.maxX = 94f;
+            clamp_pos.minX = 74f;
+            laceBossFSM.InsertAction("Counter TeleIn", clamp_pos, 4);
 
-                Logger.LogInfo("Fixing Counter Teleport Height");
-                laceBossFSM.GetAction<SetPosition>("Counter TeleIn", 4).y = 110f;
+            // Disable lace's title card
+            Logger.LogInfo("Disabling title card");
+            laceBossFSM.DisableAction("Start Battle Refight", 4);
+            laceBossFSM.DisableAction("Start Battle", 4);
 
-                // Disable lace's title card
-                Logger.LogInfo("Disabling title card");
-                laceBossFSM.DisableAction("Start Battle Refight", 4);
-                laceBossFSM.DisableAction("Start Battle", 4);
+            laceBossFSM.GetAction<FloatClamp>("Set CrossSlash Pos", 1).minValue = 73f;
+            laceBossFSM.GetAction<FloatClamp>("Set CrossSlash Pos", 1).maxValue = 96f;
 
-                laceBossFSM.GetAction<FloatClamp>("Set CrossSlash Pos", 1).minValue = 73f;
-                laceBossFSM.GetAction<FloatClamp>("Set CrossSlash Pos", 1).maxValue = 96f;
+            laceBossFSM.FindFloatVariable("Land Y").Value = 104.5677f;
+            laceBossFSM.FindFloatVariable("Arena Plat Bot Y").Value = 102f;
 
-                laceBossFSM.FindFloatVariable("Land Y").Value = 104.5677f;
-                laceBossFSM.FindFloatVariable("Arena Plat Bot Y").Value = 102f;
+            //lace.transform.position = hornet.transform.position + new Vector3(3, 0, 0);
+            lace2BossInstance.transform.position = new Vector3(78.2832f, 104.5677f, 0.004f);
+            lace2BossInstance.transform.SetScaleX(1);
+            Logger.LogInfo($"Setting lace position at {lace2BossInstance.transform.position}");
 
-                //lace.transform.position = hornet.transform.position + new Vector3(3, 0, 0);
-                lace.transform.position = new Vector3(78.3832f, 104.5677f, 0.004f);
-                lace.transform.SetScaleX(1);
-                Logger.LogInfo($"Setting lace position at {lace.transform.position}");
+            SilkenSisters.laceBoss2Active = true;
+            lace2BossInstance.SetActive(false);
 
-                SilkenSisters.laceBoss2Active = true;
-                lace.SetActive(false);
-
-                Logger.LogInfo($"Unloading {scene.name} scene");
-                SceneManager.UnloadScene(scene.name);
-                Logger.LogInfo($"Unloading bundle {bundle.name}");
-                bundle.Unload(false);
-
-            };
         }
 
         private void reset()
@@ -649,40 +766,10 @@ namespace SilkenSisters
 
             Logger.LogInfo("Reseting variables");
 
-            SilkenSisters.laceNPC = null;
-            SilkenSisters.laceNPCFSMOwner = null;
-
-            SilkenSisters.laceBoss = null;
-            SilkenSisters.laceBossFSMOwner = null;
-
-            SilkenSisters.phantomBoss = null;
-            SilkenSisters.phantomBossScene = null;
-            SilkenSisters.phantomBossSceneFSMOwner = null;
         }
 
         private void Update()
         {
-            if (SilkenSisters.phantomBossScene == null && SceneManager.GetActiveScene().name == "Organ_01")
-            {
-                SilkenSisters.phantomBossScene = GameObject.Find("Boss Scene");
-                if (SilkenSisters.phantomBossScene != null)
-                {
-                    SilkenSisters.phantomBossSceneFSMOwner = new FsmOwnerDefault();
-                    SilkenSisters.phantomBossSceneFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
-                    SilkenSisters.phantomBossSceneFSMOwner.GameObject = SilkenSisters.phantomBossScene;
-                }
-            }
-
-            if (SilkenSisters.laceBoss != null && SceneManager.GetActiveScene().name == "Organ_01")
-            {
-                PlayMakerFSM laceBossFSM = SilkenSisters.laceBoss.GetComponents<PlayMakerFSM>().First(fsm => fsm.FsmName == "Control");
-                //Logger.LogInfo($"Dstab angle : {laceBossFSM.FindFloatVariable("Angle").Value}, Min angle {laceBossFSM.FindFloatVariable("Angle Max").Value}, Max angle {laceBossFSM.FindFloatVariable("Angle Max").Value}");
-            }
-
-            if (SilkenSisters.phantomBoss == null && SceneManager.GetActiveScene().name == "Organ_01")
-            {
-                SilkenSisters.phantomBoss = GameObject.Find("Boss Scene/Phantom");
-            }
 
             if (SilkenSisters.hornet == null)
             {
@@ -699,7 +786,11 @@ namespace SilkenSisters
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.O))
             {
+                registerPhantom();
+                spawnChallengeSequence();
                 spawnLaceBoss2();
+                spawnLaceNpc();
+                setupPhantom(); ;
             }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.U))
@@ -721,19 +812,20 @@ namespace SilkenSisters
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.L))
             {
-                reset();
+                Logger.LogInfo($"{SceneManager.GetSceneByName("Organ_01")}");
+                Logger.LogInfo($"{SceneManager.GetAllScenes().Length}");
             }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad0))
             {
-                SilkenSisters.laceBoss.SetActive(true);
-                ((PlayMakerFSM)SilkenSisters.laceBoss.GetComponent(typeof(PlayMakerFSM))).SendEvent("BATTLE START FIRST");
-                SilkenSisters.laceBoss.GetComponent<HealthManager>().hp = 1;
+                lace2BossInstance.SetActive(true);
+                ((PlayMakerFSM)lace2BossInstance.GetComponent(typeof(PlayMakerFSM))).SendEvent("BATTLE START FIRST");
+                lace2BossInstance.GetComponent<HealthManager>().hp = 1;
             }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad1))
             {
-                SilkenSisters.phantomBoss.GetComponent<HealthManager>().hp = 1;
+                SceneObjectManager.findChildObject(phantomBossScene, "Phantom").GetComponent<HealthManager>().hp = 1;
             }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad2))
@@ -744,12 +836,13 @@ namespace SilkenSisters
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.K))
             {
                 PlayMakerFSM.BroadcastEvent("ENTER");
-                ((PlayMakerFSM)SilkenSisters.phantomBossScene.GetComponent(typeof(PlayMakerFSM))).SendEvent("ENTER");
+                ((PlayMakerFSM)phantomBossScene.GetComponent(typeof(PlayMakerFSM))).SendEvent("ENTER");
             }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.G))
             {
-                PlayMakerFSM phantomBossFSM = FsmUtil.GetFsmPreprocessed(SilkenSisters.phantomBoss, "Control");
+
+                PlayMakerFSM phantomBossFSM = FsmUtil.GetFsmPreprocessed(SceneObjectManager.findChildObject(phantomBossScene, "Phantom"), "Control");
                 Logger.LogInfo("Switching dragoon time");
                 if (phantomDragoonToggle)
                 {
