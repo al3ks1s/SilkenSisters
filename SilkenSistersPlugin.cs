@@ -18,6 +18,8 @@ using TeamCherry.Localization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using SilkenSisters.SceneManagement;
+using InControl.NativeDeviceProfiles;
+
 
 // Idea by AidaCamelia0516
 
@@ -116,8 +118,6 @@ namespace SilkenSisters
 
         public static Scene organScene;
 
-        private static bool isMemory = false;
-
         private GameObject laceNPCCache;
         private GameObject lace2BossSceneCache;
         private GameObject lace1BossSceneCache;
@@ -125,6 +125,8 @@ namespace SilkenSisters
         private GameObject challengeDialogCache;
         private GameObject wakeupPointCache;
         private GameObject deepMemoryCache;
+
+        private FsmState ExitMemoryCache;
 
         private GameObject laceNPCInstance;
         private FsmOwnerDefault laceNPCFSMOwner;
@@ -139,6 +141,7 @@ namespace SilkenSisters
 
         private GameObject challengeDialogInstance;
         private GameObject wakeupPointInstance;
+        private GameObject respawnPointInstance;
         private GameObject deepMemoryInstance;
 
         
@@ -149,6 +152,8 @@ namespace SilkenSisters
         private static bool laceBoss2Active = false;
         private static bool phantomSpeedToggle = false;
         private static bool phantomDragoonToggle = false;
+
+        public static bool persistentInMemory = false;
 
         private static GameObject hornet;
         private static FsmOwnerDefault hornetFSMOwner;
@@ -181,6 +186,23 @@ namespace SilkenSisters
             yield return new WaitForSeconds(2f); // Give game time to init Language
             Harmony.CreateAndPatchAll(typeof(Language_Get_Patch));
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(HeroController), "Die")]
+        private static void setDieTester(HeroController __instance, ref bool nonLethal, ref bool frostDeath)
+        {
+            SilkenSisters.Log.LogInfo($"Hornet died {nonLethal} {frostDeath} / isMemory? {SilkenSisters.isMemory()}");
+            if (SilkenSisters.isMemory())
+            {
+                SilkenSisters.Log.LogInfo($"Hornet died in memory, nonLethal enabled");
+
+                PlayerData._instance.defeatedPhantom = true;
+                PlayerData._instance.blackThreadWorld = true;
+
+                nonLethal = true;
+            }
+        }
+
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ClampAngle), "DoClamp")]
@@ -267,6 +289,11 @@ namespace SilkenSisters
                 laceCorpseNPCFSM.DisableAction("End", 12);
                 laceCorpseNPCFSM.DisableAction("End", 13);
 
+                SilkenSisters.Log.LogInfo("Disabling audio cutting");
+                laceCorpseFSM.DisableAction("Start", 0);
+                laceCorpseNPCFSM.DisableAction("Talk 1 Start", 3);
+                laceCorpseNPCFSM.DisableAction("End", 0);
+
                 SilkenSisters.Log.LogInfo("Finished setting up corpse handler");
             }
 
@@ -289,57 +316,98 @@ namespace SilkenSisters
                     }
                 }
             }
-                            
-        }
 
+            if (__instance.Fsm.GameObject.name == "Phantom")
+            {
+                // SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}");
+                if (__instance.Actions.Length > 0)
+                {
+                    foreach (FsmTransition transi in __instance.transitions)
+                    { 
+                        // SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
+                    }
+
+                    foreach (FsmStateAction action in __instance.Actions)
+                    {
+                        // SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
+                    }
+                }
+            }
+            
+        }
 
         private void onSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            Logger.LogInfo($"Scene loaded : {scene.name}");
+            Logger.LogInfo($"Scene loaded : {scene.name}, active scene : {SceneManager.GetActiveScene()}");
 
             string[] excludedScenes = new string[]{ "Menu_Title", "Pre_Menu_Loader", "Pre_Menu_Intro", "Quit_To_Menu" };
 
             if (scene.name == "Organ_01")
             {
+                Logger.LogInfo($"Organ Detected, preloading");
                 organScene = scene;
                 preloadOrgan();
             } 
         }
+
         private async Task preloadOrgan()
         {
+
             await cacheGameObjects();
 
-            if (!isMemory)
+            if (!isMemory())
             {
+                Logger.LogInfo($"Is not memory, setting things up");
                 setupDeepMemoryZone();
                 setupWakeupPoint();
+                setupRespawnPoint();
             }
+
+            GameObject eff = GameObject.Find("Deep Memory Enter Black(Clone)");
+            if (eff != null)
+            {
+                Logger.LogInfo("Deleting leftover memory effect");
+                GameObject.Destroy(eff);
+            }
+
+        }
+
+        public static bool isMemory()
+        {
+            return SceneManager.GetActiveScene().name == "Organ_01" && !PlayerData._instance.defeatedPhantom && !PlayerData._instance.blackThreadWorld && PlayerData._instance.hasNeedolinMemoryPowerup;
         }
 
         private async Task cacheGameObjects()
         {
-            if (deepMemoryCache == null)
+            if (laceNPCCache == null || lace2BossSceneCache == null || challengeDialogCache == null || wakeupPointCache == null || deepMemoryCache == null)
             {
+
+                Logger.LogWarning("Initializing cache");
                 laceNPCCache = await SceneObjectManager.loadObjectFromScene("Coral_19", "Encounter Scene Control/Lace Meet/Lace NPC Blasted Bridge");
                 lace2BossSceneCache = await SceneObjectManager.loadObjectFromScene("Song_Tower_01", "Boss Scene");
+
+                AssetBundle laceboss_bundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "aa", "StandaloneWindows64", "localpoolprefabs_assets_laceboss.bundle"));
 
                 //lace1BossSceneCache;
 
                 challengeDialogCache = await SceneObjectManager.loadObjectFromScene("Cradle_03", "Boss Scene/Intro Sequence");
                 wakeupPointCache = await SceneObjectManager.loadObjectFromScene("Memory_Coral_Tower", "Door Get Up");
+
+                GameObject bossScene = await SceneObjectManager.loadObjectFromScene("Memory_Coral_Tower", "Boss Scene");
+                PlayMakerFSM control = FsmUtil.GetFsmPreprocessed(bossScene, "Control");
+                ExitMemoryCache = control.GetState("Exit Memory");
+                Logger.LogInfo($"{ExitMemoryCache.name}, {ExitMemoryCache.actions.Length}");
+
                 deepMemoryCache = await SceneObjectManager.loadObjectFromScene("Coral_Tower_01", "Memory Group");
 
-                if (
-                    laceNPCCache == null ||
-                    lace2BossSceneCache == null ||
-                    challengeDialogCache == null ||
-                    wakeupPointCache == null ||
-                    deepMemoryCache == null
-                    )
+
+                if (laceNPCCache == null || lace2BossSceneCache == null || challengeDialogCache == null || wakeupPointCache == null || deepMemoryCache == null)
                 {
                     Logger.LogWarning("One of the item requested could not be found");
                 }
-
+            } else
+            {
+                await Task.Delay(300);
             }
         }
 
@@ -365,12 +433,6 @@ namespace SilkenSisters
                 phantomBossSceneFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
                 phantomBossSceneFSMOwner.GameObject = phantomBossScene;
             }
-        }
-
-        private void enableFight()
-        {
-            Logger.LogInfo("Toggling fight");
-            SilkenSisters.isMemory = true;
         }
 
         private void setupPhantom()
@@ -452,30 +514,165 @@ namespace SilkenSisters
                 phantomBossFSM.DisableAction("Set Data", 2);
 
                 Logger.LogInfo($"Reset playerdata on death and end");
-                HutongGames.PlayMaker.Actions.SetPlayerDataBool enablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
-                enablePhantom.boolName = "defeatedPhantom";
-                enablePhantom.value = true;
 
-                HutongGames.PlayMaker.Actions.SetPlayerDataBool world_normal = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
-                world_normal.boolName = "blackThreadWorld";
-                world_normal.value = true;
-
-                phantomBossFSM.InsertAction("Hornet Dead", enablePhantom, 0);
-                phantomBossFSM.InsertAction("Hornet Dead", world_normal, 0);
-                phantomBossFSM.InsertAction("End", enablePhantom, 0);
-                phantomBossFSM.InsertAction("End", world_normal, 0);
+                InvokeMethod inv = new InvokeMethod(reset);
+                phantomBossFSM.InsertAction("Hornet Dead", inv, 0);
+                phantomBossFSM.InsertAction("End", inv, 0);
 
                 phantomBoss.transform.SetPositionX(77.1797f);
 
+                FsmGameObject laceBossVar = phantomBossFSM.AddGameObjectVariable("LaceBoss2");
+                laceBossVar.SetName("LaceBoss2");
 
-                ActivateGameObject disableChallengeObject = new ActivateGameObject();
-                FsmOwnerDefault disableOwner = new FsmOwnerDefault();
-                disableOwner.ownerOption = OwnerDefaultOption.SpecifyGameObject;
-                disableOwner.gameObject = challengeDialogInstance;
-                disableChallengeObject.activate = false;
-                disableChallengeObject.gameObject = disableOwner;
-                disableChallengeObject.fsm = challengeDialogInstance.GetComponent<PlayMakerFSM>().fsm;
-                //phantomBossFSM.AddAction("Appear", disableChallengeObject);
+                FindGameObject laceObject = new FindGameObject();
+                laceObject.objectName = $"{lace2BossInstance.name}";
+                laceObject.store = laceBossVar;
+                laceObject.withTag = "Untagged";
+
+                GameObjectIsNull laceIsNull = new GameObjectIsNull();
+                laceIsNull.gameObject = laceBossVar;
+                laceIsNull.isNotNull = FsmEvent.GetFsmEvent("BLOCKED HIT");
+
+                phantomBossFSM.AddTransition("Final Parry", "BLOCKED HIT", "Counter Stance");
+                phantomBossFSM.InsertAction("Final Parry", laceIsNull, 0);
+                phantomBossFSM.InsertAction("Final Parry", laceObject, 0);
+
+                Logger.LogInfo($"{respawnPointInstance}");
+
+                PlayMakerFSM sourceFSM = FsmUtil.GetFsmPreprocessed(SceneObjectManager.findChildObject(deepMemoryCache, "before/thread_memory"), "FSM");
+
+                FsmGameObject deepMemVar = phantomBossFSM.AddGameObjectVariable("Deep Memory Enter");
+
+                phantomBossFSM.AddState("Deep Memory Enter");
+                SpawnObjectFromGlobalPool deepMemoryEffect = new SpawnObjectFromGlobalPool();
+                deepMemoryEffect.gameObject = sourceFSM.GetAction<SpawnObjectFromGlobalPool>("Deep Memory Enter", 3).gameObject;
+                deepMemoryEffect.spawnPoint = sourceFSM.GetAction<SpawnObjectFromGlobalPool>("Deep Memory Enter", 3).spawnPoint;
+                deepMemoryEffect.storeObject = deepMemVar;
+                deepMemoryEffect.position = new FsmVector3();
+                deepMemoryEffect.rotation = new FsmVector3();
+
+                SetMainCameraFovOffset camOff = new SetMainCameraFovOffset();
+                camOff.FovOffset = -1f;
+                camOff.TransitionTime = 4.7f;
+                camOff.TransitionCurve = sourceFSM.GetAction<SetMainCameraFovOffset>("Deep Memory Enter", 4).TransitionCurve;
+
+                Wait deepEnterWait = new Wait();
+                deepEnterWait.time = 4.7f;
+                deepEnterWait.finishEvent = FsmEvent.GetFsmEvent("FINISHED");
+
+                phantomBossFSM.AddAction("Deep Memory Enter", deepMemoryEffect);
+                phantomBossFSM.AddAction("Deep Memory Enter", camOff);
+                phantomBossFSM.AddAction("Deep Memory Enter", deepEnterWait);
+
+                phantomBossFSM.AddState("Deep Memory Enter Fall");
+                HeroControllerMethods heroC1 = new HeroControllerMethods();
+                heroC1.method = HeroControllerMethods.Method.RelinquishControl;
+
+                HeroControllerMethods heroC2 = new HeroControllerMethods();
+                heroC2.method = HeroControllerMethods.Method.RelinquishControlNotVelocity;
+
+                TransitionToAudioSnapshot audio1 = new TransitionToAudioSnapshot();
+                audio1.snapshot = sourceFSM.GetAction<TransitionToAudioSnapshot>("Deep Memory Enter Fall", 3).snapshot;
+                audio1.transitionTime = 2f;
+                
+                TransitionToAudioSnapshot audio2 = new TransitionToAudioSnapshot();
+                audio2.snapshot = sourceFSM.GetAction<TransitionToAudioSnapshot>("Deep Memory Enter Fall", 4).snapshot;
+                audio2.transitionTime = 2f;
+
+                TransitionToAudioSnapshot audio3 = new TransitionToAudioSnapshot();
+                audio3.snapshot = sourceFSM.GetAction<TransitionToAudioSnapshot>("Deep Memory Enter Fall", 5).snapshot;
+                audio3.transitionTime = 2f;
+
+                SetMainCameraFovOffset camOff2 = new SetMainCameraFovOffset();
+                camOff2.FovOffset = -2f;
+                camOff2.TransitionTime = 2f;
+                camOff2.TransitionCurve = sourceFSM.GetAction<SetMainCameraFovOffset>("Deep Memory Enter Fall", 6).TransitionCurve;
+
+                AudioPlayerOneShotSingle audio4 = new AudioPlayerOneShotSingle();
+                audio4.audioPlayer = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Deep Memory Enter Fall", 7).audioPlayer;
+                audio4.spawnPoint = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Deep Memory Enter Fall", 7).spawnPoint;
+                audio4.audioClip = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Deep Memory Enter Fall", 7).audioClip;
+                audio4.pitchMax = 1f;
+                audio4.pitchMin = 1f;
+                audio4.volume = 1f;
+                audio4.delay = 0f;
+                audio4.storePlayer = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Deep Memory Enter Fall", 7).storePlayer;
+
+                Tk2dPlayAnimationWithEvents fallAnim = new Tk2dPlayAnimationWithEvents();
+                fallAnim.gameObject = sourceFSM.GetAction<Tk2dPlayAnimationWithEvents>("Deep Memory Enter Fall", 8).gameObject;
+                fallAnim.clipName = sourceFSM.GetAction<Tk2dPlayAnimationWithEvents>("Deep Memory Enter Fall", 8).clipName;
+                fallAnim.animationTriggerEvent = sourceFSM.GetAction<Tk2dPlayAnimationWithEvents>("Deep Memory Enter Fall", 8).animationTriggerEvent;
+
+                phantomBossFSM.AddAction("Deep Memory Enter Fall", sourceFSM.GetAction<HeroControllerMethods>("Deep Memory Enter Fall", 1));
+                phantomBossFSM.AddAction("Deep Memory Enter Fall", sourceFSM.GetAction<HeroControllerMethods>("Deep Memory Enter Fall", 2));
+                phantomBossFSM.AddAction("Deep Memory Enter Fall", audio1);
+                phantomBossFSM.AddAction("Deep Memory Enter Fall", audio2);
+                phantomBossFSM.AddAction("Deep Memory Enter Fall", audio3);
+                phantomBossFSM.AddAction("Deep Memory Enter Fall", camOff2);
+                phantomBossFSM.AddAction("Deep Memory Enter Fall", audio4);
+                phantomBossFSM.AddAction("Deep Memory Enter Fall", fallAnim);
+
+                phantomBossFSM.AddState("Collapse");
+
+                AudioPlayerOneShotSingle audio5 = new AudioPlayerOneShotSingle();
+                audio5.audioPlayer = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Collapse", 2).audioPlayer;
+                audio5.spawnPoint = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Collapse", 2).spawnPoint;
+                audio5.audioClip = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Collapse", 2).audioClip;
+                audio5.pitchMax = 1f;
+                audio5.pitchMin = 1f;
+                audio5.volume = 1f;
+                audio5.delay = 0f;
+                audio5.storePlayer = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Collapse", 2).storePlayer;
+
+                AudioPlayerOneShotSingle audio6 = new AudioPlayerOneShotSingle();
+                audio6.audioPlayer = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Collapse", 3).audioPlayer;
+                audio6.spawnPoint = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Collapse", 3).spawnPoint;
+                audio6.audioClip = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Collapse", 3).audioClip;
+                audio6.pitchMax = 1f;
+                audio6.pitchMin = 1f;
+                audio6.volume = 1f;
+                audio6.delay = 0f;
+                audio6.storePlayer = sourceFSM.GetAction<AudioPlayerOneShotSingle>("Collapse", 3).storePlayer;
+
+                ListenForAnimationEvent eventListen = new ListenForAnimationEvent();
+                eventListen.Response = FsmEvent.GetFsmEvent("FINISHED");
+                eventListen.Target = sourceFSM.GetAction<ListenForAnimationEvent>("Collapse", 4).Target;
+
+                Wait waitForAnim = new Wait();
+                waitForAnim.time = 1f;
+                waitForAnim.finishEvent = FsmEvent.GetFsmEvent("FINISHED");
+
+                phantomBossFSM.AddAction("Collapse", audio5);
+                phantomBossFSM.AddAction("Collapse", audio6);
+                phantomBossFSM.AddAction("Collapse", waitForAnim);
+
+                FsmState exitMemory = new FsmState(ExitMemoryCache);
+                exitMemory.GetAction<ScreenFader>(1).startColour = new Color(0, 0, 0, 0);
+                exitMemory.GetAction<ScreenFader>(1).endColour = new Color(0, 0, 0, 1);
+
+                exitMemory.GetAction<StartPreloadingScene>(0).SceneName = "Organ_01";
+                exitMemory.GetAction<BeginSceneTransition>(4).sceneName = "Organ_01";
+                exitMemory.GetAction<BeginSceneTransition>(4).entryGateName = $"{respawnPointInstance.name}";
+
+                exitMemory.GetAction<Wait>(2).time = 0.5f;
+
+                phantomBossFSM.AddState(exitMemory);
+
+                phantomBossFSM.AddTransition("Set Data", "FINISHED", "Deep Memory Enter");
+                phantomBossFSM.AddTransition("Deep Memory Enter", "FINISHED", "Deep Memory Enter Fall");
+                phantomBossFSM.AddTransition("Deep Memory Enter Fall", "FINISHED", "Collapse");
+                phantomBossFSM.AddTransition("Collapse", "FINISHED", "Exit Memory");
+
+                HutongGames.PlayMaker.Actions.SetPlayerDataBool disablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+                disablePhantom.boolName = "defeatedPhantom";
+                disablePhantom.value = true;
+
+                HutongGames.PlayMaker.Actions.SetPlayerDataBool world_black_thread = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+                world_black_thread.boolName = "blackThreadWorld";
+                world_black_thread.value = true;
+
+                phantomBossFSM.InsertAction("Collapse", disablePhantom, 0);
+                phantomBossFSM.InsertAction("Collapse", world_black_thread, 0);
 
                 Logger.LogInfo($"Finished setting up phantom");
             }
@@ -491,8 +688,10 @@ namespace SilkenSisters
             GameObject challengeRegion = SceneObjectManager.findChildObject(challengeDialogInstance, "Challenge Region"); // GameObject.Find($"{challengeDialog.name}/Challenge Region");
 
             challengeDialogInstance.transform.position = new Vector3(84.45f, 105.8935f, 2.504f);
+            challengeRegion.transform.localPosition = new Vector3(-0.2145f, 1.1139f, 2.4959f);
+            //challengeRegion.transform.SetPosition3D(84.2341f, 112.4307f, 4.9999f);
             Logger.LogInfo($"Setting dialog position at {challengeDialogInstance.transform.position}");
-
+            
             Logger.LogInfo($"Disabling Cradle specific things");
             SceneObjectManager.findChildObject(challengeDialogInstance, "Challenge Glows/Cradle__0013_loom_strut_based (2)").SetActive(false);
             SceneObjectManager.findChildObject(challengeDialogInstance, "Challenge Glows/Cradle__0013_loom_strut_based (3)").SetActive(false);
@@ -534,24 +733,64 @@ namespace SilkenSisters
             }
         }
 
-        private void toggleDoor()
+        private void enableDoor()
         {
-            wakeupPointInstance.SetActive(!wakeupPointInstance.activeSelf);
+            wakeupPointInstance.SetActive(true);
             Logger.LogInfo($"Set door to {wakeupPointInstance.activeSelf}");
+        }
+        private void disableDoor()
+        {
+            wakeupPointInstance.SetActive(false);
+            wakeupPointInstance.GetComponent<PlayMakerFSM>().fsm.Reinitialize();
+            SceneObjectManager.findChildObject(wakeupPointInstance, "door_wakeInMemory_phantom").GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
+            Logger.LogInfo($"Set door to {wakeupPointInstance.activeSelf}");
+        }
+
+        private void enableRespawn()
+        {
+            respawnPointInstance.SetActive(true);
+            Logger.LogInfo($"Set respawn to {respawnPointInstance.activeSelf}");
+        }
+        private void disableRespawn()
+        {
+            respawnPointInstance.SetActive(false);
+            respawnPointInstance.GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
+            Logger.LogInfo($"Set respawn to {respawnPointInstance.activeSelf}");
+        }
+
+        private void toggleChallenge()
+        {
+            challengeDialogInstance.SetActive(!challengeDialogInstance.activeSelf);
+            Logger.LogInfo($"Set challengeDialog to {challengeDialogInstance.activeSelf}");
         }
 
         private void setupWakeupPoint()
         {
             if (wakeupPointInstance == null) {
+                Logger.LogInfo("Setting up memory wake point");
                 wakeupPointInstance = GameObject.Instantiate(wakeupPointCache);
                 wakeupPointInstance.SetActive(false);
                 DontDestroyOnLoad(wakeupPointInstance);
-                Logger.LogInfo(wakeupPointInstance);
                 SceneObjectManager.findChildObject(wakeupPointInstance, "door_wakeInMemory").name = "door_wakeInMemory_phantom";
-                wakeupPointInstance.transform.position = new Vector3(115.4518f, 104.5621f, 0.004f);
+                SceneObjectManager.findChildObject(wakeupPointInstance, "Fade").SetActive(false);
+                //wakeupPointInstance.transform.position = new Vector3(59.249f, 56.7457f, 0f);
+                wakeupPointInstance.transform.position = new Vector3(115.4518f, 104.5621f, 0f);
+                //SceneObjectManager.findChildObject(wakeupPointInstance, "door_wakeInMemory_phantom/Death Respawn Marker").GetComponent<RespawnMarker>().respawnFacingRight = false;
 
+                PlayMakerFSM doorFsm = FsmUtil.GetFsmPreprocessed(SceneObjectManager.findChildObject(wakeupPointInstance, "door_wakeInMemory_phantom"), "Wake Up");
                 InvokeMethod inv = new InvokeMethod(setupFight);
-                FsmUtil.GetFsmPreprocessed(SceneObjectManager.findChildObject(wakeupPointInstance, "door_wakeInMemory_phantom"), "Wake Up").AddAction("Get Up", inv);
+                doorFsm.AddAction("Take Control", inv);
+                InvokeMethod inv2 = new InvokeMethod(enableRespawn);
+                doorFsm.AddAction("Get Up", inv2);
+                
+                doorFsm.GetAction<ConvertBoolToFloat>("Fade Up", 1).falseValue = 3f;
+                doorFsm.GetAction<ConvertBoolToFloat>("Fade Up", 1).trueValue = 3f;
+
+                Logger.LogInfo("Finished setting up wake up point");
+
+            } else
+            {
+                Logger.LogInfo("Memory wake point already set up, ignoring");
             }
         }
         
@@ -571,6 +810,12 @@ namespace SilkenSisters
             memoryFSM.GetAction<BeginSceneTransition>("Transition Scene", 4).sceneName = "Organ_01";
             memoryFSM.GetAction<BeginSceneTransition>("Transition Scene", 4).entryGateName = "door_wakeInMemory_phantom";
 
+            InvokeMethod door = new InvokeMethod(enableDoor);
+            memoryFSM.InsertAction("Transition Scene", door, 4);
+
+            InvokeMethod inv3 = new InvokeMethod(disableRespawn);
+            memoryFSM.AddAction("Transition Scene", inv3);
+
             HutongGames.PlayMaker.Actions.SetPlayerDataBool enablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
             enablePhantom.boolName = "defeatedPhantom";
             enablePhantom.value = false;
@@ -579,19 +824,32 @@ namespace SilkenSisters
             world_normal.boolName = "blackThreadWorld";
             world_normal.value = false;
 
-            InvokeMethod door = new InvokeMethod(toggleDoor);
-            memoryFSM.InsertAction("Transition Scene", door, 4);
-
-            InvokeMethod setIsMemory = new InvokeMethod(enableFight);
-            memoryFSM.InsertAction("Transition Scene", setIsMemory, 4);
-            
-            memoryFSM.InsertAction("Transition Scene", enablePhantom, 4);
-            memoryFSM.InsertAction("Transition Scene", world_normal, 4);
+            memoryFSM.InsertAction("Transition Scene", enablePhantom, 0);
+            memoryFSM.InsertAction("Transition Scene", world_normal, 0);
 
             PlayMakerFSM pickupFSM = FsmUtil.GetFsmPreprocessed(before, "activate memory on tool pickup");
             pickupFSM.GetTransition("State 1", "PICKED UP").fsmEvent = FsmEvent.GetFsmEvent("FINISHED");
-            
+
             deepMemoryInstance.SetActive(true);
+            Logger.LogInfo($"Finished setting up deep memory");
+        }
+
+        private void setupRespawnPoint()
+        {
+            if (respawnPointInstance == null)
+            {
+                respawnPointInstance = GameObject.Instantiate(SceneObjectManager.findChildObject(deepMemoryCache, "door_wakeOnGround"));
+                GameObject.DontDestroyOnLoad(respawnPointInstance);
+                respawnPointInstance.name = "door_wakeOnGround_phantom";
+                respawnPointInstance.transform.position = new Vector3(59.249f, 56.7457f, 0f);
+
+                PlayMakerFSM respawnFSM = FsmUtil.GetFsmPreprocessed(respawnPointInstance, "Wake Up");
+                InvokeMethod inv3 = new InvokeMethod(disableDoor);
+                respawnFSM.AddAction("End", inv3);
+
+                respawnPointInstance.SetActive(false);
+                Logger.LogInfo($"Respawn point: {respawnPointInstance}");
+            }
         }
 
         private void spawnLaceNpc()
@@ -622,7 +880,7 @@ namespace SilkenSisters
             laceFSM.ChangeTransition("Take Control", "LAND", "Sit Up");
             laceFSM.GetTransition("Take Control", "LAND").fsmEvent = FsmEvent.GetFsmEvent("FINISHED");
             laceFSM.DisableAction("Take Control", 3);
-                
+            
             Wait w2 = new Wait();
             w2.time = 2f;
             laceFSM.DisableAction("Sit Up", 4);
@@ -656,6 +914,9 @@ namespace SilkenSisters
             laceFSM.AddAction("Jump Away", message_control_regain);
             laceFSM.AddAction("Jump Away", message_control_idle);
 
+            InvokeMethod inv2 = new InvokeMethod(toggleChallenge);
+            laceFSM.AddAction("Jump Away", inv2);
+
             laceNPCInstance.SetActive(true);
         }
 
@@ -668,9 +929,7 @@ namespace SilkenSisters
             bool has_beaten_lace = PlayerData.instance.defeatedLaceTower;
             Logger.LogInfo($"Has beaten lace? {has_beaten_lace}, saving for later");
             PlayerData.instance.defeatedLaceTower = false;
-            
-            AssetBundle laceboss_bundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "aa", "StandaloneWindows64", "localpoolprefabs_assets_laceboss.bundle"));
-            
+
             lace2BossSceneInstance = Instantiate(lace2BossSceneCache);
             lace2BossSceneInstance.SetActive(true);
 
@@ -756,6 +1015,8 @@ namespace SilkenSisters
             lace2BossInstance.transform.SetScaleX(1);
             Logger.LogInfo($"Setting lace position at {lace2BossInstance.transform.position}");
 
+            
+
             SilkenSisters.laceBoss2Active = true;
             lace2BossInstance.SetActive(false);
 
@@ -763,9 +1024,8 @@ namespace SilkenSisters
 
         private void reset()
         {
-
-            Logger.LogInfo("Reseting variables");
-
+            Logger.LogInfo("Reset variables");
+            SilkenSisters.laceBoss2Active = false;
         }
 
         private void Update()
@@ -786,23 +1046,7 @@ namespace SilkenSisters
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.O))
             {
-                registerPhantom();
-                spawnChallengeSequence();
                 spawnLaceBoss2();
-                spawnLaceNpc();
-                setupPhantom(); ;
-            }
-
-            if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.U))
-            {
-                spawnLaceNpc();
-                spawnLaceBoss2();
-                spawnChallengeSequence();
-            }
-
-            if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.P))
-            {
-                setupPhantom();
             }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.H))

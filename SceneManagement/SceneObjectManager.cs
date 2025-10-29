@@ -20,22 +20,22 @@ namespace SilkenSisters.SceneManagement
         {
             GameObject go_copy = null;
 
-            SilkenSisters.Log.LogInfo($"Current scene {SceneManager.GetActiveScene().name}");
-            SilkenSisters.Log.LogInfo($"Loading {sceneName} scene");
+            SilkenSisters.Log.LogDebug($"Current scene {SceneManager.GetActiveScene().name}");
+            SilkenSisters.Log.LogDebug($"Loading {sceneName} scene");
 
             AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(sceneFolder, $"{sceneName}.bundle".ToLower()));
             await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
 
             Scene scene = SceneManager.GetSceneByName(sceneName);
-            SilkenSisters.Log.LogInfo($"Scene {scene.name} successfully loaded");
+            SilkenSisters.Log.LogDebug($"Scene {scene.name} successfully loaded");
 
             GameObject go = SceneObjectManager.findObjectInScene(scene, objectToRetrieve);
             go_copy = GameObject.Instantiate(go);
             GameObject.DontDestroyOnLoad(go_copy);
             
-            SilkenSisters.Log.LogInfo($"Unloading '{scene.name}' scene");
+            SilkenSisters.Log.LogDebug($"Unloading '{scene.name}' scene");
             await SceneManager.UnloadSceneAsync(scene.name);
-            SilkenSisters.Log.LogInfo($"Unloading bundle '{bundle.name}'");
+            SilkenSisters.Log.LogDebug($"Unloading bundle '{bundle.name}'");
             await bundle.UnloadAsync(false);
 
             go_copy.SetActive(false);
@@ -48,20 +48,20 @@ namespace SilkenSisters.SceneManagement
             int objectIndex = 0;
             string[] objectHierarchy = objectToRetrieve.Split("/");
 
-            SilkenSisters.Log.LogInfo($"Searching scene {scene.name} for object '{objectToRetrieve}'");
-            SilkenSisters.Log.LogInfo($"Scene {scene.name} has {scene.GetRootGameObjects().Length} objects");
+            SilkenSisters.Log.LogDebug($"Searching scene {scene.name} for object '{objectToRetrieve}'");
+            SilkenSisters.Log.LogDebug($"Scene {scene.name} has {scene.GetRootGameObjects().Length} objects");
 
             GameObject cur_obj = scene.GetRootGameObjects().First<GameObject>(obj => obj.name == objectHierarchy[objectIndex]);
             objectIndex += 1;
 
             while (objectIndex < objectHierarchy.Length)
             {
-                SilkenSisters.Log.LogInfo($"Current child object searched for: '{objectHierarchy[objectIndex]}'");
+                SilkenSisters.Log.LogDebug($"Current child object searched for: '{objectHierarchy[objectIndex]}'");
                 cur_obj = cur_obj.transform.GetComponentsInChildren<Transform>(true).First(tf => tf.name == objectHierarchy[objectIndex]).gameObject;
                 objectIndex += 1;
             }
 
-            SilkenSisters.Log.LogInfo($"Found object {cur_obj}");
+            SilkenSisters.Log.LogDebug($"Found object {cur_obj}");
 
             return cur_obj;  
         }
@@ -80,12 +80,12 @@ namespace SilkenSisters.SceneManagement
 
             while (objectIndex < objectHierarchy.Length)
             {
-                SilkenSisters.Log.LogInfo($"Current child object searched for: '{objectHierarchy[objectIndex]}'");
+                SilkenSisters.Log.LogDebug($"Current child object searched for: '{objectHierarchy[objectIndex]}'");
                 cur_obj = cur_obj.transform.GetComponentsInChildren<Transform>(true).First(tf => tf.name == objectHierarchy[objectIndex]).gameObject;
                 objectIndex += 1;
             }
 
-            SilkenSisters.Log.LogInfo($"Found object {cur_obj}");
+            SilkenSisters.Log.LogDebug($"Found object {cur_obj}");
 
             return cur_obj;
         }

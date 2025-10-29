@@ -1,11 +1,11 @@
 ﻿[config]
-schemaVersion = "0.0.1"
+schemaVersion = "0.1.0"
 
 [package]
 # The name of the team you are publishing as
 namespace = "al3ks1s"
 # max 250 characters
-description = "Mod that adds a duo Lace/Phantom fight"
+description = "Mod that adds a duo Lace/Phantom memory fight - Playtest version, expect bugs and weird issues. Report issues at https://github.com/al3ks1s/SilkenSisters/issues."
 
 # Replace this with a correct repo URL if the default is not accurate
 websiteUrl = "https://github.com/al3ks1s/SilkenSisters"
@@ -15,6 +15,7 @@ containsNsfwContent = false
 # dependencies are specified in the format AuthorName-PackageName = "version". You should always have at least BepInExPack_Silksong.
 [package.dependencies]
 BepInEx-BepInExPack_Silksong = "5.4.2304"
+silksong_modding-Silksong_FsmUtil = "0.3.0"
 
 
 # in most cases you should not change this build block, or the first build.copy block; the dist and tmp directories are used
