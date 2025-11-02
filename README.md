@@ -24,3 +24,7 @@ This mod requires the following mods to function:
 2. Run the game once to generate the necessary files
 3. Download and install the mod FSMUtils into the BepinEx/plugins folder
 4. Download and install this mod into the BepinEx/plugins folder
+
+## Changelog 
+
+- 0.1.2 - Disabled saving in the memory, fixed lace diving only on the left

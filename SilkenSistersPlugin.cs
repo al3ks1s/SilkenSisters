@@ -50,10 +50,12 @@ using InControl.NativeDeviceProfiles;
 // __instance.GetComponent<tk2dSpriteAnimator>().Library.GetClipByName("Jump Antic").fps = 40;
 
 // Todo
-// Fix Lace downstab
+// Fix Lace downstab -> ClampByScale gets the wrong values for some reason
+
 // Fix Lace Throwing you outside arena on upstabs
 // Make phantom invincible until fight start
 // Disable respawn point on wake up / Scene change if not organ
+//  whenever lace does the circle slash attack, smoke should rise up from around her when she does the downward thrust, similar to how it happens when Phantom does her steam slam
 
 namespace SilkenSisters
 {
@@ -197,26 +199,27 @@ namespace SilkenSisters
         [HarmonyPatch(typeof(HeroController), "Die")]
         private static void setDieListener(HeroController __instance, ref bool nonLethal, ref bool frostDeath)
         {
-            SilkenSisters.Log.LogInfo($"Hornet died {nonLethal} {frostDeath} / isMemory? {SilkenSisters.isMemory()}");
-            if (SilkenSisters.isMemory())
+            SilkenSisters.Log.LogInfo($"Hornet died {nonLethal} {frostDeath} / isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}");
+            if (SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene())
             {
                 SilkenSisters.Log.LogInfo($"Hornet died in memory, nonLethal enabled");
 
                 PlayerData._instance.defeatedPhantom = true;
                 PlayerData._instance.blackThreadWorld = true;
 
-                nonLethal = true;
+                //nonLethal = true;
             }
         }
 
-        /*
+
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(GameManager), "SaveGame")]
-        private static bool setSaveListener(GameManager __instance, ref int saveSlot, ref Action<bool> callback, ref bool withAutoSave, ref AutoSaveName autoSaveName)
+        [HarmonyPatch(typeof(GameManager), "SaveGame", new Type[] { typeof(int), typeof(Action<bool>), typeof(bool), typeof(AutoSaveName) })]
+        private static bool setSaveListener(GameManager __instance, ref int saveSlot, ref Action<bool> ogCallback, ref bool withAutoSave, ref AutoSaveName autoSaveName)
         {
-            callback?.Invoke(true);
-            SilkenSisters.Log.LogInfo($"Trying to save game. IsMemory? {SilkenSisters.isMemory()}");
-            if (SilkenSisters.isMemory())
+
+            ogCallback?.Invoke(true);
+            SilkenSisters.Log.LogInfo($"Trying to save game. isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}");
+            if (SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene())
             {
                 SilkenSisters.Log.LogInfo($"Currently in the memory fight, skipping save process");
                 return false;
@@ -229,7 +232,6 @@ namespace SilkenSisters
         }
         //*/
 
-
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ClampAngle), "DoClamp")]
         private static void setClampAngleListener(ClampAngle __instance)
@@ -239,9 +241,10 @@ namespace SilkenSisters
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ClampAngleByScale), "DoClamp")]
-        private static void setClampAngleScaleListener(ClampAngleByScale __instance)
+        private static void setClampAngleScaleListener(ClampAngleByScale __instance, ref float angle, ref float min, ref float max)
         {
             SilkenSisters.Log.LogInfo($"DoClampScl  Clamped angle {__instance.fsm.FindFloatVariable("Angle")} between {__instance.positiveMinValue}/{__instance.positiveMaxValue} or {__instance.negativeMinValue}/{__instance.negativeMaxValue} : {__instance.angleVariable}");
+            SilkenSisters.Log.LogInfo($"DoClampScl  parameters: angle={angle}, min={min}, max={max}");
         }
 
         [HarmonyPostfix]
@@ -250,6 +253,7 @@ namespace SilkenSisters
         {
             SilkenSisters.Log.LogInfo($"DoVelocity  Set to angle {__instance.fsm.FindFloatVariable("Angle")}");
         }
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(FsmState), "OnEnter")]
@@ -324,7 +328,7 @@ namespace SilkenSisters
 
             if (__instance.Fsm.GameObject.name == "Lace Boss2 New")
             {
-                if (__instance.Name == "Dstab Angle" || __instance.Name == "Tele In" || __instance.Name == "Downstab")
+                if (true || __instance.Name == "Dstab Angle" || __instance.Name == "Tele In" || __instance.Name == "Downstab")
                 {
                     SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name} {__instance.Transitions.FirstOrDefault().EventName}");
                     if (__instance.Actions.Length > 0)
@@ -360,49 +364,49 @@ namespace SilkenSisters
             }
             if (__instance.Fsm.GameObject.name == "Memory Group(Clone)(Clone)")
             {
-                SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}");
+                // SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}");
                 if (__instance.Actions.Length > 0)
                 {
                     foreach (FsmTransition transi in __instance.transitions)
                     {
-                        SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
+                        // SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
                     }
 
                     foreach (FsmStateAction action in __instance.Actions)
                     {
-                        SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
+                        // SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
                     }
                 }
             }
             if (__instance.Fsm.GameObject.name == "before")
             {
-                SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}");
+                // SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}");
                 if (__instance.Actions.Length > 0)
                 {
                     foreach (FsmTransition transi in __instance.transitions)
                     {
-                        SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
+                        // SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
                     }
 
                     foreach (FsmStateAction action in __instance.Actions)
                     {
-                        SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
+                        // SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
                     }
                 }
             }
             if (__instance.Fsm.GameObject.name == "thread_memory")
             {
-                SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}");
+                // SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, Entering state {__instance.Name}");
                 if (__instance.Actions.Length > 0)
                 {
                     foreach (FsmTransition transi in __instance.transitions)
                     {
-                        SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
+                        // SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
                     }
 
                     foreach (FsmStateAction action in __instance.Actions)
                     {
-                        SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
+                        // SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
                     }
                 }
             }
@@ -476,7 +480,7 @@ namespace SilkenSisters
                 laceNPCCache = await SceneObjectManager.loadObjectFromScene("Coral_19", "Encounter Scene Control/Lace Meet/Lace NPC Blasted Bridge");
                 lace2BossSceneCache = await SceneObjectManager.loadObjectFromScene("Song_Tower_01", "Boss Scene");
 
-                AssetBundle laceboss_bundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "aa", "StandaloneWindows64", "localpoolprefabs_assets_laceboss.bundle"));
+                //AssetBundle laceboss_bundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "aa", "StandaloneWindows64", "localpoolprefabs_assets_laceboss.bundle"));
 
                 //lace1BossSceneCache;
 
@@ -1095,7 +1099,7 @@ namespace SilkenSisters
 
             // Lengthen the engarde state
             Wait wait_engarde = new Wait();
-            wait_engarde.time = 1f;
+            wait_engarde.time = 2f;
             Logger.LogInfo("Increase engarde time");
             laceBossFSM.AddAction("Refight Engarde", wait_engarde);
                 
@@ -1107,10 +1111,13 @@ namespace SilkenSisters
 
             Logger.LogInfo("Fixing Counter Teleport");
             laceBossFSM.GetAction<SetPosition>("Counter TeleIn", 4).y = 110f;
-            ClampPosition clamp_pos = new ClampPosition();
-            clamp_pos.maxX = 94f;
-            clamp_pos.minX = 74f;
-            laceBossFSM.InsertAction("Counter TeleIn", clamp_pos, 4);
+            
+            FloatClamp clamp_pos = new FloatClamp();
+            clamp_pos.floatVariable = laceBossFSM.GetVariable<FsmFloat>("Tele X");
+            clamp_pos.maxValue = 96f;
+            clamp_pos.minValue = 73f;
+
+            laceBossFSM.InsertAction("Counter TeleIn", clamp_pos, 5);
 
             // Disable lace's title card
             Logger.LogInfo("Disabling title card");
@@ -1125,14 +1132,27 @@ namespace SilkenSisters
 
             //lace.transform.position = hornet.transform.position + new Vector3(3, 0, 0);
             lace2BossInstance.transform.position = new Vector3(78.2832f, 104.5677f, 0.004f);
-            lace2BossInstance.transform.SetScaleX(1);
-            Logger.LogInfo($"Setting lace position at {lace2BossInstance.transform.position}");
-
             
+            Logger.LogInfo($"Setting lace position at {lace2BossInstance.transform.position}");
+            
+            FaceObjectV2 faceRight = new FaceObjectV2();
+            faceRight.spriteFacesRight = true;
+            faceRight.playNewAnimation = false;
+            faceRight.newAnimationClip = "";
+            faceRight.resetFrame = false;
+            faceRight.everyFrame = false;
+            faceRight.pauseBetweenTurns = 0.5f;
+            faceRight.objectA = laceBossFSMOwner;
+            faceRight.objectB = hornet;
+
+            laceBossFSM.InsertAction("Init", faceRight, 4);
+            laceBossFSM.DisableAction("Refight Engarde", 0);
+
+            laceBossFSM.GetAction<CheckXPosition>("Force R?", 2).compareTo = 73f;
+            laceBossFSM.GetAction<CheckXPosition>("Force L?", 1).compareTo = 96f;
 
             SilkenSisters.laceBoss2Active = true;
             lace2BossInstance.SetActive(false);
-
         }
 
         private void reset()
