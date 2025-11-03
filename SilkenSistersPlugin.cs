@@ -45,7 +45,6 @@ using InControl.NativeDeviceProfiles;
 // How to make Lace stronger:
 //      - Less idle time
 //      - Multiple cross slash like lost lace
-//      - 
 
 // __instance.GetComponent<tk2dSpriteAnimator>().Library.GetClipByName("Jump Antic").fps = 40;
 
@@ -121,6 +120,7 @@ namespace SilkenSisters
     // TODO - adjust the plugin guid as needed
     [BepInAutoPlugin(id: "io.github.al3ks1s.silkensisters")]
     [BepInDependency("org.silksong-modding.fsmutil")]
+    [BepInDependency("org.silksong-modding.i18n")]
     public partial class SilkenSisters : BaseUnityPlugin
     {
 
@@ -181,7 +181,7 @@ namespace SilkenSisters
                 KeyCode.LeftAlt,
                 "Modifier"
             );
-
+            
             StartCoroutine(WaitAndPatch());
 
             SceneManager.sceneLoaded += onSceneLoaded;
@@ -1113,11 +1113,11 @@ namespace SilkenSisters
             laceBossFSM.GetAction<SetPosition>("Counter TeleIn", 4).y = 110f;
             
             FloatClamp clamp_pos = new FloatClamp();
-            clamp_pos.floatVariable = laceBossFSM.GetVariable<FsmFloat>("Tele X");
+            clamp_pos.floatVariable = laceBossFSM.FindFloatVariable("Tele X");
             clamp_pos.maxValue = 96f;
             clamp_pos.minValue = 73f;
 
-            laceBossFSM.InsertAction("Counter TeleIn", clamp_pos, 5);
+            laceBossFSM.InsertAction("Counter TeleIn", clamp_pos, 4);
 
             // Disable lace's title card
             Logger.LogInfo("Disabling title card");
@@ -1129,6 +1129,7 @@ namespace SilkenSisters
 
             laceBossFSM.FindFloatVariable("Land Y").Value = 104.5677f;
             laceBossFSM.FindFloatVariable("Arena Plat Bot Y").Value = 102f;
+            laceBossFSM.FindFloatVariable("Centre X").Value = 84f;
 
             //lace.transform.position = hornet.transform.position + new Vector3(3, 0, 0);
             lace2BossInstance.transform.position = new Vector3(78.2832f, 104.5677f, 0.004f);
@@ -1150,6 +1151,11 @@ namespace SilkenSisters
 
             laceBossFSM.GetAction<CheckXPosition>("Force R?", 2).compareTo = 73f;
             laceBossFSM.GetAction<CheckXPosition>("Force L?", 1).compareTo = 96f;
+
+            laceBossFSM.FindFloatVariable("Bomb Max X").Value = 96f;
+            laceBossFSM.FindFloatVariable("Bomb Min X").Value = 72f;
+            laceBossFSM.FindFloatVariable("Bomb Max Y").Value = 115f;
+            laceBossFSM.FindFloatVariable("Bomb Min Y").Value = 105f;
 
             SilkenSisters.laceBoss2Active = true;
             lace2BossInstance.SetActive(false);
@@ -1217,6 +1223,12 @@ namespace SilkenSisters
                 PlayerData._instance.HasStoredMemoryState = true;
             }
 
+            if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad6))
+            {
+                FsmUtil.GetFsmPreprocessed(lace2BossInstance, "Control").SetState("Counter TeleOut");
+            }
+
+
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad8))
             {
                 Logger.LogInfo($"Is Memory? GM: {GameManager._instance.IsMemoryScene()} Mod: {SilkenSisters.isMemory()} CanSetup? {SilkenSisters.canSetup()}");
@@ -1245,17 +1257,15 @@ namespace SilkenSisters
         }
     }
 
+    
     // Title cards
     [HarmonyPatch(typeof(Language), "Get")]
     [HarmonyPatch(new[] { typeof(string), typeof(string) })]
     public static class Language_Get_Patch
     {
-        private static void Postfix(string key, string sheetTitle, ref string __result)
+        private static void Prefix(ref string key, ref string sheetTitle)
         {
-            if (key == "SILKEN_SISTERS_SUPER") __result = "Silken Sisters";
-            if (key == "SILKEN_SISTERS_MAIN") __result = "Phantom & Lace";
-            if (key == "SILKEN_SISTERS_SUB") __result = "";
+            if (key.Contains("SILKEN_SISTERS")) sheetTitle = $"Mods.io.github.al3ks1s.silkensisters";
         }
     }
-
 }
