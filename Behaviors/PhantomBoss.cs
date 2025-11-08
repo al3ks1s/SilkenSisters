@@ -1,4 +1,5 @@
-﻿using HutongGames.PlayMaker;
+﻿using HarmonyLib;
+using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
@@ -89,6 +90,7 @@ namespace SilkenSisters.Behaviors
             _control.DisableAction("Set Data", 0);
             _control.DisableAction("Set Data", 1);
             _control.DisableAction("Set Data", 2);
+            _control.DisableAction("Set Data", 7);
         }
 
         private void listenForLaceDead()
@@ -249,6 +251,14 @@ namespace SilkenSisters.Behaviors
 
             _control.InsertAction("Collapse", disablePhantom, 0);
             _control.InsertAction("Collapse", world_black_thread, 0);
+
+            InvokeMethod constrainHornet = new InvokeMethod(endHornetConstrain);
+            _control.AddAction("Final Parry", constrainHornet);
+        }
+
+        private void endHornetConstrain()
+        {
+            SilkenSisters.hornetConstrain.enabled = false;
         }
 
     }

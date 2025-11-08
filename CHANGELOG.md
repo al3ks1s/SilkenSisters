@@ -1,5 +1,10 @@
 # Changelog 
 
+## 0.1.7
+
+- Proper mod data cleaning for save change
+- Fixed Lace throwing Hornet outside the arena
+
 ## 0.1.6
 
 - Fixed Thunderstore install structure that caused the title card to not appear

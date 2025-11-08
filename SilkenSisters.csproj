@@ -23,7 +23,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/al3ks1s/SilkenSisters</RepositoryUrl>
-    <Version>0.1.6</Version>
+    <Version>0.1.7</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <IsPublishable>True</IsPublishable>
@@ -49,6 +49,14 @@
     <Folder Remove="thunderstore/tmp;thunderstore/dist" />
     <None Include="README.md" Pack="True" PackagePath="README.md" />
     <None Include="thunderstore/icon.png" Pack="True" PackagePath="icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UnityExplorer.BIE5.Mono">
+      <HintPath>..\..\Utilities\sinai-dev-UnityExplorer\UnityExplorer.BIE5.Mono.dll</HintPath>
+    </Reference>
+    <Reference Include="UniverseLib.Mono">
+      <HintPath>..\..\Utilities\sinai-dev-UnityExplorer\UniverseLib.Mono.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Target Name="CopyAndPackageMod" AfterTargets="PostBuildEvent">
     <ItemGroup>

@@ -74,6 +74,7 @@ namespace SilkenSisters.Behaviors
 
             _regionControl.AddAction("Challenge Complete", battle_begin_event);
             _regionControl.GetAction<GetXDistance>("Straight Back?", 1).gameObject.ownerOption = OwnerDefaultOption.UseOwner;
+
         }
 
         private void setGarama()
@@ -82,6 +83,7 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogInfo($"{HornetSpecialSFM.FsmName}");
             _regionControl.DisableAction("Hornet Voice", 0);
             _regionControl.AddAction("Hornet Voice", HornetSpecialSFM.GetStateAction("Standard", 0));
+
         }
 
     }

@@ -1,4 +1,5 @@
-﻿using HutongGames.PlayMaker;
+﻿using HarmonyLib;
+using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace SilkenSisters.Behaviors
 {
@@ -89,6 +91,7 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogInfo($"Adding action to disable tank respawn");
             InvokeMethod resp = new InvokeMethod(disableRespawn);
             _control.AddAction("Transition Scene", resp);
+            
         }
 
         private void enableDoor()
@@ -163,6 +166,12 @@ namespace SilkenSisters.Behaviors
             _control.AddAction("End", disSelf);
 
 
+            InvokeMethod closeOrgan = new InvokeMethod(closeOffOrgan);
+            _control.AddAction("End", closeOrgan);
+
+
+
+
         }
 
         private void enableIsMemory()
@@ -184,6 +193,14 @@ namespace SilkenSisters.Behaviors
             gameObject.SetActive(false);
         }
 
+        private void closeOffOrgan()
+        {
+            SilkenSisters.Log.LogInfo("Closing off organ exits");
+            GameObject gildedDoor = SceneObjectManager.findObjectInCurrentScene("Boss Scene/Gates/Battle Gate (1)");
+
+            GameObject.Instantiate(gildedDoor).transform.SetPosition3D(45.4916f, 71.6012f, 0.003f);
+            GameObject.Instantiate(gildedDoor).transform.SetPosition3D(11.5445f, 8.5155f, 0.003f);
+        }
 
     }
 
@@ -219,7 +236,6 @@ namespace SilkenSisters.Behaviors
 
         private void editFSM()
         {
-
             SilkenSisters.Log.LogInfo($"Editing FSM to disable the door");
             PlayMakerFSM respawnFSM = gameObject.GetFsmPreprocessed("Wake Up");
 
@@ -233,7 +249,6 @@ namespace SilkenSisters.Behaviors
 
             InvokeMethod disSelf = new InvokeMethod(disableSelf);
             respawnFSM.AddAction("End", disSelf);
-
         }
 
         private void disableDoor()
@@ -246,9 +261,9 @@ namespace SilkenSisters.Behaviors
 
         private void disableSelf()
         {
+            SilkenSisters.Log.LogInfo("respawn point disabling self");
             gameObject.SetActive(false);
         }
 
     }
-
 }

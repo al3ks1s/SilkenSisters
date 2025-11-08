@@ -83,8 +83,11 @@ namespace SilkenSisters.Behaviors
             laceTargetPos.y = 106.6942f;
             laceTargetPos.z = 2.7021f;
 
-            InvokeMethod inv2 = new InvokeMethod(toggleChallenge);
-            _control.AddAction("Jump Away", inv2);
+            InvokeMethod toggleChall = new InvokeMethod(toggleChallenge);
+            _control.AddAction("Jump Away", toggleChall);
+
+            InvokeMethod constrainHornet = new InvokeMethod(startConstrainHornet);
+            _control.AddAction("Jump Away", constrainHornet);
         }
 
         private void setupHornetControl()
@@ -114,5 +117,11 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.plugin.challengeDialogInstance.SetActive(!SilkenSisters.plugin.challengeDialogInstance.activeSelf);
             SilkenSisters.Log.LogDebug($"Set challengeDialog to {SilkenSisters.plugin.challengeDialogInstance.activeSelf}");
         }
+    
+        private void startConstrainHornet()
+        {
+            SilkenSisters.hornetConstrain.enabled = true;
+        }
+
     }
 }
