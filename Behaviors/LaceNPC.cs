@@ -30,7 +30,6 @@ namespace SilkenSisters.Behaviors
             disableRangeDetection();
             setPosition();
             editFSMAnimations();
-            setupHornetControl();
         }
 
         private void register()
@@ -88,28 +87,16 @@ namespace SilkenSisters.Behaviors
 
             InvokeMethod constrainHornet = new InvokeMethod(startConstrainHornet);
             _control.AddAction("Jump Away", constrainHornet);
-        }
 
-        private void setupHornetControl()
-        {
-            SilkenSisters.Log.LogDebug("Setting actions to give back hornet control");
-            SendMessage message_control_idle = new SendMessage();
-            FunctionCall fc_control_idle = new FunctionCall();
-            fc_control_idle.FunctionName = "StartControlToIdle";
+            _control.DisableAction("Jump Antic", 4);
 
-            message_control_idle.functionCall = fc_control_idle;
-            message_control_idle.gameObject = SilkenSisters.hornetFSMOwner;
-            message_control_idle.options = SendMessageOptions.DontRequireReceiver;
+            _control.DisableAction("Jump Away", 7);
+            _control.DisableAction("Look Up End", 0);
 
-            SendMessage message_control_regain = new SendMessage();
-            FunctionCall fc_control_regain = new FunctionCall();
-            fc_control_regain.FunctionName = "RegainControl";
-            message_control_regain.functionCall = fc_control_regain;
-            message_control_regain.gameObject = SilkenSisters.hornetFSMOwner;
-            message_control_regain.options = SendMessageOptions.DontRequireReceiver;
-            
-            _control.AddAction("Jump Away", message_control_regain);
-            _control.AddAction("Jump Away", message_control_idle);
+            _control.DisableAction("End", 1);
+            _control.DisableAction("End", 4);
+            _control.DisableAction("End", 5);
+
         }
 
         private void toggleChallenge()

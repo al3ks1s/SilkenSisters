@@ -159,16 +159,15 @@ namespace SilkenSisters
         public GameObject phantomBossScene = null;
         public FsmOwnerDefault phantomBossSceneFSMOwner = null;
 
-        private static bool laceBoss2Active = false;
-        private static bool phantomSpeedToggle = false;
-        private static bool phantomDragoonToggle = false;
 
-        public static bool persistentInMemory = false;
+        private bool cachingSceneObjects = false;
 
         public static GameObject hornet = null;
         public static FsmOwnerDefault hornetFSMOwner = null;
         public static ConstrainPosition hornetConstrain = null;
 
+
+        private string laceBossPrefabName = null;
         private ConfigEntry<KeyCode> modifierKey;
         private ConfigEntry<KeyCode> actionKey;
         internal static ManualLogSource Log;
@@ -191,6 +190,21 @@ namespace SilkenSisters
 
             SceneManager.sceneLoaded += onSceneLoaded;
 
+            AssetBundle laceBossPrefab = AssetBundle.LoadFromFile(Path.Combine(
+                    Application.streamingAssetsPath,
+                    "aa",
+                    Application.platform switch
+                    {
+                        RuntimePlatform.WindowsPlayer => "StandaloneWindows64",
+                        RuntimePlatform.OSXPlayer => "StandaloneOSX",
+                        RuntimePlatform.LinuxPlayer => "StandaloneLinux64",
+                        _ => ""
+                    },
+                    "localpoolprefabs_assets_laceboss.bundle"
+                ));
+            laceBossPrefabName = laceBossPrefab.GetName();
+            laceBossPrefab.Unload(true);
+
             Harmony.CreateAndPatchAll(typeof(SilkenSisters));
         }
         
@@ -211,8 +225,10 @@ namespace SilkenSisters
 
                 PlayerData._instance.defeatedPhantom = true;
                 PlayerData._instance.blackThreadWorld = true;
-                SilkenSisters.hornetConstrain.enabled = false;
-
+                if (SilkenSisters.hornetConstrain != null)
+                {
+                    SilkenSisters.hornetConstrain.enabled = false;
+                }
                 //nonLethal = true;
             }
         }
@@ -236,7 +252,6 @@ namespace SilkenSisters
             }
         }
         
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(FsmState), "OnEnter")]
         private static void setEventListener(FsmState __instance)
@@ -327,10 +342,43 @@ namespace SilkenSisters
             }
         }
 
+
+
+        public static bool canSetup()
+        {
+            return SceneManager.GetActiveScene().name == "Organ_01" && PlayerData._instance.defeatedPhantom && PlayerData._instance.blackThreadWorld && PlayerData._instance.hasNeedolinMemoryPowerup;
+        }
+
+        public static bool isMemory()
+        {
+            return SceneManager.GetActiveScene().name == "Organ_01" && !PlayerData._instance.defeatedPhantom && !PlayerData._instance.blackThreadWorld && PlayerData._instance.hasNeedolinMemoryPowerup;
+        }
+
         private async Task cacheGameObjects()
         {
             if (laceNPCCache == null || lace2BossSceneCache == null || challengeDialogCache == null || wakeupPointCache == null || deepMemoryCache == null)
             {
+
+                cachingSceneObjects = true;
+
+                AssetBundle laceBossPrefab = null;
+                if (AssetBundle.GetAllLoadedAssetBundles().FirstOrDefault(b => b.GetName() == laceBossPrefabName) != null)
+                {
+                    AssetBundle.GetAllLoadedAssetBundles().FirstOrDefault(b => b.GetName() == laceBossPrefabName).Unload(true);
+                }
+                
+                laceBossPrefab = AssetBundle.LoadFromFile(Path.Combine(
+                    Application.streamingAssetsPath,
+                    "aa",
+                    Application.platform switch
+                    {
+                        RuntimePlatform.WindowsPlayer => "StandaloneWindows64",
+                        RuntimePlatform.OSXPlayer => "StandaloneOSX",
+                        RuntimePlatform.LinuxPlayer => "StandaloneLinux64",
+                        _ => ""
+                    },
+                    "localpoolprefabs_assets_laceboss.bundle"
+                ));
 
                 Logger.LogWarning("Initializing cache");
                 laceNPCCache = await SceneObjectManager.loadObjectFromScene("Coral_19", "Encounter Scene Control/Lace Meet/Lace NPC Blasted Bridge");
@@ -342,9 +390,6 @@ namespace SilkenSisters
                 GameObject lace2BossTempCache = SceneObjectManager.findChildObject(lace2BossSceneCache, "Lace Boss2 New");
                 lace2BossTempCache.AddComponent<Lace2>();
                 ((DeactivateIfPlayerdataTrue)lace2BossTempCache.GetComponent(typeof(DeactivateIfPlayerdataTrue))).enabled = false;
-
-                AssetBundle laceboss_bundle = AssetBundle.LoadFromFile(Path.Combine(Application.streamingAssetsPath, "aa", "StandaloneWindows64", "localpoolprefabs_assets_laceboss.bundle"));
-                Logger.LogInfo($"{laceboss_bundle}");
 
                 challengeDialogCache = await SceneObjectManager.loadObjectFromScene("Cradle_03", "Boss Scene/Intro Sequence");
                 wakeupPointCache = await SceneObjectManager.loadObjectFromScene("Memory_Coral_Tower", "Door Get Up");
@@ -364,6 +409,13 @@ namespace SilkenSisters
                 deepMemoryCache.GetComponent<TestGameObjectActivator>().playerDataTest.TestGroups[0].Tests[0].BoolValue = false;
 
                 Logger.LogWarning("Caching done");
+                cachingSceneObjects = false;
+                if (laceBossPrefab != null)
+                { 
+                    Logger.LogWarning("Unload lace prefab");
+                    laceBossPrefab.Unload(false);
+                    laceBossPrefab = null;
+                }
 
 
                 if (laceNPCCache == null || lace2BossSceneCache == null || challengeDialogCache == null || wakeupPointCache == null || deepMemoryCache == null)
@@ -384,23 +436,22 @@ namespace SilkenSisters
 
             string[] excludedScenes = new string[]{ "Menu_Title", "Pre_Menu_Loader", "Pre_Menu_Intro", "Quit_To_Menu" };
 
-            if (scene.name == "Organ_01")
-            {
-                Logger.LogInfo($"Organ Detected, preloading");
-                organScene = scene;
-                preloadOrgan();
-            }
-            else
-            {
-                Logger.LogInfo($"Scene is not organ, clearing instances");
-                clearInstances();
-            }
-            if (scene.name == "Quit_To_Menu")
-            {
-                clearInstances();
-                clearCache();
-            }
+            if (!cachingSceneObjects) { 
+                if (scene.name == "Organ_01")
+                {
+                    Logger.LogInfo($"Organ Detected, preloading");
+                    organScene = scene;
 
+                    preloadOrgan();
+
+                }
+                else
+                {
+                    Logger.LogInfo($"Scene is not organ, clearing instances and cache");
+                    clearInstances();
+                    clearCache();
+                }
+            }
         }
 
         private async Task preloadOrgan()
@@ -434,17 +485,71 @@ namespace SilkenSisters
             }
         }
 
-        public static bool canSetup()
+        private void clearInstances()
         {
-            return SceneManager.GetActiveScene().name == "Organ_01" && PlayerData._instance.defeatedPhantom && PlayerData._instance.blackThreadWorld && PlayerData._instance.hasNeedolinMemoryPowerup;
+            laceNPCInstance = null;
+            laceNPCFSMOwner = null;
+
+            lace2BossInstance = null;
+            lace2BossSceneInstance = null;
+
+            laceBossFSMOwner = null;
+
+            lace1BossInstance = null;
+            lace1BossSceneInstance = null;
+
+            challengeDialogInstance = null;
+            deepMemoryInstance = null;
+
+            phantomBossScene = null;
+            phantomBossSceneFSMOwner = null;
+
+            if (wakeupPointInstance != null)
+            {
+                GameObject.Destroy(wakeupPointInstance);
+                wakeupPointInstance = null;
+            }
+
+            if (respawnPointInstance != null)
+            {
+                GameObject.Destroy(respawnPointInstance);
+                respawnPointInstance = null;
+            }
+
         }
 
-        public static bool isMemory()
+        private void clearCache()
         {
-            return SceneManager.GetActiveScene().name == "Organ_01" && !PlayerData._instance.defeatedPhantom && !PlayerData._instance.blackThreadWorld && PlayerData._instance.hasNeedolinMemoryPowerup;
+            hornet = null;
+            hornetFSMOwner = null;
+
+            if (hornetConstrain != null)
+            {
+                GameObject.Destroy(hornetConstrain);
+                hornetConstrain = null;
+            }
+
+            GameObject.Destroy(laceNPCCache);
+            GameObject.Destroy(lace2BossSceneCache);
+            GameObject.Destroy(lace1BossSceneCache);
+
+            GameObject.Destroy(challengeDialogCache);
+            GameObject.Destroy(wakeupPointCache);
+            GameObject.Destroy(deepMemoryCache);
+
+            laceNPCCache = null;
+            lace2BossSceneCache = null;
+            lace1BossSceneCache = null;
+
+            challengeDialogCache = null;
+            wakeupPointCache = null;
+            deepMemoryCache = null;
+
+            ExitMemoryCache = null;
         }
 
 
+        
         public void setupFight()
         {
             Logger.LogInfo($"Trying to register phantom");
@@ -509,64 +614,7 @@ namespace SilkenSisters
         }
 
 
-        private void clearInstances()
-        {
-            laceNPCInstance = null;
-            laceNPCFSMOwner = null;
-
-            lace2BossInstance = null;
-            lace2BossSceneInstance = null;
-
-            laceBossFSMOwner = null;
-
-            lace1BossInstance = null;
-            lace1BossSceneInstance = null;
-
-            challengeDialogInstance = null;
-            deepMemoryInstance = null;
-
-            phantomBossScene = null;
-            phantomBossSceneFSMOwner = null;
-
-            if (wakeupPointInstance != null)
-            {
-                GameObject.Destroy(wakeupPointInstance);
-                wakeupPointInstance = null;
-            }
-
-            if (respawnPointInstance != null)
-            {
-                GameObject.Destroy(respawnPointInstance);
-                respawnPointInstance = null;
-            }
-
-        }
-
-        private void clearCache()
-        {
-            hornet = null;
-            hornetFSMOwner = null;
-            hornetConstrain = null;
-
-            GameObject.Destroy(laceNPCCache);
-            GameObject.Destroy(lace2BossSceneCache);
-            GameObject.Destroy(lace1BossSceneCache);
-
-            GameObject.Destroy(challengeDialogCache);
-            GameObject.Destroy(wakeupPointCache);
-            GameObject.Destroy(deepMemoryCache);
-
-            laceNPCCache = null;
-            lace2BossSceneCache = null;
-            lace1BossSceneCache = null;
-
-            challengeDialogCache = null;
-            wakeupPointCache = null;
-            deepMemoryCache = null;
-
-            ExitMemoryCache = null;
-        }
-
+        // Temporary for debug
         private void toggleLaceFSM()
         {
             if (lace2BossInstance != null)
@@ -576,7 +624,6 @@ namespace SilkenSisters
                 pfsm.fsm.manualUpdate = !pfsm.fsm.manualUpdate;
             }
         }
-
 
         private void spawnLaceBoss2()
         {
@@ -593,6 +640,8 @@ namespace SilkenSisters
             laceBossFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
             laceBossFSMOwner.GameObject = lace2BossInstance;
         }
+
+
 
         private void Update()
         {
@@ -662,27 +711,6 @@ namespace SilkenSisters
                 PlayerData._instance.defeatedPhantom = true;
                 PlayerData._instance.blackThreadWorld = true;
                 PlayerData._instance.HasStoredMemoryState = true;
-            }
-
-
-            if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.G))
-            {
-
-                PlayMakerFSM phantomBossFSM = FsmUtil.GetFsmPreprocessed(SceneObjectManager.findChildObject(phantomBossScene, "Phantom"), "Control");
-                Logger.LogInfo("Switching dragoon time");
-                if (phantomDragoonToggle)
-                {
-                    Logger.LogInfo("Slow dragoon");
-                    phantomBossFSM.GetAction<Wait>("Dragoon Away", 3).time = 0.25f;
-                    phantomBossFSM.FindFloatVariable("Dragoon Drop Time").Value = 0.9f;
-                }
-                else
-                {
-                    Logger.LogInfo("Fast dragoon");
-                    phantomBossFSM.GetAction<Wait>("Dragoon Away", 3).time = 0.15f;
-                    phantomBossFSM.FindFloatVariable("Dragoon Drop Time").Value = 0.4f;
-                }
-                phantomDragoonToggle = !phantomDragoonToggle;
             }
         }
     }

@@ -170,8 +170,6 @@ namespace SilkenSisters.Behaviors
             _control.AddAction("End", closeOrgan);
 
 
-
-
         }
 
         private void enableIsMemory()
@@ -239,10 +237,11 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogInfo($"Editing FSM to disable the door");
             PlayMakerFSM respawnFSM = gameObject.GetFsmPreprocessed("Wake Up");
 
-            TryReplenishTools replenishTools = new TryReplenishTools();
-            replenishTools.Method = ToolItemManager.ReplenishMethod.BenchSilent;
-            replenishTools.DoReplenish = true;
-            respawnFSM.AddAction("End", replenishTools);
+            respawnFSM.DisableAction("Save?", 1);
+
+
+            InvokeMethod replenishTool = new InvokeMethod(replenishTools);
+            // respawnFSM.AddAction("End", replenishTool);
 
             InvokeMethod inv3 = new InvokeMethod(disableDoor);
             respawnFSM.AddAction("End", inv3);
@@ -253,6 +252,7 @@ namespace SilkenSisters.Behaviors
 
         private void disableDoor()
         {
+            SilkenSisters.Log.LogInfo("Trying to disable door");
             SilkenSisters.plugin.wakeupPointInstance.SetActive(false);
             SilkenSisters.plugin.wakeupPointInstance.GetComponent<PlayMakerFSM>().fsm.Reinitialize();
             SceneObjectManager.findChildObject(SilkenSisters.plugin.wakeupPointInstance, "door_wakeInMemory_phantom").GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
@@ -265,5 +265,20 @@ namespace SilkenSisters.Behaviors
             gameObject.SetActive(false);
         }
 
+        private void replenishTools()
+        {
+            SilkenSisters.Log.LogInfo("Replenishing tools");
+            foreach (ToolItem tool in ToolItemManager.GetCurrentEquippedTools())
+            {
+                if (tool.IsAttackType())
+                {
+                    SilkenSisters.Log.LogWarning($"{tool.GetName()}");
+                    float outCost;
+                    int outReserve;
+                    tool.TryReplenishSingle(true, 0, out outCost, out outReserve);
+                    SilkenSisters.Log.LogWarning($"{outCost} {outReserve}");
+                }
+            }
+        }
     }
 }

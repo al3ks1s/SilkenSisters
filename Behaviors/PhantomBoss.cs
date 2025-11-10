@@ -33,15 +33,6 @@ namespace SilkenSisters.Behaviors
             resetPlayerData();
         }
 
-        private void waitForLace()
-        {
-            while (SilkenSisters.plugin.laceBossFSMOwner == null || SilkenSisters.plugin.lace2BossInstance == null || SilkenSisters.plugin.laceNPCFSMOwner == null)
-            {
-                SilkenSisters.Log.LogInfo("Lace objects not ready, waiting");
-                Task.Delay(100);
-            }
-        }
-
         private void getComponents()
         {
             _control = gameObject.GetFsmPreprocessed("Control");

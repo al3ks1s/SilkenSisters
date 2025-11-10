@@ -1,5 +1,11 @@
 # Changelog 
 
+## 0.1.8
+
+- Fixed a bug that caused the Deep Memory zone to load improperly
+- Fixed a bug that caused Lace's phase 2 attacks to not spawn the circle attacks
+- Fixed a bug that caused a conflict with other Lace boss fights
+
 ## 0.1.7
 
 - Proper mod data cleaning for save change
