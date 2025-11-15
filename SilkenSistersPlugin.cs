@@ -366,6 +366,32 @@ namespace SilkenSisters
         }
 
 
+        /*
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(FsmState), "OnEnter")]
+        private static void setPostEventListener(FsmState __instance)
+        {
+
+            bool logDeepMemory = true;
+            if (logDeepMemory && (__instance.Fsm.GameObject.name == $"Lace Boss2 New" && (__instance.name == "Bounce Back")))
+            {
+                SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, {__instance.fsm.name}, Entering state {__instance.Name}");
+                if (__instance.Actions.Length > 0)
+                {
+                    foreach (FsmTransition transi in __instance.transitions)
+                    {
+                        SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
+                    }
+
+                    foreach (FsmStateAction action in __instance.Actions)
+                    {
+                        SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
+                    }
+                }
+            }
+        }*/
+
+
         public static bool canSetup()
         {
             SilkenSisters.Log.LogDebug($"[CanSetup] Scene:{SceneManager.GetActiveScene().name} " +
@@ -732,6 +758,15 @@ namespace SilkenSisters
                 toggleLaceFSM();
             }
 
+            if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad8))
+            {
+                SceneObjectManager.findChildObject(phantomBossScene, "Phantom").SetActive(false);
+            }
+
+            if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad6))
+            {
+                ((PlayMakerFSM)lace2BossInstance.GetComponent(typeof(PlayMakerFSM))).SetState("Multihit Slash End");
+            }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad7))
             {

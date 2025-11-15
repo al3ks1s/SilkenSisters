@@ -101,7 +101,7 @@ namespace SilkenSisters.Behaviors
             );
 
             _control.GetAction<SetPosition>("Counter TeleIn", 4).y = 110f;
-            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] TeleHeight:{_control.GetAction<SetPosition>("Counter TeleIn", 4).y}");
+            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] TeleHeight: {_control.GetAction<SetPosition>("Counter TeleIn", 4).y}");
 
             FloatClamp clamp_pos = new FloatClamp();
             clamp_pos.floatVariable = _control.FindFloatVariable("Tele X");
@@ -110,6 +110,12 @@ namespace SilkenSisters.Behaviors
 
             _control.InsertAction("Counter TeleIn", clamp_pos, 4);
             SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] TeleXClamp: min:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).minValue}, max:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).maxValue}");
+
+
+            _control.FindFloatVariable("Tele Out Floor").Value = 103f;
+            _control.GetAction<FloatClamp>("Tele In", 6).minValue = 73f;
+            _control.GetAction<FloatClamp>("Tele In", 6).maxValue = 96f;
+            _control.GetAction<SetPosition2d>("Tele In", 7).y = 104.5677f;
 
             // -----
             _control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).minValue = 73f;
@@ -120,8 +126,8 @@ namespace SilkenSisters.Behaviors
             _control.FindFloatVariable("Arena Plat Bot Y").Value = 102f;
             _control.FindFloatVariable("Centre X").Value = 84f;
             SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] Float vars: " +
-                $"Land Y: {_control.FindFloatVariable("Land Y").Value}" +
-                $"Arena Plat Bot Y: {_control.FindFloatVariable("Arena Plat Bot Y").Value}" +
+                $"Land Y: {_control.FindFloatVariable("Land Y").Value} " +
+                $"Arena Plat Bot Y: {_control.FindFloatVariable("Arena Plat Bot Y").Value} " +
                 $"Centre X: {_control.FindFloatVariable("Centre X").Value}"
             );
 

@@ -1,5 +1,9 @@
 # Changelog 
 
+## 0.2.2
+
+- Mitigated a bug that caused Lace to fall under the floor
+
 ## 0.2.1
 
 - Fixed a bug that made Lace AI get stuck due to incorrect PlayerData in some modded saves
