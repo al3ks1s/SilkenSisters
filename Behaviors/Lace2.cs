@@ -24,6 +24,7 @@ namespace SilkenSisters.Behaviors
 
         private async Task Setup()
         {
+            SilkenSisters.Log.LogMessage($"[Lace2.Setup] Started setting up Lace");
             getComponents();
             disableParticleEffects();
             editPositionConstraint();
@@ -32,12 +33,13 @@ namespace SilkenSisters.Behaviors
             disableTitleCard();
             fixWallRangeAlert();
             setLaceFacing();
+            SilkenSisters.Log.LogMessage($"[Lace2.Setup] Finished setting up Lace");
         }
 
         private void getComponents()
         {
             gameObject.transform.position = new Vector3(78.2832f, 104.5677f, 0.004f);
-            SilkenSisters.Log.LogInfo($"Setting lace position at {gameObject.transform.position}");
+            SilkenSisters.Log.LogInfo($"[Lace2.getComponents] position:{gameObject.transform.position}");
             _control = gameObject.GetFsmPreprocessed("Control");
         }
 
@@ -47,6 +49,7 @@ namespace SilkenSisters.Behaviors
             SceneObjectManager.findChildObject(gameObject, "Pt SkidPetal").SetActive(false);
             SceneObjectManager.findChildObject(gameObject, "Pt RisingPetal").SetActive(false);
             SceneObjectManager.findChildObject(gameObject, "Pt MovePetal").SetActive(false);
+
         }
 
         private void editPositionConstraint()
@@ -57,11 +60,16 @@ namespace SilkenSisters.Behaviors
             laceBossConstraint.SetYMin(104f);
             laceBossConstraint.constrainX = true;
             laceBossConstraint.constrainY = true;
+
+            SilkenSisters.Log.LogInfo($"[Lace2.editPositionConstraint] Constraints: " +
+                $"MinX:{laceBossConstraint.xMin}" +
+                $"MaxX:{laceBossConstraint.xMax}" +
+                $"MinY:{laceBossConstraint.yMin}"
+            );
         }
 
         private void rerouteState()
         {
-            SilkenSisters.Log.LogInfo("Rerouting states");
             _control.ChangeTransition("Init", "REFIGHT", "Start Battle Wait");
             _control.ChangeTransition("Start Battle Wait", "BATTLE START REFIGHT", "Refight Engarde");
             _control.ChangeTransition("Start Battle Wait", "BATTLE START FIRST", "Refight Engarde");
@@ -69,21 +77,31 @@ namespace SilkenSisters.Behaviors
             // Lengthen the engarde state
             Wait wait_engarde = new Wait();
             wait_engarde.time = 2f;
-            SilkenSisters.Log.LogInfo("Increase engarde time");
-            _control.AddAction("Refight Engarde", wait_engarde);
+            //_control.AddAction("Refight Engarde", wait_engarde);
+
+            SilkenSisters.Log.LogInfo($"[Lace2.rerouteState] \n" +
+                $"              Init:REFIGHT -> {_control.GetTransition("Init", "REFIGHT").ToState} \n" +
+                $"              Start Battle Wait:BATTLE START REFIGHT -> {_control.GetTransition("Start Battle Wait", "BATTLE START REFIGHT").ToState}\n" +
+                $"              Start Battle Wait:BATTLE START FIRST -> {_control.GetTransition("Start Battle Wait", "BATTLE START FIRST").ToState}");
 
         }
 
         private void fixActionsPositions()
         {
             // Change floor height
-            SilkenSisters.Log.LogInfo("Fix floor heights");
+            SilkenSisters.Log.LogMessage("Fix floor heights");
             _control.GetAction<SetPosition2d>("ComboSlash 1", 0).y = 104.5677f;
             _control.GetAction<SetPosition2d>("Charge Antic", 2).y = 104.5677f;
             _control.GetAction<SetPosition2d>("Counter Antic", 1).y = 104.5677f;
 
-            SilkenSisters.Log.LogInfo("Fixing Counter Teleport");
+            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] Floor heights:\n" +
+                $"              ComboSlash 1: {_control.GetAction<SetPosition2d>("ComboSlash 1", 0).y}\n" +
+                $"              Charge Antic: {_control.GetAction<SetPosition2d>("Charge Antic", 2).y}\n" +
+                $"              Counter Antic {_control.GetAction<SetPosition2d>("Counter Antic", 1).y}"
+            );
+
             _control.GetAction<SetPosition>("Counter TeleIn", 4).y = 110f;
+            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] TeleHeight:{_control.GetAction<SetPosition>("Counter TeleIn", 4).y}");
 
             FloatClamp clamp_pos = new FloatClamp();
             clamp_pos.floatVariable = _control.FindFloatVariable("Tele X");
@@ -91,19 +109,29 @@ namespace SilkenSisters.Behaviors
             clamp_pos.minValue = 73f;
 
             _control.InsertAction("Counter TeleIn", clamp_pos, 4);
+            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] TeleXClamp: min:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).minValue}, max:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).maxValue}");
 
             // -----
             _control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).minValue = 73f;
             _control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).maxValue = 96f;
+            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] CrossSlash Pos: min:{_control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).minValue}, max:{_control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).maxValue}");
 
             _control.FindFloatVariable("Land Y").Value = 104.5677f;
             _control.FindFloatVariable("Arena Plat Bot Y").Value = 102f;
             _control.FindFloatVariable("Centre X").Value = 84f;
+            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] Float vars: " +
+                $"Land Y: {_control.FindFloatVariable("Land Y").Value}" +
+                $"Arena Plat Bot Y: {_control.FindFloatVariable("Arena Plat Bot Y").Value}" +
+                $"Centre X: {_control.FindFloatVariable("Centre X").Value}"
+            );
 
             // -----
             _control.GetAction<CheckXPosition>("Force R?", 2).compareTo = 73f;
             _control.GetAction<CheckXPosition>("Force L?", 1).compareTo = 96f;
+            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] Lace Dstab bounds: Left:{_control.GetAction<CheckXPosition>("Force R?", 2).compareTo}, Right:{_control.GetAction<CheckXPosition>("Force L?", 1).compareTo}");
 
+
+            // ----- Bombs, unused attack for now
             _control.FindFloatVariable("Bomb Max X").Value = 96f;
             _control.FindFloatVariable("Bomb Min X").Value = 72f;
             _control.FindFloatVariable("Bomb Max Y").Value = 115f;
@@ -113,15 +141,21 @@ namespace SilkenSisters.Behaviors
 
         private void disableTitleCard()
         {
-            SilkenSisters.Log.LogInfo("Disabling title card");
+            SilkenSisters.Log.LogMessage("[Lace2.disableTitleCard] Disabling title card");
             _control.DisableAction("Start Battle Refight", 4);
             _control.DisableAction("Start Battle", 4);
+
+            SilkenSisters.Log.LogInfo($"[Lace2.disableTitleCard] " +
+                $"(Start Battle Refight):{_control.GetStateAction("Start Battle Refight", 4).active}, " +
+                $"(Start Battle):{_control.GetStateAction("Start Battle", 4).active}");
+
         }
 
         private void fixWallRangeAlert()
         {
             GameObject wallRange = SceneObjectManager.findChildObject(gameObject.transform.parent.gameObject, "Wall Range");
             wallRange.transform.SetPosition3D(84.0349f, 103.67f, 0f);
+            SilkenSisters.Log.LogInfo($"[Lace2.fixWallRangeAlert] position:{wallRange.transform.position}");
 
             BoxCollider2D[] boxes = wallRange.GetComponents<BoxCollider2D>();
             boxes[0].size = new Vector2(5f, 30f);
@@ -130,9 +164,9 @@ namespace SilkenSisters.Behaviors
             boxes[1].size = new Vector2(5f, 35.1782f);
             boxes[1].offset = new Vector2(10f, 7.1234f);
 
-            ClampPosition clamp_j_pos = new ClampPosition();
-            clamp_j_pos.minX = 80f;
-            clamp_j_pos.gameObject = SilkenSisters.plugin.laceBossFSMOwner;
+
+            SilkenSisters.Log.LogInfo($"[Lace2.fixWallRangeAlert] alertLeft: Size:{boxes[0].size}, Size:{boxes[0].offset}");
+            SilkenSisters.Log.LogInfo($"[Lace2.fixWallRangeAlert] alertRight: Size:{boxes[1].size}, Size:{boxes[1].offset}");
         }
 
         private void setLaceFacing()
@@ -149,7 +183,50 @@ namespace SilkenSisters.Behaviors
 
             _control.InsertAction("Init", faceRight, 4);
             _control.DisableAction("Refight Engarde", 0);
+
+            SilkenSisters.Log.LogInfo($"[Lace2.setLaceFacing] Facing Action:{_control.GetStateAction("Init", 4).GetType()}");
+            SilkenSisters.Log.LogInfo($"[Lace2.Refight Engarde] Base facing active?:{_control.GetStateAction("Refight Engarde", 0).active}");
+        }
+    }
+
+    internal class Lace2Scene : MonoBehaviour
+    {
+
+        private PlayMakerFSM _control;
+
+        private void Awake()
+        {
+            Setup();
         }
 
+        private async Task Setup()
+        {
+            SilkenSisters.Log.LogMessage($"[Lace2Scene.Setup] Started setting Lace scene up");
+            getComponents();
+            disableSceneObjects();
+            moveSceneBounds();
+            SilkenSisters.Log.LogMessage($"[Lace2Scene.Setup] Finished setting Lace scene up");
+        }
+
+        private void getComponents()
+        {
+            _control = gameObject.GetFsmPreprocessed("Control");
+        }
+
+        private void disableSceneObjects()
+        {
+            SilkenSisters.Log.LogMessage($"[Lace2Scene.disableSceneObjects] Disabling unwanted LaceBossScene items");
+            SceneObjectManager.findChildObject(gameObject, "Flower Effect Hornet").SetActive(false);
+            SceneObjectManager.findChildObject(gameObject, "steam hazard").SetActive(false);
+            SceneObjectManager.findChildObject(gameObject, "Silk Heart Memory Return").SetActive(false);
+        }
+
+        private void moveSceneBounds()
+        {
+            SilkenSisters.Log.LogMessage($"[Lace2Scene.moveSceneBounds] Moving lace arena objects");
+            SceneObjectManager.findChildObject(gameObject, "Arena L").transform.position = new Vector3(72f, 104f, 0f);
+            SceneObjectManager.findChildObject(gameObject, "Arena R").transform.position = new Vector3(97f, 104f, 0f);
+            SceneObjectManager.findChildObject(gameObject, "Centre").transform.position = new Vector3(84.5f, 104f, 0f);
+        }
     }
 }

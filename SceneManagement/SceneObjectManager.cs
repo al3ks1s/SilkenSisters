@@ -31,22 +31,22 @@ namespace SilkenSisters.SceneManagement
         {
             GameObject go_copy = null;
 
-            SilkenSisters.Log.LogDebug($"Current scene {SceneManager.GetActiveScene().name}");
-            SilkenSisters.Log.LogDebug($"Loading {sceneName} scene");
+            SilkenSisters.Log.LogDebug($"[SceneObjectManager.loadObjectFromScene] Current scene {SceneManager.GetActiveScene().name}");
+            SilkenSisters.Log.LogDebug($"[SceneObjectManager.loadObjectFromScene] Loading {sceneName} scene");
 
             AssetBundle bundle = AssetBundle.LoadFromFile(Path.Combine(sceneFolder, $"{sceneName}.bundle".ToLower()));
             await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
 
             Scene scene = SceneManager.GetSceneByName(sceneName);
-            SilkenSisters.Log.LogDebug($"Scene {scene.name} successfully loaded");
+            SilkenSisters.Log.LogDebug($"[SceneObjectManager.loadObjectFromScene] Scene {scene.name} successfully loaded");
 
             GameObject go = SceneObjectManager.findObjectInScene(scene, objectToRetrieve);
             go_copy = GameObject.Instantiate(go);
             GameObject.DontDestroyOnLoad(go_copy);
             
-            SilkenSisters.Log.LogDebug($"Unloading '{scene.name}' scene");
+            SilkenSisters.Log.LogDebug($"[SceneObjectManager.loadObjectFromScene] Unloading '{scene.name}' scene");
             await SceneManager.UnloadSceneAsync(scene.name);
-            SilkenSisters.Log.LogDebug($"Unloading bundle '{bundle.name}'");
+            SilkenSisters.Log.LogDebug($"[SceneObjectManager.loadObjectFromScene] Unloading bundle '{bundle.name}'");
             await bundle.UnloadAsync(false);
 
             go_copy.SetActive(false);
@@ -59,20 +59,20 @@ namespace SilkenSisters.SceneManagement
             int objectIndex = 0;
             string[] objectHierarchy = objectToRetrieve.Split("/");
 
-            SilkenSisters.Log.LogDebug($"Searching scene {scene.name} for object '{objectToRetrieve}'");
-            SilkenSisters.Log.LogDebug($"Scene {scene.name} has {scene.GetRootGameObjects().Length} objects");
+            SilkenSisters.Log.LogDebug($"[SceneObjectManager.findObjectInScene] Searching scene {scene.name} for object '{objectToRetrieve}'");
+            SilkenSisters.Log.LogDebug($"[SceneObjectManager.findObjectInScene] Scene {scene.name} has {scene.GetRootGameObjects().Length} objects");
 
             GameObject cur_obj = scene.GetRootGameObjects().First<GameObject>(obj => obj.name == objectHierarchy[objectIndex]);
             objectIndex += 1;
 
             while (objectIndex < objectHierarchy.Length)
             {
-                SilkenSisters.Log.LogDebug($"Current child object searched for: '{objectHierarchy[objectIndex]}'");
+                SilkenSisters.Log.LogDebug($"[SceneObjectManager.findObjectInScene] Current child object searched for: '{objectHierarchy[objectIndex]}'");
                 cur_obj = cur_obj.transform.GetComponentsInChildren<Transform>(true).First(tf => tf.name == objectHierarchy[objectIndex]).gameObject;
                 objectIndex += 1;
             }
 
-            SilkenSisters.Log.LogDebug($"Found object {cur_obj}");
+            SilkenSisters.Log.LogDebug($"[SceneObjectManager.findObjectInScene] Found object {cur_obj}");
 
             return cur_obj;  
         }
@@ -91,12 +91,12 @@ namespace SilkenSisters.SceneManagement
 
             while (objectIndex < objectHierarchy.Length)
             {
-                SilkenSisters.Log.LogDebug($"Current child object searched for: '{objectHierarchy[objectIndex]}'");
+                SilkenSisters.Log.LogDebug($"[SceneObjectManager.findChildObject] Current child object searched for: '{objectHierarchy[objectIndex]}'");
                 cur_obj = cur_obj.transform.GetComponentsInChildren<Transform>(true).First(tf => tf.name == objectHierarchy[objectIndex]).gameObject;
                 objectIndex += 1;
             }
 
-            SilkenSisters.Log.LogDebug($"Found object {cur_obj}");
+            SilkenSisters.Log.LogDebug($"[SceneObjectManager.findChildObject] Found object {cur_obj}");
 
             return cur_obj;
         }   

@@ -24,12 +24,13 @@ namespace SilkenSisters.Behaviors
 
         private async Task Setup()
         {
-            SilkenSisters.Log.LogDebug($"Spawning lace on the organ bench");
+            SilkenSisters.Log.LogMessage($"[LaceNPC.Setup] Spawning lace on the organ bench");
             register();
             getComponents();
             disableRangeDetection();
             setPosition();
             editFSMAnimations();
+            SilkenSisters.Log.LogMessage($"[LaceNPC.Setup] Finished setting up LaceNPC");
         }
 
         private void register()
@@ -47,8 +48,8 @@ namespace SilkenSisters.Behaviors
 
         private void disableRangeDetection()
         {
-            SilkenSisters.Log.LogDebug($"Disabling lace npc range detection");
             SceneObjectManager.findChildObject(gameObject, "Start Range").SetActive(false);
+            SilkenSisters.Log.LogInfo($"[LaceNPC.disableRangeDetection] LaceNPCDetection?:{SceneObjectManager.findChildObject(gameObject, "Start Range").activeSelf}");
         }
 
         private void setPosition()
@@ -57,13 +58,12 @@ namespace SilkenSisters.Behaviors
             _npcTransform.SetScaleX(-0.9f);
             _npcTransform.SetScaleY(0.9f);
             _npcTransform.SetScaleZ(0.9f);
-            SilkenSisters.Log.LogDebug($"Setting lace position at {_npcTransform.position}");
+            SilkenSisters.Log.LogInfo($"[LaceNPC.setPosition] position:{_npcTransform.position}");
         }
 
         private void editFSMAnimations()
         {
-
-            SilkenSisters.Log.LogInfo("Editing Lace NPC FSM");
+            SilkenSisters.Log.LogMessage("[LaceNPC.editFSMAnimations] Editing Lace NPC FSM");
             _control.ChangeTransition("Take Control", "LAND", "Sit Up");
             _control.ChangeTransition("Take Control", "LAND", "Sit Up");
             _control.GetTransition("Take Control", "LAND").fsmEvent = FsmEvent.GetFsmEvent("FINISHED");
@@ -102,12 +102,13 @@ namespace SilkenSisters.Behaviors
         private void toggleChallenge()
         {
             SilkenSisters.plugin.challengeDialogInstance.SetActive(!SilkenSisters.plugin.challengeDialogInstance.activeSelf);
-            SilkenSisters.Log.LogDebug($"Set challengeDialog to {SilkenSisters.plugin.challengeDialogInstance.activeSelf}");
+            SilkenSisters.Log.LogInfo($"[LaceNPC.toggleChallenge] challenge?:{SilkenSisters.plugin.challengeDialogInstance.activeSelf}");
         }
     
         private void startConstrainHornet()
         {
             SilkenSisters.hornetConstrain.enabled = true;
+            SilkenSisters.Log.LogInfo($"[LaceNPC.startConstrainHornet] constrainHornet?:{SilkenSisters.hornetConstrain.enabled}");
         }
 
     }

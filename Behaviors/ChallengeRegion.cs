@@ -27,11 +27,13 @@ namespace SilkenSisters.Behaviors
 
         private async Task Setup()
         {
+            SilkenSisters.Log.LogMessage($"[ChallengeRegion.Setup] Finished setting up ChallengeRegion");
             getComponents();
             setPositions();
             disableCradleStuff();
             setPhantomTrigger();
             setGarama();
+            SilkenSisters.Log.LogMessage($"[ChallengeRegion.Setup] Finished setting up ChallengeRegion");
         }
 
         private void getComponents()
@@ -47,23 +49,24 @@ namespace SilkenSisters.Behaviors
             // Challenge dialog 83,9299 105,8935 2,504
             gameObject.transform.position = new Vector3(84.45f, 105.8935f, 2.504f);
             _challengeRegion.transform.localPosition = new Vector3(-0.2145f, 1.1139f, 2.4959f);
-            SilkenSisters.Log.LogInfo($"Setting dialog position at {gameObject.transform.position}");
+            SilkenSisters.Log.LogInfo($"[ChallengeRegion.setPositions] Dialog position:{gameObject.transform.position}, RegionPosition:{_challengeRegion.transform.localPosition}");
         }
 
         private void disableCradleStuff()
         {
-            SilkenSisters.Log.LogInfo($"Disabling Cradle specific things");
             SceneObjectManager.findChildObject(gameObject, "Challenge Glows/Cradle__0013_loom_strut_based (2)").SetActive(false);
             SceneObjectManager.findChildObject(gameObject, "Challenge Glows/Cradle__0013_loom_strut_based (3)").SetActive(false);
-
-            SilkenSisters.Log.LogInfo("Disabling Silk's intro");
             _control.GetTransition("Idle", "CHALLENGE START").FsmEvent = FsmEvent.GetFsmEvent("QUICK START");
+
+            SilkenSisters.Log.LogInfo($"[ChallengeRegion.disableCradleStuff] Cradle specific objects active?: " +
+                $"CradleLoom1:{SceneObjectManager.findChildObject(gameObject, "Challenge Glows/Cradle__0013_loom_strut_based (2)").activeSelf}, " +
+                $"CradleLoom2:{SceneObjectManager.findChildObject(gameObject, "Challenge Glows/Cradle__0013_loom_strut_based (3)").activeSelf}");
         }
 
         private void setPhantomTrigger()
         {
             // Trigger phantom boss scene
-            SilkenSisters.Log.LogInfo($"Setting battle trigger");
+            SilkenSisters.Log.LogMessage($"[ChallengeRegion.setPhantomTrigger] Setting battle trigger");
             SendEventByName battle_begin_event = new SendEventByName();
             battle_begin_event.sendEvent = "ENTER";
             battle_begin_event.delay = 0;
@@ -80,7 +83,6 @@ namespace SilkenSisters.Behaviors
         private void setGarama()
         {
             PlayMakerFSM HornetSpecialSFM = SilkenSisters.hornet.GetComponents<PlayMakerFSM>().First(f => f.FsmName == "Silk Specials");
-            SilkenSisters.Log.LogInfo($"{HornetSpecialSFM.FsmName}");
             _regionControl.DisableAction("Hornet Voice", 0);
             _regionControl.AddAction("Hornet Voice", HornetSpecialSFM.GetStateAction("Standard", 0));
 

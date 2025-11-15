@@ -32,7 +32,7 @@ namespace SilkenSisters.Behaviors
             editPlayerData();
             bypassToolPickup();
             manageTransitionGates();
-            SilkenSisters.Log.LogInfo($"Finished setting up deep memory");
+            SilkenSisters.Log.LogMessage($"[DeepMemory.Setup] Done");
         }
 
         private void getComponents()
@@ -44,25 +44,27 @@ namespace SilkenSisters.Behaviors
         private void setPosition()
         {
             gameObject.transform.position = new Vector3(59.249f, 56.7457f, -3.1141f);
-            SilkenSisters.Log.LogInfo($"Set deep memory zone position at {gameObject.transform.position}");
+            SilkenSisters.Log.LogInfo($"[DeepMemory.setPosition] position:{gameObject.transform.position}");
         }
 
         private void disableCrustKingObjects()
         {
-            SilkenSisters.Log.LogInfo($"Finding and deleting coral king sprite");
+            SilkenSisters.Log.LogMessage($"[DeepMemory.disableCrustKingObjects] Finding and deleting coral king sprite");
             GameObject.Destroy(SceneObjectManager.findChildObject(_before, "CK_ground_hit0004").gameObject);
         }
 
         private void editFSMTransition()
         {
-            SilkenSisters.Log.LogInfo($"Editing scene transition state actions");
             _control.GetAction<BeginSceneTransition>("Transition Scene", 4).sceneName = "Organ_01";
             _control.GetAction<BeginSceneTransition>("Transition Scene", 4).entryGateName = "door_wakeInMemory_phantom";
+            
+            SilkenSisters.Log.LogInfo($"[DeepMemory.editFSMTransition] " +
+                $"Scene:{_control.GetAction<BeginSceneTransition>("Transition Scene", 4).sceneName}, " +
+                $"Gate:{_control.GetAction<BeginSceneTransition>("Transition Scene", 4).entryGateName}");
         }
 
         private void editPlayerData()
         {
-            SilkenSisters.Log.LogInfo($"Setting playerdata to enable phantom fight");
             HutongGames.PlayMaker.Actions.SetPlayerDataBool enablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
             enablePhantom.boolName = "defeatedPhantom";
             enablePhantom.value = false;
@@ -77,33 +79,31 @@ namespace SilkenSisters.Behaviors
 
         private void bypassToolPickup()
         {
-            SilkenSisters.Log.LogInfo($"Bypassing tool pick up for deep memory zone activation");
             PlayMakerFSM pickupFSM = _before.GetFsmPreprocessed("activate memory on tool pickup");
             pickupFSM.GetTransition("State 1", "PICKED UP").fsmEvent = FsmEvent.GetFsmEvent("FINISHED");
         }
 
         private void manageTransitionGates()
         {
-            SilkenSisters.Log.LogInfo($"Adding action to enable memory door");
-            InvokeMethod door = new InvokeMethod(enableDoor);
-            _control.InsertAction("Transition Scene", door, 4);
 
-            SilkenSisters.Log.LogInfo($"Adding action to disable tank respawn");
             InvokeMethod resp = new InvokeMethod(disableRespawn);
             _control.AddAction("Transition Scene", resp);
-            
+
+            InvokeMethod door = new InvokeMethod(enableDoor);
+            _control.InsertAction("Transition Scene", door, 0);
+
         }
 
         private void enableDoor()
         {
             SilkenSisters.plugin.wakeupPointInstance.SetActive(true);
-            SilkenSisters.Log.LogInfo($"Set door to {SilkenSisters.plugin.wakeupPointInstance.activeSelf}");
+            SilkenSisters.Log.LogInfo($"[DeepMemory.enableDoor] Door active?:{SilkenSisters.plugin.wakeupPointInstance.activeSelf}");
         }
         private void disableRespawn()
         {
             SilkenSisters.plugin.respawnPointInstance.SetActive(false);
             SilkenSisters.plugin.respawnPointInstance.GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
-            SilkenSisters.Log.LogInfo($"Set respawn to {SilkenSisters.plugin.respawnPointInstance.activeSelf}");
+            SilkenSisters.Log.LogInfo($"[DeepMemory.disableRespawn] Respawn active?:{SilkenSisters.plugin.respawnPointInstance.activeSelf}, Current state:{SilkenSisters.plugin.respawnPointInstance.GetComponent<PlayMakerFSM>().ActiveStateName}");
         }
 
     }
@@ -125,7 +125,7 @@ namespace SilkenSisters.Behaviors
             setName();
             setPosition();
             editFSM();
-            SilkenSisters.Log.LogInfo("Finished setting up wake up point");
+            SilkenSisters.Log.LogMessage($"[WakeUpMemory.Setup] Finished");
         }
 
         private void getComponents()
@@ -136,19 +136,20 @@ namespace SilkenSisters.Behaviors
 
         private void setName()
         {
-            SilkenSisters.Log.LogInfo("Editing wakeup point name");
             _wakeTransitionGate.name = "door_wakeInMemory_phantom";
+            SilkenSisters.Log.LogInfo($"[WakeUpMemory.setName] gateName:{_wakeTransitionGate.name}");
         }
 
         private void setPosition()
         {
             //gameObject.transform.position = new Vector3(59.249f, 56.7457f, 0f);
             gameObject.transform.position = new Vector3(115.4518f, 104.5621f, 0f);
+            SilkenSisters.Log.LogInfo($"[WakeUpMemory.setPosition] gatePosition:{gameObject.transform.position}");
         }
 
         private void editFSM()
         {
-            SilkenSisters.Log.LogInfo("Editing the door FSM");
+            SilkenSisters.Log.LogInfo("[WakeUpMemory.editFSM] Editing the door FSM");
 
             InvokeMethod inv2 = new InvokeMethod(enableRespawn);
             _control.AddAction("Take Control", inv2);
@@ -165,25 +166,20 @@ namespace SilkenSisters.Behaviors
             InvokeMethod disSelf = new InvokeMethod(disableSelf);
             _control.AddAction("End", disSelf);
 
-
             InvokeMethod closeOrgan = new InvokeMethod(closeOffOrgan);
             _control.AddAction("End", closeOrgan);
-
-
         }
 
         private void enableIsMemory()
         {
-            SilkenSisters.Log.LogInfo("Enabling current scene to be memory");
             GameManager._instance.ForceCurrentSceneIsMemory(true);
-            SilkenSisters.Log.LogInfo($"Is Memory? {GameManager._instance.IsMemoryScene()} {GameManager._instance.forceCurrentSceneMemory}");
+            SilkenSisters.Log.LogInfo($"[WakeUpMemory.enableIsMemory] Is Memory? {GameManager._instance.IsMemoryScene()} {GameManager._instance.forceCurrentSceneMemory}");
         }
-
 
         private void enableRespawn()
         {
             SilkenSisters.plugin.respawnPointInstance.SetActive(true);
-            SilkenSisters.Log.LogInfo($"Set respawn to {SilkenSisters.plugin.respawnPointInstance.activeSelf}");
+            SilkenSisters.Log.LogInfo($"[WakeUpMemory.enableRespawn] respawnObject active:{SilkenSisters.plugin.respawnPointInstance.activeSelf}");
         }
 
         private void disableSelf()
@@ -193,7 +189,6 @@ namespace SilkenSisters.Behaviors
 
         private void closeOffOrgan()
         {
-            SilkenSisters.Log.LogInfo("Closing off organ exits");
             GameObject gildedDoor = SceneObjectManager.findObjectInCurrentScene("Boss Scene/Gates/Battle Gate (1)");
 
             GameObject.Instantiate(gildedDoor).transform.SetPosition3D(45.4916f, 71.6012f, 0.003f);
@@ -226,19 +221,18 @@ namespace SilkenSisters.Behaviors
         private void setName()
         {
             gameObject.name = "door_wakeOnGround_phantom";
+            SilkenSisters.Log.LogInfo($"[WakeUpRespawn.setName] gateName:{gameObject.name}");
         }
         private void setPosition()
         {
             gameObject.transform.position = new Vector3(59.249f, 56.7457f, 0f);
+            SilkenSisters.Log.LogInfo($"[WakeUpRespawn.setPosition] gatePosition:{gameObject.transform.position}");
         }
 
         private void editFSM()
         {
-            SilkenSisters.Log.LogInfo($"Editing FSM to disable the door");
             PlayMakerFSM respawnFSM = gameObject.GetFsmPreprocessed("Wake Up");
-
             respawnFSM.DisableAction("Save?", 1);
-
 
             InvokeMethod replenishTool = new InvokeMethod(replenishTools);
             // respawnFSM.AddAction("End", replenishTool);
@@ -252,17 +246,17 @@ namespace SilkenSisters.Behaviors
 
         private void disableDoor()
         {
-            SilkenSisters.Log.LogInfo("Trying to disable door");
+            SilkenSisters.Log.LogInfo("[WakeUpRespawn.disableDoor] Trying to disable door");
             SilkenSisters.plugin.wakeupPointInstance.SetActive(false);
             SilkenSisters.plugin.wakeupPointInstance.GetComponent<PlayMakerFSM>().fsm.Reinitialize();
             SceneObjectManager.findChildObject(SilkenSisters.plugin.wakeupPointInstance, "door_wakeInMemory_phantom").GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
-            SilkenSisters.Log.LogInfo($"Set door to {SilkenSisters.plugin.wakeupPointInstance.activeSelf}");
+            SilkenSisters.Log.LogInfo($"[WakeUpRespawn.disableDoor] Door {SilkenSisters.plugin.wakeupPointInstance.name} enabled?:{SilkenSisters.plugin.wakeupPointInstance.activeSelf}");
         }
 
         private void disableSelf()
         {
-            SilkenSisters.Log.LogInfo("respawn point disabling self");
             gameObject.SetActive(false);
+            SilkenSisters.Log.LogInfo($"[WakeUpRespawn.disableSelf] {gameObject.activeSelf}");
         }
 
         private void replenishTools()

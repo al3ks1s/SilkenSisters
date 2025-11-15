@@ -23,26 +23,11 @@ namespace SilkenSisters.Behaviors
 
         private async Task Setup()
         {
-            //register();
             getComponents();
-            //waitForLace();
             disableAreaDetection();
             editFSMEvents();
             editBossTitle();
             setupHornetControl();
-        }
-
-
-        private void register()
-        {
-            SilkenSisters.Log.LogInfo($"Trying to register phantom");
-            SilkenSisters.plugin.phantomBossScene = gameObject;
-            SilkenSisters.Log.LogInfo($"{SilkenSisters.plugin.phantomBossScene}");
-
-            SilkenSisters.Log.LogInfo($"Registering FSMOwner");
-            SilkenSisters.plugin.phantomBossSceneFSMOwner = new FsmOwnerDefault();
-            SilkenSisters.plugin.phantomBossSceneFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
-            SilkenSisters.plugin.phantomBossSceneFSMOwner.GameObject = SilkenSisters.plugin.phantomBossScene;
         }
 
         private void getComponents()
@@ -58,7 +43,7 @@ namespace SilkenSisters.Behaviors
 
         private void editFSMEvents()
         {
-            SilkenSisters.Log.LogInfo($"Trigger lace jump");
+            SilkenSisters.Log.LogMessage($"[PhantomBoss.editFSMEvents] Trigger lace jump");
             SendEventByName lace_jump_event = new SendEventByName();
             lace_jump_event.sendEvent = "ENTER";
             lace_jump_event.delay = 0;
@@ -95,7 +80,7 @@ namespace SilkenSisters.Behaviors
 
         private void setupHornetControl()
         {
-            SilkenSisters.Log.LogDebug("Setting actions to give back hornet control");
+            SilkenSisters.Log.LogMessage("[PhantomBoss.setupHornetControl] Setting actions to give back hornet control");
             SendMessage message_control_idle = new SendMessage();
             FunctionCall fc_control_idle = new FunctionCall();
             fc_control_idle.FunctionName = "StartControlToIdle";
@@ -129,8 +114,8 @@ namespace SilkenSisters.Behaviors
 
         private void editBossTitle()
         {
-            SilkenSisters.Log.LogInfo($"Change boss title");
             _control.GetAction<DisplayBossTitle>("Start Battle", 3).bossTitle = "SILKEN_SISTERS";
+            SilkenSisters.Log.LogInfo($"[PhantomBoss.editBossTitle] NewTitleBase:{_control.GetAction<DisplayBossTitle>("Start Battle", 3).bossTitle}");
         }
     }
 }

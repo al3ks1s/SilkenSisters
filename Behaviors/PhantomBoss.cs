@@ -23,14 +23,14 @@ namespace SilkenSisters.Behaviors
 
         private async Task Setup()
         {
+            SilkenSisters.Log.LogMessage($"[PhantomBoss.Setup] Started setting phantom boss up");
             gameObject.transform.SetPositionX(77.1797f);
             getComponents();
-            //waitForLace();
             triggerLace();
             skipCutscene();
             listenForLaceDead();
             prepareExitMemoryEffect();
-            resetPlayerData();
+            SilkenSisters.Log.LogMessage($"[PhantomBoss.Setup] Finished setting phantom boss up");
         }
 
         private void getComponents()
@@ -41,7 +41,7 @@ namespace SilkenSisters.Behaviors
         private void triggerLace()
         {
             // FG Column - enable LaceBoss Object
-            SilkenSisters.Log.LogInfo($"Enable laceBoss {SilkenSisters.plugin.laceBossFSMOwner} {SilkenSisters.plugin.laceBossFSMOwner.gameObject}");
+            SilkenSisters.Log.LogInfo($"[PhantomBoss.skipCutscene] Enable laceBoss {SilkenSisters.plugin.laceBossFSMOwner} {SilkenSisters.plugin.laceBossFSMOwner.gameObject}");
             ActivateGameObject activate_lace_boss = new ActivateGameObject();
             activate_lace_boss.activate = true;
             activate_lace_boss.gameObject = SilkenSisters.plugin.laceBossFSMOwner;
@@ -50,7 +50,7 @@ namespace SilkenSisters.Behaviors
             _control.AddAction("Appear", activate_lace_boss);
 
             // Trigger lace 
-            SilkenSisters.Log.LogInfo($"Trigger lace boss");
+            SilkenSisters.Log.LogMessage($"[PhantomBoss.skipCutscene] Trigger lace boss");
             SendEventByName lace_boss_start = new SendEventByName();
             lace_boss_start.sendEvent = "BATTLE START FIRST";
             lace_boss_start.delay = 0;
@@ -65,7 +65,7 @@ namespace SilkenSisters.Behaviors
         private void skipCutscene()
         {
             // Skip 
-            SilkenSisters.Log.LogInfo($"Skip cutscene interaction");
+            SilkenSisters.Log.LogMessage($"[PhantomBoss.skipCutscene] Skip cutscene interaction");
             _control.GetAction<Wait>("Time Freeze", 4).time = 0.001f;
             _control.GetAction<ScaleTime>("Time Freeze", 5).timeScale = 1f;
 
@@ -218,7 +218,7 @@ namespace SilkenSisters.Behaviors
             exitMemory.GetAction<StartPreloadingScene>(0).SceneName = "Organ_01";
             exitMemory.GetAction<BeginSceneTransition>(4).sceneName = "Organ_01";
             exitMemory.GetAction<BeginSceneTransition>(4).entryGateName = $"{SilkenSisters.plugin.respawnPointInstance.name}";
-            SilkenSisters.Log.LogInfo($"Transition Gate to exit memory: {SilkenSisters.plugin.respawnPointInstance.name}");
+            SilkenSisters.Log.LogInfo($"[PhantomBoss.prepareExitMemoryEffect] Transition Gate to exit memory: {SilkenSisters.plugin.respawnPointInstance.name}");
 
             exitMemory.GetAction<Wait>(2).time = 2f;
 
@@ -228,6 +228,9 @@ namespace SilkenSisters.Behaviors
             _control.AddTransition("Deep Memory Enter", "FINISHED", "Deep Memory Enter Fall");
             _control.AddTransition("Deep Memory Enter Fall", "FINISHED", "Collapse");
             _control.AddTransition("Collapse", "FINISHED", "Exit Memory");
+
+            resetPlayerData();
+
         }
 
         private void resetPlayerData()
@@ -250,6 +253,7 @@ namespace SilkenSisters.Behaviors
         private void endHornetConstrain()
         {
             SilkenSisters.hornetConstrain.enabled = false;
+            SilkenSisters.Log.LogInfo($"[PhantomBoss.endHornetConstrain] HornetConstrain?:{SilkenSisters.hornetConstrain.enabled}");
         }
 
     }

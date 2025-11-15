@@ -1,5 +1,10 @@
 # Changelog 
 
+## 0.2.0
+
+- All Silksong's languages support
+- Better logs
+
 ## 0.1.8
 
 - Fixed a bug that caused the Deep Memory zone to load improperly
