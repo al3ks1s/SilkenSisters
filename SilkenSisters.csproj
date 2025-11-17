@@ -43,7 +43,7 @@
     <PackageReference Include="Silksong.FsmUtil" Version="0.3.1" />
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
     <!--If you're unable resolve this dependency, check that you're using the nuget v3 package feed instead of v2.-->
-    <PackageReference Include="Silksong.GameLibs" Version="1.1.0-silksong1.0.29242" PrivateAssets="all" />
+    <PackageReference Include="Silksong.GameLibs" Version="1.1.0-silksong1.0.29315" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Folder Remove="thunderstore/tmp;thunderstore/dist" />
