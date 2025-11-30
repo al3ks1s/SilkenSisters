@@ -171,6 +171,8 @@ namespace SilkenSisters
         private ConfigEntry<KeyCode> actionKey;
         public static ConfigEntry<bool> syncedFight;
 
+        public static bool debugBuild;
+
         private void Awake()
         {
             /*
@@ -180,6 +182,8 @@ namespace SilkenSisters
 
             SilkenSisters.Log = new ManualLogSource("SilkenSisters");
             BepInEx.Logging.Logger.Sources.Add(Log);
+
+            debugBuild = false;
 
             SilkenSisters.plugin = this;
 
@@ -193,7 +197,7 @@ namespace SilkenSisters
             syncedFight = Config.Bind(
                 "General",
                 "SyncedFight",
-                true,
+                false,
                 "Use the Synced patterns for the boss fights."
             );
             

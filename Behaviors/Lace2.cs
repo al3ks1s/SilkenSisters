@@ -204,7 +204,7 @@ namespace SilkenSisters.Behaviors
 
         private void prepareSync()
         {
-            if (SilkenSisters.syncedFight.Value) { 
+            if (SilkenSisters.syncedFight.Value && false) { 
 
                 SilkenSisters.Log.LogMessage($"[Lace.prepareSync] Adding a Sync state");
                 _control.AddState("SilkenSync");

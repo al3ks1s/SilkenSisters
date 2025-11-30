@@ -1,5 +1,9 @@
 # Changelog 
 
+## 0.2.4
+
+- Fixed Hornet's facing on challenge cutscene
+
 ## 0.2.3
 
 - Changed the dependency string to new FSMUtil package

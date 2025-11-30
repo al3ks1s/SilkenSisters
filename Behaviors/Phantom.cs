@@ -265,7 +265,7 @@ namespace SilkenSisters.Behaviors
 
         private void prepareSync()
         {
-            if (SilkenSisters.syncedFight.Value)
+            if (SilkenSisters.syncedFight.Value && false)
             {
                 _control.AddState("SilkenSync");
 
@@ -333,17 +333,15 @@ namespace SilkenSisters.Behaviors
 
             _control.AddAction("Organ Hit", lace_jump_event);
 
-            FaceObjectV2 hornetFaceEnemies = new FaceObjectV2();
-            hornetFaceEnemies.objectA = SilkenSisters.hornetFSMOwner;
-            hornetFaceEnemies.objectB = SilkenSisters.plugin.laceBossInstance;
-            hornetFaceEnemies.spriteFacesRight = false;
-            hornetFaceEnemies.playNewAnimation = false;
-            hornetFaceEnemies.newAnimationClip = "";
-            hornetFaceEnemies.resetFrame = false;
-            hornetFaceEnemies.everyFrame = false;
-            hornetFaceEnemies.pauseBetweenTurns = 0.1f;
-            _control.AddAction("BG Fog", hornetFaceEnemies);
+            FunctionCall fLeft = new FunctionCall();
+            fLeft.FunctionName = "FaceLeft";
 
+            SendMessage hornetFaceLeft = new SendMessage();
+            hornetFaceLeft.gameObject = SilkenSisters.hornetFSMOwner;
+            hornetFaceLeft.delivery = 0;
+            hornetFaceLeft.options = SendMessageOptions.DontRequireReceiver;
+            hornetFaceLeft.functionCall = fLeft;
+            _control.AddAction("BG Fog", hornetFaceLeft);
 
             Tk2dPlayAnimation hornetChall = new Tk2dPlayAnimation();
             hornetChall.gameObject = SilkenSisters.hornetFSMOwner;
