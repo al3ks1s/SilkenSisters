@@ -30,3 +30,6 @@ If applicable, add screenshots to help explain your problem.
 Please include the BepInEx Log file to help understand the issue.
 It is usually located at `C:\Program Files (x86)\Steam\steamapps\common\Hollow Knight Silksong\BepInEx\LogOutput.log`
 Anonymize the output if needed.
+
+**Save File** 
+Include the save file so that i can test on my own
