@@ -1,14 +1,10 @@
-﻿using HarmonyLib;
-using HutongGames.PlayMaker;
+﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 namespace SilkenSisters.Behaviors
 {
@@ -67,7 +63,7 @@ namespace SilkenSisters.Behaviors
         {
             _control.GetAction<BeginSceneTransition>("Transition Scene", 4).sceneName = "Organ_01";
             _control.GetAction<BeginSceneTransition>("Transition Scene", 4).entryGateName = "door_wakeInMemory_phantom";
-            
+
             SilkenSisters.Log.LogInfo($"[DeepMemory.editFSMTransition] " +
                 $"Scene:{_control.GetAction<BeginSceneTransition>("Transition Scene", 4).sceneName}, " +
                 $"Gate:{_control.GetAction<BeginSceneTransition>("Transition Scene", 4).entryGateName}");

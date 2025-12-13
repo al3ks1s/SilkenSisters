@@ -20,17 +20,17 @@
       },
       "Hamunii.BepInEx.AutoPlugin": {
         "type": "Direct",
-        "requested": "[2.0.1, )",
-        "resolved": "2.0.1",
-        "contentHash": "UDVQtYOGU1v+xkYIRubm4zSIRtCW42kWgJ3sXIbqYSD1qSseH9gU44+zQMNRCy3BYXITtwWE3RqoyJdWUjDASA=="
+        "requested": "[2.1.0, )",
+        "resolved": "2.1.0",
+        "contentHash": "EuH0DoeBkpEiLYwCVZrlrQiNoqYi7U42+MCGpVim22erghvYYjPosEQTCHMsmyyBjLO/0NuLCu4I9aO/EkjVRQ=="
       },
       "HarmonyX": {
         "type": "Direct",
-        "requested": "[2.9.0, )",
-        "resolved": "2.9.0",
-        "contentHash": "vB03a0lJJefzSnPP8VJSzyTtgSx81dnxU2olfirHTBnbXY8Uc2BMoxCODPK1nzg4C53lQR0NOi+bp9170sYVFA==",
+        "requested": "[2.10.2, )",
+        "resolved": "2.10.2",
+        "contentHash": "/5WwkxXX8mPsRuigQt957rJGx1f0dDQxk+bvk4yYITKFjXas9Em+O71zEP8X0ym8OFQQ2XH/2SxS4NC7vEC+Xg==",
         "dependencies": {
-          "MonoMod.RuntimeDetour": "22.1.29.1",
+          "MonoMod.RuntimeDetour": "22.3.23.4",
           "System.Reflection.Emit": "4.7.0"
         }
       },
@@ -85,11 +85,11 @@
       },
       "MonoMod.RuntimeDetour": {
         "type": "Transitive",
-        "resolved": "22.1.29.1",
-        "contentHash": "CksRFEGCPs8VGKe6pc3zsOPd2Jik+FMlmx5HDxWVTxz9JlAmWDk1+0PCwAVw4iGDuDZmIUjZDjhSACasyw9y/Q==",
+        "resolved": "22.3.23.4",
+        "contentHash": "2nwwFfwYDSgUzhi+1MutTg1gyUgXoMS4+E04vHOFp84Vxs0oBkkn4mGAfhkr272y0j3vqIBzo2aT9pXRlCd/ZA==",
         "dependencies": {
           "Mono.Cecil": "0.11.4",
-          "MonoMod.Utils": "22.1.29.1",
+          "MonoMod.Utils": "22.3.23.4",
           "System.Collections.NonGeneric": "4.3.0",
           "System.ComponentModel.TypeConverter": "4.3.0",
           "System.IO.FileSystem.Primitives": "4.3.0",
@@ -100,8 +100,8 @@
       },
       "MonoMod.Utils": {
         "type": "Transitive",
-        "resolved": "22.1.29.1",
-        "contentHash": "qKyM/JXIA3hr2BpE5LTtYfZvIFlcLB62pkORARRv0bXKSk1n23Nl3oAdYymQMjNfrhn/jCPZRqKDFftrYa1K2Q==",
+        "resolved": "22.3.23.4",
+        "contentHash": "xso1rHFfcsPy3X1kj2uDk115z9tLTMxPEnba/zdNB6WazvrLRWGPuV9d4hHwr1iVz5quTFlZCbLBlE5fS2TqLA==",
         "dependencies": {
           "Mono.Cecil": "0.11.4",
           "System.Collections.NonGeneric": "4.3.0",

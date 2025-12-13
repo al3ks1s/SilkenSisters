@@ -33,12 +33,13 @@
   </PropertyGroup>
 	<PropertyGroup>
 	<NeutralLanguage>EN</NeutralLanguage>
+	<SupportedOSPlatformVersion>8.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
-    <PackageReference Include="HarmonyX" Version="2.9.0" />
-    <PackageReference Include="Hamunii.BepInEx.AutoPlugin" Version="2.0.1" PrivateAssets="all" />
+    <PackageReference Include="HarmonyX" Version="2.10.2" />
+    <PackageReference Include="Hamunii.BepInEx.AutoPlugin" Version="2.1.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.25.0" PrivateAssets="all" />
     <PackageReference Include="Silksong.FsmUtil" Version="0.3.3" />
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
@@ -49,14 +50,6 @@
     <Folder Remove="thunderstore/tmp;thunderstore/dist" />
     <None Include="README.md" Pack="True" PackagePath="README.md" />
     <None Include="thunderstore/icon.png" Pack="True" PackagePath="icon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="UnityExplorer.BIE5.Mono">
-      <HintPath>..\..\Utilities\sinai-dev-UnityExplorer\UnityExplorer.BIE5.Mono.dll</HintPath>
-    </Reference>
-    <Reference Include="UniverseLib.Mono">
-      <HintPath>..\..\Utilities\sinai-dev-UnityExplorer\UniverseLib.Mono.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Target Name="CopyAndPackageMod" AfterTargets="PostBuildEvent">
     <ItemGroup>

@@ -1,11 +1,8 @@
-﻿using HarmonyLib;
-using HutongGames.PlayMaker;
+﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -265,7 +262,7 @@ namespace SilkenSisters.Behaviors
 
         private void prepareSync()
         {
-            if (SilkenSisters.syncedFight.Value && false)
+            if (SilkenSisters.syncedFight.Value && SilkenSisters.debugBuild)
             {
                 _control.AddState("SilkenSync");
 

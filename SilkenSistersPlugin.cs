@@ -15,7 +15,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamCherry.Localization;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
+using UnityEngine.ResourceManagement.ResourceLocations;
+using UnityEditor;
 
 
 // Idea by AidaCamelia0516
@@ -175,15 +178,11 @@ namespace SilkenSisters
 
         private void Awake()
         {
-            /*
-            SilkenLogListener silkenListener = new SilkenLogListener(Path.Combine(Path.GetDirectoryName(this.Info.Location), "SilkenLog.txt"));
-            BepInEx.Logging.Logger.Listeners.Add(silkenListener);
-            */
 
             SilkenSisters.Log = new ManualLogSource("SilkenSisters");
             BepInEx.Logging.Logger.Sources.Add(Log);
 
-            debugBuild = false;
+            debugBuild = true;
 
             SilkenSisters.plugin = this;
 
@@ -198,7 +197,7 @@ namespace SilkenSisters
                 "General",
                 "SyncedFight",
                 false,
-                "Use the Synced patterns for the boss fights."
+                "Use the Synced patterns for the boss fights. Unavailable as of yet."
             );
             
             StartCoroutine(WaitAndPatch());
@@ -224,7 +223,6 @@ namespace SilkenSisters
 
             Logger.LogMessage($"Plugin loaded and initialized");
         }
-
 
         private IEnumerator WaitAndPatch()
         {
@@ -544,7 +542,7 @@ namespace SilkenSisters
 
         private void onSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            Logger.LogInfo($"[onSceneLoaded] Scene loaded : {scene.name}, active scene : {SceneManager.GetActiveScene()}");
+            Logger.LogInfo($"[onSceneLoaded] Scene loaded : {scene.name}, active scene : {SceneManager.GetActiveScene()}, Path:{scene.path}");
 
             string[] excludedScenes = new string[]{ "Menu_Title", "Pre_Menu_Loader", "Pre_Menu_Intro", "Quit_To_Menu" };
 
@@ -575,10 +573,10 @@ namespace SilkenSisters
                 Logger.LogMessage($"[preloadOrgan] Is not memory and all requirements met, setting things up");
                 setupDeepMemoryZone();
             }
-            else if (!isMemory() && canSetupNormalFight())
+            else if (!isMemory() && canSetupNormalFight() && SilkenSisters.debugBuild)
             {
                 Logger.LogMessage($"[preloadOrgan] Setting up normalFight (not available as of yet)");
-                // setupNormalFight();
+                setupNormalFight();
             }
             else
             {
@@ -742,6 +740,11 @@ namespace SilkenSisters
 
         private void setupDeepMemoryZone()
         {
+            //PlayerData.instance.defeatedCoralKing = false;
+            //PlayerData.instance.encounteredCoralKing = false;
+
+            SilkenSisters.Log.LogWarning($"{PlayerData.instance.defeatedCoralKing}, {PlayerData.instance.defeatedCoralKing}");
+
             deepMemoryInstance = Instantiate(deepMemoryCache);
             deepMemoryInstance.SetActive(true);
 

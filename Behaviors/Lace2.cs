@@ -1,14 +1,10 @@
-﻿using HarmonyLib;
-using HutongGames.PlayMaker;
+﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static UnityEngine.UI.GridLayoutGroup;
 
 namespace SilkenSisters.Behaviors
 {
@@ -138,6 +134,7 @@ namespace SilkenSisters.Behaviors
                 $"Arena Plat Bot Y: {_control.FindFloatVariable("Arena Plat Bot Y").Value} " +
                 $"Centre X: {_control.FindFloatVariable("Centre X").Value}"
             );
+            
 
             // -----
             _control.GetAction<CheckXPosition>("Force R?", 2).compareTo = 73f;
@@ -204,7 +201,7 @@ namespace SilkenSisters.Behaviors
 
         private void prepareSync()
         {
-            if (SilkenSisters.syncedFight.Value && false) { 
+            if (SilkenSisters.syncedFight.Value && SilkenSisters.debugBuild) { 
 
                 SilkenSisters.Log.LogMessage($"[Lace.prepareSync] Adding a Sync state");
                 _control.AddState("SilkenSync");
