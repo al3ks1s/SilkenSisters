@@ -42,9 +42,9 @@
       },
       "Silksong.FsmUtil": {
         "type": "Direct",
-        "requested": "[0.3.3, )",
-        "resolved": "0.3.3",
-        "contentHash": "i7kFbhx2hpGp4AMGvrpLrziMHh8TV12fU1Zs47L9ixZ4wqrhoMdQoQhqEDTwJQJ0UmcO3uew25oHKnWVPHr85A==",
+        "requested": "[0.3.4, )",
+        "resolved": "0.3.4",
+        "contentHash": "miih0KIw5LyW59PvAnwaqBjX/rJwsEHHu1mRCa1rEUsKzfmN3aq63nmkhxI7yxUD/imTSOtlCSMVSeFHR6NQ8w==",
         "dependencies": {
           "BepInEx.Core": "5.4.21",
           "Silksong.GameLibs": "1.1.0-silksong1.0.28714",
