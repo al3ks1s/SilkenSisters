@@ -44,7 +44,7 @@ namespace SilkenSisters.SceneManagement
             await SceneManager.UnloadSceneAsync(scene.name);
             SilkenSisters.Log.LogDebug($"[SceneObjectManager.loadObjectFromScene] Unloading bundle '{bundle.name}'");
             await bundle.UnloadAsync(false);
-
+            
             go_copy.SetActive(false);
 
             return go_copy;

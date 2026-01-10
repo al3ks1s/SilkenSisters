@@ -492,11 +492,11 @@ namespace SilkenSisters
                     {
                         deact.enabled = false;
                     }
-
+                    
                     challengeDialogCache = await SceneObjectManager.loadObjectFromScene("Cradle_03", "Boss Scene/Intro Sequence");
                     wakeupPointCache = await SceneObjectManager.loadObjectFromScene("Memory_Coral_Tower", "Door Get Up");
                     wakeupPointCache.AddComponent<WakeUpMemory>();
-                
+
 
                     GameObject bossScene = await SceneObjectManager.loadObjectFromScene("Memory_Coral_Tower", "Boss Scene");
                     PlayMakerFSM control = FsmUtil.GetFsmPreprocessed(bossScene, "Control");
@@ -539,7 +539,7 @@ namespace SilkenSisters
                 SilkenSisters.Log.LogError($"{e} {e.Message}");
             }
         }
-
+       
         private void onSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             Logger.LogInfo($"[onSceneLoaded] Scene loaded : {scene.name}, active scene : {SceneManager.GetActiveScene()}, Path:{scene.path}");
