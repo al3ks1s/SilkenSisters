@@ -61,10 +61,10 @@ namespace SilkenSisters.Behaviors
 
         private void setPosition()
         {
-            _npcTransform.SetPosition3D(81.9569f, 106.1943f, 2.7021f);
-            _npcTransform.SetScaleX(-0.9f);
-            _npcTransform.SetScaleY(0.9f);
-            _npcTransform.SetScaleZ(0.9f);
+            _npcTransform.SetPosition3D(81.9569f, 106.2943f, 2.7723f);
+            //_npcTransform.SetScaleX(-0.9f);
+            //_npcTransform.SetScaleY(0.9f);
+            //_npcTransform.SetScaleZ(0.9f);
             SilkenSisters.Log.LogInfo($"[LaceNPC.setPosition] position:{_npcTransform.position}");
         }
 
@@ -84,9 +84,9 @@ namespace SilkenSisters.Behaviors
             _control.AddAction("Sit Up", w2);
 
             SetPosition laceTargetPos = _control.GetAction<SetPosition>("Sit Up", 3);
-            laceTargetPos.vector = new Vector3(81.9569f, 106.6942f, 2.7021f);
+            laceTargetPos.vector = new Vector3(81.9569f, 106.7942f, 2.7021f);
             laceTargetPos.x = 81.9569f;
-            laceTargetPos.y = 106.6942f;
+            laceTargetPos.y = 106.7942f;
             laceTargetPos.z = 2.7021f;
 
             InvokeMethod toggleChall = new InvokeMethod(toggleChallenge);

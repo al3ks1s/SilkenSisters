@@ -31,7 +31,8 @@ namespace SilkenSisters.Behaviors
                 rerouteState();
                 fixActionsPositions();
                 disableTitleCard();
-                fixWallRangeAlert();
+                fixWallRangeAlert(); 
+                disableLaceMusic();
                 setLaceFacing();
                 prepareSync();
                 SilkenSisters.Log.LogMessage($"[Lace2.Setup] Finished setting up Lace");
@@ -160,6 +161,12 @@ namespace SilkenSisters.Behaviors
                 $"(Start Battle Refight):{_control.GetStateAction("Start Battle Refight", 4).active}, " +
                 $"(Start Battle):{_control.GetStateAction("Start Battle", 4).active}");
 
+        }
+
+        private void disableLaceMusic()
+        {
+            _control.DisableAction("Start Battle Refight", 1);
+            _control.DisableAction("Start Battle Refight", 2);
         }
 
         private void fixWallRangeAlert()

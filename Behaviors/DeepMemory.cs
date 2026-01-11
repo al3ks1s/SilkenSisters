@@ -206,7 +206,7 @@ namespace SilkenSisters.Behaviors
             GameObject gildedDoor = SceneObjectManager.findObjectInCurrentScene("Boss Scene/Gates/Battle Gate (1)");
 
             GameObject.Instantiate(gildedDoor).transform.SetPosition3D(45.4916f, 71.6012f, 0.003f);
-            GameObject.Instantiate(gildedDoor).transform.SetPosition3D(11.5445f, 8.5155f, 0.003f);
+            GameObject.Instantiate(gildedDoor).transform.SetPosition3D(67.0862f, 8.5155f, 0.003f);
         }
 
     }

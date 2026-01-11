@@ -120,7 +120,8 @@ namespace SilkenSisters.Behaviors
 
         private void prepareExitMemoryEffect()
         {
-            PlayMakerFSM sourceFSM = SilkenSisters.plugin.deepMemoryCache.InstantiateAsset().FindChild("before/thread_memory").GetFsmPreprocessed("FSM");
+            GameObject temp = SilkenSisters.plugin.deepMemoryCache.InstantiateAsset();
+            PlayMakerFSM sourceFSM = temp.FindChild("before/thread_memory").GetFsmPreprocessed("FSM");
             FsmGameObject deepMemVar = _control.AddGameObjectVariable("Deep Memory Enter");
 
             _control.AddState("Deep Memory Enter");

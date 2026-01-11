@@ -4,26 +4,38 @@ using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
+using Newtonsoft.Json;
 using SilkenSisters.Behaviors;
 using SilkenSisters.SceneManagement;
+using Silksong.AssetHelper;
+using Silksong.AssetHelper.Core;
+using Silksong.AssetHelper.ManagedAssets;
+using Silksong.AssetHelper.Plugin;
 using Silksong.FsmUtil;
+using Silksong.UnityHelper.Extensions;
+using System;
 using System;
 using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO;
+using System.Linq;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamCherry.Localization;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.SceneManagement;
-using UnityEngine.ResourceManagement.ResourceLocations;
-using UnityEditor;
-using Silksong.AssetHelper.ManagedAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using Silksong.UnityHelper.Extensions;
-
-
+using UnityEngine.ResourceManagement.ResourceLocations;
+using UnityEngine.SceneManagement;
+using Newtonsoft.Json;
+using Silksong.AssetHelper.Core;
 // Idea by AidaCamelia0516
 
 // Challenge : Cradle_03 - Boss Scene/Intro Sequence
@@ -126,9 +138,12 @@ namespace SilkenSisters
     [BepInDependency("org.silksong-modding.fsmutil")]
     [BepInDependency("org.silksong-modding.i18n")]
     [BepInDependency("io.github.flibber-hk.assethelper")]
+    [BepInDependency("io.github.flibber-hk.filteredlogs", BepInDependency.DependencyFlags.SoftDependency)]
+
     public partial class SilkenSisters : BaseUnityPlugin
     {
 
+        public List<AddressableAsset<GameObject>> _individualAssets = new List<AddressableAsset<GameObject>>();
         public static SilkenSisters plugin;
 
         public static Scene organScene;
@@ -183,6 +198,7 @@ namespace SilkenSisters
 
         private void Awake()
         {
+            //FilteredLogs.API.ApplyFilter(Name);
 
             SilkenSisters.Log = new ManualLogSource("SilkenSisters");
             BepInEx.Logging.Logger.Sources.Add(Log);
@@ -452,57 +468,37 @@ namespace SilkenSisters
         private IEnumerator cacheGameObjects()
         {
 
-            Logger.LogMessage("[cacheGameObjects] Initializing cache");
 
-            yield return laceNPCCache.LoadAsync();
-            yield return lace2BossSceneCache.LoadAsync();
-            yield return lace1BossSceneCache.LoadAsync();
-            yield return challengeDialogCache.LoadAsync();
-            yield return wakeupPointCache.LoadAsync();
-            yield return coralBossSceneCache.LoadAsync();
-            yield return deepMemoryCache.LoadAsync();
-
-            /*
-            laceNPCCache.AddComponent<LaceNPC>();
-
-            lace2BossSceneCache = await SceneObjectManager.loadObjectFromScene("Song_Tower_01", "Boss Scene");
-            lace2BossSceneCache.AddComponent<Lace2Scene>();
-            GameObject lace2BossTempCache = SceneObjectManager.findChildObject(lace2BossSceneCache, "Lace Boss2 New");
-            lace2BossTempCache.SetActive(false);
-            lace2BossTempCache.AddComponent<Lace2>();
-            ((DeactivateIfPlayerdataTrue)lace2BossTempCache.GetComponent(typeof(DeactivateIfPlayerdataTrue))).enabled = false;
-
-            lace1BossSceneCache = await SceneObjectManager.loadObjectFromScene("Bone_East_12", "Boss Scene");
-            lace1BossSceneCache.AddComponent<Lace1Scene>();
-            GameObject lace1BossTempCache = SceneObjectManager.findChildObject(lace1BossSceneCache, "Lace Boss1");
-            lace1BossTempCache.SetActive(false);
-            lace1BossTempCache.AddComponent<Lace1>();
-            foreach (DeactivateIfPlayerdataTrue deact in lace1BossSceneCache.GetComponents(typeof(DeactivateIfPlayerdataTrue)))
+            List<AddressableAsset<GameObject>> _individualAssets = new List<AddressableAsset<GameObject>>
             {
-                deact.enabled = false;
+                laceNPCCache,
+                lace2BossSceneCache,
+                lace1BossSceneCache,
+                challengeDialogCache,
+                wakeupPointCache,
+                coralBossSceneCache,
+                deepMemoryCache,
+                infoPromptCache
+            };
+
+            Logger.LogMessage("[cacheGameObjects] Initializing cache");
+            Stopwatch sw = Stopwatch.StartNew();
+            foreach (var asset in _individualAssets)
+            {
+                asset.Load();
             }
 
-            challengeDialogCache = await SceneObjectManager.loadObjectFromScene("Cradle_03", "Boss Scene/Intro Sequence");
-            wakeupPointCache = await SceneObjectManager.loadObjectFromScene("Memory_Coral_Tower", "Door Get Up");
-            wakeupPointCache.AddComponent<WakeUpMemory>();
+            yield return new WaitUntil(() => _individualAssets.All(x => x.Handle.IsDone));
 
-
-            GameObject bossScene = await SceneObjectManager.loadObjectFromScene("Memory_Coral_Tower", "Boss Scene");
-            PlayMakerFSM control = FsmUtil.GetFsmPreprocessed(bossScene, "Control");
+            GameObject bossScene = coralBossSceneCache.InstantiateAsset();
+            PlayMakerFSM control = bossScene.GetFsmPreprocessed("Control");
             ExitMemoryCache = control.GetState("Exit Memory");
             GameObject.Destroy(bossScene);
             Logger.LogInfo($"[cacheGameObjects] {ExitMemoryCache.name}, {ExitMemoryCache.actions.Length}");
 
-            // Deep memory stuff
-            deepMemoryCache = await SceneObjectManager.loadObjectFromScene("Coral_Tower_01", "Memory Group");
-            deepMemoryCache.AddComponent<DeepMemory>();
-            deepMemoryCache.GetComponent<TestGameObjectActivator>().playerDataTest.TestGroups[0].Tests[0].FieldName = "defeatedPhantom";
-            deepMemoryCache.GetComponent<TestGameObjectActivator>().playerDataTest.TestGroups[0].Tests[0].BoolValue = false;
+            sw.Stop();
+            Log.LogInfo($"It took {sw.ElapsedMilliseconds}ms to load the assets");
 
-            // Inspect Prompt
-            infoPromptCache = await SceneObjectManager.loadObjectFromScene("Arborium_01", "Inspect Region");
-            infoPromptCache.AddComponent<InfoPrompt>();
-            */
             Logger.LogMessage("[cacheGameObjects] Caching done");
             
         }
@@ -519,16 +515,53 @@ namespace SilkenSisters
                     Logger.LogMessage($"[onSceneLoaded] Organ Detected, preloading");
                     organScene = scene;
 
-                    preloadOrgan();
-
+                    StartCoroutine(preloadOrgan());
                 }
                 else
                 {
                     Logger.LogMessage($"[onSceneLoaded] Scene is not organ, clearing instances and cache");
                     clearInstances();
-                    clearCache();
                 }
+
+            
             }
+
+            if (scene.name == "Quit_To_Menu")
+            {
+                clearInstances();
+                clearCache();
+            }
+        }
+
+        private IEnumerator testLoading()
+        {
+
+            laceNPCCache = AddressableAsset<GameObject>.FromSceneAsset("Coral_19", "Encounter Scene Control/Lace Meet/Lace NPC Blasted Bridge");
+            lace2BossSceneCache = AddressableAsset<GameObject>.FromSceneAsset("Song_Tower_01", "Boss Scene");
+            lace1BossSceneCache = AddressableAsset<GameObject>.FromSceneAsset("Bone_East_12", "Boss Scene");
+
+            challengeDialogCache = AddressableAsset<GameObject>.FromSceneAsset("Cradle_03", "Boss Scene/Intro Sequence");
+            wakeupPointCache = AddressableAsset<GameObject>.FromSceneAsset("Memory_Coral_Tower", "Door Get Up");
+            coralBossSceneCache = AddressableAsset<GameObject>.FromSceneAsset("Memory_Coral_Tower", "Boss Scene");
+            deepMemoryCache = AddressableAsset<GameObject>.FromSceneAsset("Coral_Tower_01", "Memory Group");
+
+            infoPromptCache = AddressableAsset<GameObject>.FromSceneAsset("Arborium_01", "Inspect Region");
+
+            IList<string> keys =
+            new List<string>{
+                CatalogKeys.GetKeyForSceneAsset("Coral_19", "Encounter Scene Control/Lace Meet/Lace NPC Blasted Bridge"),
+                CatalogKeys.GetKeyForSceneAsset("Song_Tower_01", "Boss Scene"),
+                CatalogKeys.GetKeyForSceneAsset("Bone_East_12", "Boss Scene"),
+                CatalogKeys.GetKeyForSceneAsset("Cradle_03", "Boss Scene/Intro Sequence"),
+                CatalogKeys.GetKeyForSceneAsset("Memory_Coral_Tower", "Door Get Up"),
+                CatalogKeys.GetKeyForSceneAsset("Memory_Coral_Tower", "Boss Scene"),
+                CatalogKeys.GetKeyForSceneAsset("Coral_Tower_01", "Memory Group"),
+                CatalogKeys.GetKeyForSceneAsset("Arborium_01", "Inspect Region")
+            };
+            Stopwatch sw = Stopwatch.StartNew();
+            yield return Addressables.LoadAssetsAsync<GameObject>(keys, obj => {}, Addressables.MergeMode.Union);
+            sw.Stop();
+            Log.LogInfo($"Loading as a group took {sw.ElapsedMilliseconds}ms");
         }
 
         private IEnumerator preloadOrgan()
@@ -556,8 +589,15 @@ namespace SilkenSisters
                     infoPromptInstance.SetActive(true);
                 }
             }
-
+            yield return new WaitForSeconds(0.2f);
             GameObject eff = GameObject.Find("Deep Memory Enter Black(Clone)");
+            if (eff != null)
+            {
+                Logger.LogMessage("[preloadOrgan] Deleting leftover memory effect");
+                GameObject.Destroy(eff);
+            }
+
+            eff = GameObject.Find("Deep Memory Pre Enter Effect(Clone)");
             if (eff != null)
             {
                 Logger.LogMessage("[preloadOrgan] Deleting leftover memory effect");
@@ -637,11 +677,17 @@ namespace SilkenSisters
 
             // ---------- 
             laceBossSceneInstance = lace1BossSceneCache.InstantiateAsset();
+            laceBossSceneInstance.AddComponent<Lace1>();
             laceBossSceneInstance.SetActive(true);
             Logger.LogInfo($"[setupFight] Trying to find Lace Boss from scene {laceBossSceneInstance.gameObject.name}");
             laceBossInstance = SceneObjectManager.findChildObject(laceBossSceneInstance, "Lace Boss1");
             Logger.LogInfo($"[setupFight] Lace object: {laceBossInstance}");
-            laceBossInstance.SetActive(false);
+            laceBossInstance.SetActive(false); 
+            laceBossInstance.AddComponent<Lace1>();
+            foreach (DeactivateIfPlayerdataTrue deact in laceBossInstance.GetComponents(typeof(DeactivateIfPlayerdataTrue)))
+            {
+                deact.enabled = false;
+            }
 
             laceBossFSMOwner = new FsmOwnerDefault();
             laceBossFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
@@ -683,9 +729,10 @@ namespace SilkenSisters
             Logger.LogInfo($"[setupFight] Trying to find Lace Boss from scene {laceBossSceneInstance.gameObject.name}");
             laceBossInstance = SceneObjectManager.findChildObject(laceBossSceneInstance, "Lace Boss2 New");
             Logger.LogInfo($"[setupFight] Lace object: {laceBossInstance}");
-            laceBossInstance.AddComponent<Lace2>();
             laceBossInstance.SetActive(false);
-
+            laceBossInstance.AddComponent<Lace2>();
+            ((DeactivateIfPlayerdataTrue)laceBossInstance.GetComponent(typeof(DeactivateIfPlayerdataTrue))).enabled = false;
+            
             laceBossFSMOwner = new FsmOwnerDefault();
             laceBossFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
             laceBossFSMOwner.GameObject = laceBossInstance;
@@ -729,7 +776,7 @@ namespace SilkenSisters
             {
                 Logger.LogMessage("[setupDeepMemoryZone] Setting respawn point");
                 deepMemoryInstance.findChildObject("door_wakeOnGround");
-                respawnPointInstance = deepMemoryInstance.FindChild("door_wakeOnGround");
+                respawnPointInstance = GameObject.Instantiate(deepMemoryInstance.FindChild("door_wakeOnGround"));
                 respawnPointInstance.SetActive(false);
                 respawnPointInstance.AddComponent<WakeUpRespawn>();
                 DontDestroyOnLoad(respawnPointInstance);
@@ -771,7 +818,7 @@ namespace SilkenSisters
 
             if (SilkenSisters.hornet == null)
             {
-                
+
                 SilkenSisters.hornet = GameObject.Find("Hero_Hornet(Clone)");
                 if (SilkenSisters.hornet != null)
                 {
@@ -779,7 +826,8 @@ namespace SilkenSisters
                     SilkenSisters.hornetFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
                     SilkenSisters.hornetFSMOwner.GameObject = SilkenSisters.hornet;
 
-                    if (SilkenSisters.hornet.GetComponent<ConstrainPosition>() == null) { 
+                    if (SilkenSisters.hornet.GetComponent<ConstrainPosition>() == null)
+                    {
                         SilkenSisters.hornetConstrain = SilkenSisters.hornet.AddComponent<ConstrainPosition>();
 
                         hornetConstrain.SetXMax(96.727f);
@@ -794,7 +842,7 @@ namespace SilkenSisters
             }
 
             // ------------------------------------------------------------------
-            
+
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.O))
             {
                 spawnLaceBoss2();
@@ -823,7 +871,8 @@ namespace SilkenSisters
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad2))
             {
-                toggleLaceFSM();
+                StartCoroutine(testLoading());
+                //toggleLaceFSM();
             }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad8))
@@ -867,7 +916,6 @@ namespace SilkenSisters
                     $"DefeatedPhantom:{PlayerData._instance.defeatedPhantom} " +
                     $"Act3:{PlayerData._instance.blackThreadWorld}");
             }
-
         }
     }
 
@@ -880,6 +928,7 @@ namespace SilkenSisters
         private static void Prefix(ref string key, ref string sheetTitle)
         {
             if (key.Contains("SILKEN_SISTERS")) sheetTitle = $"Mods.{SilkenSisters.Id}";
-        } 
+        }
     }
+
 }
