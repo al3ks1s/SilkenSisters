@@ -1,7 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
-using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
+using Silksong.UnityHelper.Extensions;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -55,8 +55,8 @@ namespace SilkenSisters.Behaviors
 
         private void disableRangeDetection()
         {
-            SceneObjectManager.findChildObject(gameObject, "Start Range").SetActive(false);
-            SilkenSisters.Log.LogInfo($"[LaceNPC.disableRangeDetection] LaceNPCDetection?:{SceneObjectManager.findChildObject(gameObject, "Start Range").activeSelf}");
+            gameObject.FindChild("Start Range").SetActive(false);
+            SilkenSisters.Log.LogInfo($"[LaceNPC.disableRangeDetection] LaceNPCDetection?:{gameObject.FindChild("Start Range").activeSelf}");
         }
 
         private void setPosition()

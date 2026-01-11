@@ -6,7 +6,6 @@ using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using Newtonsoft.Json;
 using SilkenSisters.Behaviors;
-using SilkenSisters.SceneManagement;
 using Silksong.AssetHelper;
 using Silksong.AssetHelper.Core;
 using Silksong.AssetHelper.ManagedAssets;
@@ -468,6 +467,7 @@ namespace SilkenSisters
         private IEnumerator cacheGameObjects()
         {
 
+            Stopwatch sw = Stopwatch.StartNew();
 
             List<AddressableAsset<GameObject>> _individualAssets = new List<AddressableAsset<GameObject>>
             {
@@ -481,24 +481,25 @@ namespace SilkenSisters
                 infoPromptCache
             };
 
+            if ( !_individualAssets.All(x => x.HasBeenLoaded)) { 
             Logger.LogMessage("[cacheGameObjects] Initializing cache");
-            Stopwatch sw = Stopwatch.StartNew();
-            foreach (var asset in _individualAssets)
-            {
-                asset.Load();
+                foreach (var asset in _individualAssets)
+                {
+                    asset.Load();
+                }
+
+                yield return new WaitUntil(() => _individualAssets.All(x => x.Handle.IsDone));
+
+                GameObject bossScene = coralBossSceneCache.InstantiateAsset();
+                PlayMakerFSM control = bossScene.GetFsmPreprocessed("Control");
+                ExitMemoryCache = control.GetState("Exit Memory");
+                GameObject.Destroy(bossScene);
+                Logger.LogInfo($"[cacheGameObjects] {ExitMemoryCache.name}, {ExitMemoryCache.actions.Length}");
+
+                sw.Stop();
             }
 
-            yield return new WaitUntil(() => _individualAssets.All(x => x.Handle.IsDone));
-
-            GameObject bossScene = coralBossSceneCache.InstantiateAsset();
-            PlayMakerFSM control = bossScene.GetFsmPreprocessed("Control");
-            ExitMemoryCache = control.GetState("Exit Memory");
-            GameObject.Destroy(bossScene);
-            Logger.LogInfo($"[cacheGameObjects] {ExitMemoryCache.name}, {ExitMemoryCache.actions.Length}");
-
-            sw.Stop();
             Log.LogInfo($"It took {sw.ElapsedMilliseconds}ms to load the assets");
-
             Logger.LogMessage("[cacheGameObjects] Caching done");
             
         }
@@ -656,13 +657,13 @@ namespace SilkenSisters
             deepMemoryCache.Unload();
 
             ExitMemoryCache = null;
-
+            
         }
 
         public void setupNormalFight()
         {
             Logger.LogMessage($"[setupFight] Trying to register phantom");
-            phantomBossScene = SceneObjectManager.findObjectInCurrentScene("Boss Scene");
+            phantomBossScene = SceneManager.GetActiveScene().FindGameObject("Boss Scene");
             Logger.LogInfo($"[setupFight] {phantomBossScene}");
 
             Logger.LogMessage($"[setupFight] Registering FSMOwner");
@@ -680,7 +681,7 @@ namespace SilkenSisters
             laceBossSceneInstance.AddComponent<Lace1>();
             laceBossSceneInstance.SetActive(true);
             Logger.LogInfo($"[setupFight] Trying to find Lace Boss from scene {laceBossSceneInstance.gameObject.name}");
-            laceBossInstance = SceneObjectManager.findChildObject(laceBossSceneInstance, "Lace Boss1");
+            laceBossInstance = laceBossSceneInstance.FindChild("Lace Boss1");
             Logger.LogInfo($"[setupFight] Lace object: {laceBossInstance}");
             laceBossInstance.SetActive(false); 
             laceBossInstance.AddComponent<Lace1>();
@@ -702,13 +703,13 @@ namespace SilkenSisters
             Logger.LogInfo($"[setupFight] Trying to set up phantom : phantom available? {phantomBossScene != null}");
             Logger.LogInfo($"[setupFight] {phantomBossScene}");
             phantomBossScene.AddComponent<PhantomScene>();
-            SceneObjectManager.findChildObject(phantomBossScene, "Phantom").AddComponent<PhantomBoss>();
+            phantomBossScene.FindChild("Phantom").AddComponent<PhantomBoss>();
         }
        
         public void setupMemoryFight()
         {
             Logger.LogMessage($"[setupFight] Trying to register phantom");
-            phantomBossScene = SceneObjectManager.findObjectInCurrentScene("Boss Scene");
+            phantomBossScene = SceneManager.GetActiveScene().FindGameObject("Boss Scene");
             Logger.LogInfo($"[setupFight] {phantomBossScene}");
 
             Logger.LogMessage($"[setupFight] Registering FSMOwner");
@@ -727,7 +728,7 @@ namespace SilkenSisters
             laceBossSceneInstance.SetActive(true);
 
             Logger.LogInfo($"[setupFight] Trying to find Lace Boss from scene {laceBossSceneInstance.gameObject.name}");
-            laceBossInstance = SceneObjectManager.findChildObject(laceBossSceneInstance, "Lace Boss2 New");
+            laceBossInstance = laceBossSceneInstance.FindChild("Lace Boss2 New");
             Logger.LogInfo($"[setupFight] Lace object: {laceBossInstance}");
             laceBossInstance.SetActive(false);
             laceBossInstance.AddComponent<Lace2>();
@@ -746,7 +747,7 @@ namespace SilkenSisters
             Logger.LogInfo($"[setupFight] Trying to set up phantom : phantom available? {phantomBossScene != null}");
             Logger.LogInfo($"[setupFight] {phantomBossScene}");
             phantomBossScene.AddComponent<PhantomScene>();
-            SceneObjectManager.findChildObject(phantomBossScene, "Phantom").AddComponent<PhantomBoss>();
+            phantomBossScene.FindChild("Phantom").AddComponent<PhantomBoss>();
 
         }
 
@@ -775,7 +776,7 @@ namespace SilkenSisters
             if (respawnPointInstance == null)
             {
                 Logger.LogMessage("[setupDeepMemoryZone] Setting respawn point");
-                deepMemoryInstance.findChildObject("door_wakeOnGround");
+                deepMemoryInstance.FindChild("door_wakeOnGround");
                 respawnPointInstance = GameObject.Instantiate(deepMemoryInstance.FindChild("door_wakeOnGround"));
                 respawnPointInstance.SetActive(false);
                 respawnPointInstance.AddComponent<WakeUpRespawn>();
@@ -790,7 +791,7 @@ namespace SilkenSisters
             if (laceBossInstance != null)
             {
                 Logger.LogMessage("Pausing Lace");
-                PlayMakerFSM pfsm = SceneObjectManager.findChildObject(laceBossInstance, "Lace Boss2 New").GetComponents<PlayMakerFSM>().First(pfsm => pfsm.FsmName == "Control");
+                PlayMakerFSM pfsm = laceBossInstance.FindChild("Lace Boss2 New").GetComponents<PlayMakerFSM>().First(pfsm => pfsm.FsmName == "Control");
                 pfsm.fsm.manualUpdate = !pfsm.fsm.manualUpdate;
             }
         }
@@ -866,7 +867,7 @@ namespace SilkenSisters
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad1))
             {
-                SceneObjectManager.findChildObject(phantomBossScene, "Phantom").GetComponent<HealthManager>().hp = 1;
+                phantomBossScene.FindChild("Phantom").GetComponent<HealthManager>().hp = 1;
             }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad2))
@@ -877,7 +878,7 @@ namespace SilkenSisters
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad8))
             {
-                SceneObjectManager.findChildObject(phantomBossScene, "Phantom").SetActive(false);
+                phantomBossScene.FindChild("Phantom").SetActive(false);
             }
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.Keypad6))

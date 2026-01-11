@@ -1,6 +1,5 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
-using SilkenSisters.SceneManagement;
 using Silksong.AssetHelper.ManagedAssets;
 using Silksong.FsmUtil;
 using Silksong.UnityHelper.Extensions;

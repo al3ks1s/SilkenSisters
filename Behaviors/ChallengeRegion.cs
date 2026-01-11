@@ -1,8 +1,8 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using Mono.Security.Authenticode;
-using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
+using Silksong.UnityHelper.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace SilkenSisters.Behaviors
 
         private void getComponents()
         {
-            _challengeRegion = SceneObjectManager.findChildObject(gameObject, "Challenge Region");
+            _challengeRegion = gameObject.FindChild("Challenge Region");
             _regionControl = _challengeRegion.GetFsmPreprocessed("Challenge");
             _control = gameObject.GetFsmPreprocessed("First Challenge");
         }
@@ -54,13 +54,13 @@ namespace SilkenSisters.Behaviors
 
         private void disableCradleStuff()
         {
-            SceneObjectManager.findChildObject(gameObject, "Challenge Glows/Cradle__0013_loom_strut_based (2)").SetActive(false);
-            SceneObjectManager.findChildObject(gameObject, "Challenge Glows/Cradle__0013_loom_strut_based (3)").SetActive(false);
+            gameObject.FindChild("Challenge Glows/Cradle__0013_loom_strut_based (2)").SetActive(false);
+            gameObject.FindChild("Challenge Glows/Cradle__0013_loom_strut_based (3)").SetActive(false);
             _control.GetTransition("Idle", "CHALLENGE START").FsmEvent = FsmEvent.GetFsmEvent("QUICK START");
 
             SilkenSisters.Log.LogInfo($"[ChallengeRegion.disableCradleStuff] Cradle specific objects active?: " +
-                $"CradleLoom1:{SceneObjectManager.findChildObject(gameObject, "Challenge Glows/Cradle__0013_loom_strut_based (2)").activeSelf}, " +
-                $"CradleLoom2:{SceneObjectManager.findChildObject(gameObject, "Challenge Glows/Cradle__0013_loom_strut_based (3)").activeSelf}");
+                $"CradleLoom1:{gameObject.FindChild("Challenge Glows/Cradle__0013_loom_strut_based (2)").activeSelf}, " +
+                $"CradleLoom2:{gameObject.FindChild("Challenge Glows/Cradle__0013_loom_strut_based (3)").activeSelf}");
         }
 
         private void setPhantomTrigger()
