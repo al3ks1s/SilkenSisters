@@ -1,7 +1,9 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using SilkenSisters.SceneManagement;
+using Silksong.AssetHelper.ManagedAssets;
 using Silksong.FsmUtil;
+using Silksong.UnityHelper.Extensions;
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -118,7 +120,7 @@ namespace SilkenSisters.Behaviors
 
         private void prepareExitMemoryEffect()
         {
-            PlayMakerFSM sourceFSM = FsmUtil.GetFsmPreprocessed(SceneObjectManager.findChildObject(SilkenSisters.plugin.deepMemoryCache, "before/thread_memory"), "FSM");
+            PlayMakerFSM sourceFSM = SilkenSisters.plugin.deepMemoryCache.InstantiateAsset().FindChild("before/thread_memory").GetFsmPreprocessed("FSM");
             FsmGameObject deepMemVar = _control.AddGameObjectVariable("Deep Memory Enter");
 
             _control.AddState("Deep Memory Enter");
