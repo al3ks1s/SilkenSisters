@@ -1,7 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
-using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
+using Silksong.UnityHelper.Extensions;
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -31,7 +31,8 @@ namespace SilkenSisters.Behaviors
                 rerouteState();
                 fixActionsPositions();
                 disableTitleCard();
-                fixWallRangeAlert();
+                fixWallRangeAlert(); 
+                disableLaceMusic();
                 setLaceFacing();
                 prepareSync();
                 SilkenSisters.Log.LogMessage($"[Lace2.Setup] Finished setting up Lace");
@@ -49,10 +50,10 @@ namespace SilkenSisters.Behaviors
 
         private void disableParticleEffects()
         {
-            SceneObjectManager.findChildObject(gameObject, "Pt DashPetal").SetActive(false);
-            SceneObjectManager.findChildObject(gameObject, "Pt SkidPetal").SetActive(false);
-            SceneObjectManager.findChildObject(gameObject, "Pt RisingPetal").SetActive(false);
-            SceneObjectManager.findChildObject(gameObject, "Pt MovePetal").SetActive(false);
+            gameObject.FindChild("Pt DashPetal").SetActive(false);
+            gameObject.FindChild("Pt SkidPetal").SetActive(false);
+            gameObject.FindChild("Pt RisingPetal").SetActive(false);
+            gameObject.FindChild("Pt MovePetal").SetActive(false);
 
         }
 
@@ -162,9 +163,15 @@ namespace SilkenSisters.Behaviors
 
         }
 
+        private void disableLaceMusic()
+        {
+            _control.DisableAction("Start Battle Refight", 1);
+            _control.DisableAction("Start Battle Refight", 2);
+        }
+
         private void fixWallRangeAlert()
         {
-            GameObject wallRange = SceneObjectManager.findChildObject(gameObject.transform.parent.gameObject, "Wall Range");
+            GameObject wallRange = gameObject.transform.parent.gameObject.FindChild("Wall Range");
             wallRange.transform.SetPosition3D(84.0349f, 103.67f, 0f);
             SilkenSisters.Log.LogInfo($"[Lace2.fixWallRangeAlert] position:{wallRange.transform.position}");
 
@@ -249,17 +256,22 @@ namespace SilkenSisters.Behaviors
         private void disableSceneObjects()
         {
             SilkenSisters.Log.LogMessage($"[Lace2Scene.disableSceneObjects] Disabling unwanted LaceBossScene items");
-            SceneObjectManager.findChildObject(gameObject, "Flower Effect Hornet").SetActive(false);
-            SceneObjectManager.findChildObject(gameObject, "steam hazard").SetActive(false);
-            SceneObjectManager.findChildObject(gameObject, "Silk Heart Memory Return").SetActive(false);
+            gameObject.FindChild("Flower Effect Hornet").SetActive(false);
+            gameObject.FindChild("steam hazard").SetActive(false);
+            gameObject.FindChild("Silk Heart Memory Return").SetActive(false);
         }
 
         private void moveSceneBounds()
         {
             SilkenSisters.Log.LogMessage($"[Lace2Scene.moveSceneBounds] Moving lace arena objects");
-            SceneObjectManager.findChildObject(gameObject, "Arena L").transform.position = new Vector3(72f, 104f, 0f);
-            SceneObjectManager.findChildObject(gameObject, "Arena R").transform.position = new Vector3(97f, 104f, 0f);
-            SceneObjectManager.findChildObject(gameObject, "Centre").transform.position = new Vector3(84.5f, 104f, 0f);
+            gameObject.FindChild("Arena L").transform.position = new Vector3(72f, 104f, 0f);
+            gameObject.FindChild("Arena R").transform.position = new Vector3(97f, 104f, 0f);
+            gameObject.FindChild("Centre").transform.position = new Vector3(84.5f, 104f, 0f);
         }
     }
+
+    internal class LaceCorpse : MonoBehaviour
+    {
+    }
+
 }

@@ -1,7 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
-using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
+using Silksong.UnityHelper.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -198,10 +198,10 @@ namespace SilkenSisters.Behaviors
         private void disableSceneObjects()
         {
             SilkenSisters.Log.LogMessage($"[Lace1Scene.disableSceneObjects] Disabling unwanted LaceBossScene items");
-            SceneObjectManager.findChildObject(gameObject, "Slam Particles").SetActive(false);
-            SceneObjectManager.findChildObject(gameObject, "Battle Gates").SetActive(false);
-            SceneObjectManager.findChildObject(gameObject, "Silkflies").SetActive(false);
-            SceneObjectManager.findChildObject(gameObject, "Silkflies w/o Sprint").SetActive(false);
+            gameObject.FindChild("Slam Particles").SetActive(false);
+            gameObject.FindChild("Battle Gates").SetActive(false);
+            gameObject.FindChild("Silkflies").SetActive(false);
+            gameObject.FindChild("Silkflies w/o Sprint").SetActive(false);
         }
 
         private void moveSceneBounds()
@@ -209,12 +209,12 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogMessage($"[Lace1Scene.moveSceneBounds] Moving lace arena objects");
             //SceneObjectManager.findChildObject(gameObject, "Arena L").transform.position = new Vector3(72f, 104f, 0f);
             //SceneObjectManager.findChildObject(gameObject, "Arena R").transform.position = new Vector3(97f, 104f, 0f);
-            SceneObjectManager.findChildObject(gameObject, "Arena Centre").transform.position = new Vector3(84.5f, 104f, 0f);
+            gameObject.FindChild("Arena Centre").transform.position = new Vector3(84.5f, 104f, 0f);
         }
 
         private void fixWallRangeAlert()
         {
-            GameObject wallRange = SceneObjectManager.findChildObject(gameObject.transform.parent.gameObject, "Wall Range");
+            GameObject wallRange = gameObject.transform.parent.gameObject.FindChild("Wall Range");
             wallRange.transform.SetPosition3D(84.0349f, 103.67f, 0f);
             SilkenSisters.Log.LogInfo($"[Lace1.fixWallRangeAlert] position:{wallRange.transform.position}");
 

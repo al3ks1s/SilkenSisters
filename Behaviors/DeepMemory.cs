@@ -1,10 +1,12 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
-using SilkenSisters.SceneManagement;
 using Silksong.FsmUtil;
+using Silksong.UnityHelper.Extensions;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SilkenSisters.Behaviors
 {
@@ -42,21 +44,21 @@ namespace SilkenSisters.Behaviors
         private void getComponents()
         {
             _control = gameObject.GetFsmPreprocessed("To Memory");
-            _before = SceneObjectManager.findChildObject(gameObject, "before");
+            _before = gameObject.FindChild("before");
         }
 
         private void setPosition()
         {
             gameObject.transform.position = new Vector3(59.249f, 56.7457f, -3.1141f);
-            SceneObjectManager.findChildObject(_before, "Deep_Memory_appear/threads").SetActive(false);
-            SceneObjectManager.findChildObject(_before, "thread_memory").transform.SetLocalPosition2D(1.768f, -3.143f);
+            _before.FindChild("Deep_Memory_appear/threads").SetActive(false);
+            _before.FindChild("thread_memory").transform.SetLocalPosition2D(1.768f, -3.143f);
             SilkenSisters.Log.LogInfo($"[DeepMemory.setPosition] position:{gameObject.transform.position}");
         }
 
         private void disableCrustKingObjects()
         {
             SilkenSisters.Log.LogMessage($"[DeepMemory.disableCrustKingObjects] Finding and deleting coral king sprite");
-            GameObject.Destroy(SceneObjectManager.findChildObject(_before, "CK_ground_hit0004").gameObject);
+            GameObject.Destroy(_before.FindChild("CK_ground_hit0004").gameObject);
         }
 
         private void editFSMTransition()
@@ -144,7 +146,7 @@ namespace SilkenSisters.Behaviors
 
         private void getComponents()
         {
-            _wakeTransitionGate = SceneObjectManager.findChildObject(gameObject, "door_wakeInMemory");
+            _wakeTransitionGate = gameObject.FindChild("door_wakeInMemory");
             _control = _wakeTransitionGate.GetFsmPreprocessed("Wake Up");
         }
 
@@ -170,6 +172,9 @@ namespace SilkenSisters.Behaviors
 
             InvokeMethod inv3 = new InvokeMethod(enableIsMemory);
             _control.AddAction("Take Control", inv3);
+
+            InvokeMethod inv4 = new InvokeMethod(recordHeroState);
+            _control.AddAction("Take Control", inv4);
 
             InvokeMethod inv = new InvokeMethod(SilkenSisters.plugin.setupMemoryFight);
             _control.AddAction("Take Control", inv);
@@ -203,10 +208,23 @@ namespace SilkenSisters.Behaviors
 
         private void closeOffOrgan()
         {
-            GameObject gildedDoor = SceneObjectManager.findObjectInCurrentScene("Boss Scene/Gates/Battle Gate (1)");
-
+            GameObject gildedDoor = SceneManager.GetActiveScene().FindGameObject("Boss Scene/Gates/Battle Gate (1)");
+            
             GameObject.Instantiate(gildedDoor).transform.SetPosition3D(45.4916f, 71.6012f, 0.003f);
-            GameObject.Instantiate(gildedDoor).transform.SetPosition3D(11.5445f, 8.5155f, 0.003f);
+            GameObject.Instantiate(gildedDoor).transform.SetPosition3D(67.0862f, 8.5155f, 0.003f);
+        }
+
+        private void recordHeroState()
+        {
+
+            HeroController.instance.RefillSilkToMaxSilent();
+
+            if (!PlayerData.instance.HasStoredMemoryState)
+            {
+                PlayerData.instance.PreMemoryState = HeroItemsState.Record(HeroController.instance);
+                PlayerData.instance.HasStoredMemoryState = true;
+                PlayerData.instance.CaptureToolAmountsOverride();
+            }
         }
 
     }
@@ -229,11 +247,11 @@ namespace SilkenSisters.Behaviors
                 setPosition();
                 editFSM();
                 SilkenSisters.Log.LogMessage($"[WakeUpRespawn.Setup] Finished");
-            }
-            catch (Exception e)
-            {
-                SilkenSisters.Log.LogError($"{e} {e.Message}");
-            }
+           }
+           catch (Exception e)
+           {
+            SilkenSisters.Log.LogError($"{e} {e.Message}");
+           }
         }
 
         private void getComponents()
@@ -257,8 +275,8 @@ namespace SilkenSisters.Behaviors
             PlayMakerFSM respawnFSM = gameObject.GetFsmPreprocessed("Wake Up");
             respawnFSM.DisableAction("Save?", 1);
 
-            InvokeMethod replenishTool = new InvokeMethod(replenishTools);
-            // respawnFSM.AddAction("End", replenishTool);
+            InvokeMethod restoreHeroAction = new InvokeMethod(restoreHeroState);
+            respawnFSM.AddAction("Fade Up", restoreHeroAction);
 
             InvokeMethod inv3 = new InvokeMethod(disableDoor);
             respawnFSM.AddAction("End", inv3);
@@ -272,7 +290,7 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogInfo("[WakeUpRespawn.disableDoor] Trying to disable door");
             SilkenSisters.plugin.wakeupPointInstance.SetActive(false);
             SilkenSisters.plugin.wakeupPointInstance.GetComponent<PlayMakerFSM>().fsm.Reinitialize();
-            SceneObjectManager.findChildObject(SilkenSisters.plugin.wakeupPointInstance, "door_wakeInMemory_phantom").GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
+            SilkenSisters.plugin.wakeupPointInstance.FindChild("door_wakeInMemory_phantom").GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
             SilkenSisters.Log.LogInfo($"[WakeUpRespawn.disableDoor] Door {SilkenSisters.plugin.wakeupPointInstance.name} enabled?:{SilkenSisters.plugin.wakeupPointInstance.activeSelf}");
         }
 
@@ -282,19 +300,13 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogInfo($"[WakeUpRespawn.disableSelf] {gameObject.activeSelf}");
         }
 
-        private void replenishTools()
+        private void restoreHeroState()
         {
-            SilkenSisters.Log.LogInfo("Replenishing tools");
-            foreach (ToolItem tool in ToolItemManager.GetCurrentEquippedTools())
-            {
-                if (tool.IsAttackType())
-                {
-                    SilkenSisters.Log.LogWarning($"{tool.GetName()}");
-                    float outCost;
-                    int outReserve;
-                    tool.TryReplenishSingle(true, 0, out outCost, out outReserve);
-                    SilkenSisters.Log.LogWarning($"{outCost} {outReserve}");
-                }
+            if (PlayerData.instance.HasStoredMemoryState) { 
+                HeroController.instance.ClearEffectsInstant();
+                PlayerData.instance.PreMemoryState.Apply(HeroController.instance);
+                PlayerData.instance.HasStoredMemoryState = false;
+                PlayerData.instance.ClearToolAmountsOverride();
             }
         }
     }
