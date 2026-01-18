@@ -15,8 +15,10 @@ containsNsfwContent = false
 # dependencies are specified in the format AuthorName-PackageName = "version". You should always have at least BepInExPack_Silksong.
 [package.dependencies]
 BepInEx-BepInExPack_Silksong = "5.4.2304"
-silksong_modding-FsmUtil = "0.3.3"
+silksong_modding-FsmUtil = "0.3.5"
 silksong_modding-I18N = "1.0.2"
+silksong_modding-UnityHelper = "1.1.1"
+silksong_modding-AssetHelper = "1.0.0"
 
 
 # in most cases you should not change this build block, or the first build.copy block; the dist and tmp directories are used
