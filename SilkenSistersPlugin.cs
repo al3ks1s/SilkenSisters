@@ -5,6 +5,7 @@ using HarmonyLib;
 using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
 using SilkenSisters.Behaviors;
+using SilkenSisters.Patches;
 using Silksong.AssetHelper.Core;
 using Silksong.AssetHelper.ManagedAssets;
 using Silksong.AssetHelper.Plugin;
@@ -64,62 +65,6 @@ using UnityEngine.SceneManagement;
 namespace SilkenSisters
 {
 
-    public class FSMEditor
-    {
-
-        public Dictionary<string, FsmState> states = new Dictionary<string, FsmState>();
-        public Dictionary<string, Dictionary<string, FsmTransition>> transitions = new Dictionary<string, Dictionary<string, FsmTransition>>();
-        public Dictionary<string, FsmEvent> events = new Dictionary<string, FsmEvent>();
-
-        public static bool fsmEditorLog = false;
-
-        public void compileFSM(ref PlayMakerFSM fsm)
-        {
-            foreach (FsmEvent ev in fsm.FsmEvents)
-            {
-                this.events[ev.Name] = ev;
-            }
-
-            int i = 0;
-            foreach (FsmState state in fsm.FsmStates)
-            {
-
-                states[state.Name] = state;
-                transitions[state.Name] = new Dictionary<string, FsmTransition>();
-
-                if (fsmEditorLog) SilkenSisters.Log.LogInfo($"Index: {i} State: {states[state.Name].Name}. {state.Transitions.Length} Transitions");
-
-                foreach (FsmTransition transition in state.Transitions)
-                {
-                    transitions[state.Name][transition.EventName] = transition;
-                    if (fsmEditorLog) SilkenSisters.Log.LogInfo($"   Transition : {transitions[state.Name][transition.EventName].EventName}, {transitions[state.Name][transition.EventName].ToState}");
-                }
-                foreach (FsmStateAction action in state.Actions)
-                {
-                    if (fsmEditorLog) SilkenSisters.Log.LogInfo($"       Action : {action.GetType()}");
-                }
-                if (fsmEditorLog) SilkenSisters.Log.LogInfo($"");
-                i++;
-            }
-        }
-    }
-    public class InvokeMethod : FsmStateAction
-    {
-        private readonly Action _action;
-
-        public InvokeMethod(Action action)
-        {
-            _action = action;
-        }
-
-        public override void OnEnter()
-        {
-            _action.Invoke();
-
-            Finish();
-        }
-    }
-
     [BepInAutoPlugin(id: "io.github.al3ks1s.silkensisters")]
     [BepInDependency("org.silksong-modding.fsmutil")]
     [BepInDependency("org.silksong-modding.i18n")]
@@ -170,7 +115,6 @@ namespace SilkenSisters
         public GameObject phantomBossScene = null;
         public FsmOwnerDefault phantomBossSceneFSMOwner = null;
 
-
         private bool cachingSceneObjects = false;
 
         public static GameObject hornet = null;
@@ -216,6 +160,7 @@ namespace SilkenSisters
 
             SceneManager.sceneLoaded += onSceneLoaded;
             Harmony.CreateAndPatchAll(typeof(SilkenSisters));
+            Harmony.CreateAndPatchAll(typeof(LaceCorpsePatch));
 
             Logger.LogMessage($"Plugin loaded and initialized");
         }
@@ -244,23 +189,6 @@ namespace SilkenSisters
             Harmony.CreateAndPatchAll(typeof(Language_Get_Patch));
         }
         
-        /*
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(tk2dSpriteAnimator), "Start")]
-        private static void setClipListener(tk2dSpriteAnimator __instance)
-        {
-            if (__instance.Library.name == "Lace Anim") { 
-                SilkenSisters.Log.LogMessage("[tk2dSpriteAnimator.ClipListen] A SpriteAnimator was started, dumping");
-                SilkenSisters.Log.LogMessage($"[tk2dSpriteAnimator.ClipListen] {__instance.gameObject.name} {__instance.Library.name}");
-
-                foreach (tk2dSpriteAnimationClip clip in __instance.library.clips)
-                {
-                    SilkenSisters.Log.LogMessage($"[tk2dSpriteAnimator.ClipListen] {clip.name}");
-                }
-
-            }
-        }
-        */
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(HeroController), "Die")]
@@ -295,73 +223,7 @@ namespace SilkenSisters
         [HarmonyPatch(typeof(FsmState), "OnEnter")]
         private static void setStateListener(FsmState __instance)
         {
-            // Enable Corpse Lace Hooking
-            if (__instance.Fsm.GameObject.name == "Corpse Lace2(Clone)" && __instance.Name == "Start" && isMemory())
-            {
-                SilkenSisters.Log.LogInfo("Started setting corpse handler");
-                GameObject laceCorpse = __instance.Fsm.GameObject;
-                GameObject laceCorpseNPC = GameObject.Find($"{__instance.Fsm.GameObject.name}/NPC");
-                SilkenSisters.Log.LogInfo($"{laceCorpseNPC}");
-
-                FSMEditor e1 = new FSMEditor();
-                PlayMakerFSM fsm1 = laceCorpse.GetComponent<PlayMakerFSM>();
-                e1.compileFSM(ref fsm1);
-
-                FSMEditor e2 = new FSMEditor();
-                PlayMakerFSM fsm2 = laceCorpseNPC.GetComponent<PlayMakerFSM>();
-                e1.compileFSM(ref fsm2);
-
-                SilkenSisters.Log.LogInfo("Fixing facing");
-                PlayMakerFSM laceCorpseFSM = FsmUtil.GetFsmPreprocessed(laceCorpse, "Control");
-                laceCorpseFSM.GetAction<CheckXPosition>("Set Facing", 0).compareTo = 72;
-                laceCorpseFSM.GetAction<CheckXPosition>("Set Facing", 1).compareTo = 96;
-
-                SilkenSisters.Log.LogInfo("Disabling interact action");
-                laceCorpseFSM.DisableAction("NPC Ready", 0);
-                SendEventByName lace_death_event = new SendEventByName();
-                lace_death_event.sendEvent = "INTERACT";
-                lace_death_event.delay = 0f;
-                FsmOwnerDefault owner = new FsmOwnerDefault();
-                owner.gameObject = laceCorpseNPC;
-                owner.ownerOption = OwnerDefaultOption.SpecifyGameObject;
-
-                FsmEventTarget target = new FsmEventTarget();
-                target.gameObject = owner;
-                target.target = FsmEventTarget.EventTarget.GameObject;
-                lace_death_event.eventTarget = target;
-                laceCorpseFSM.AddAction("NPC Ready", lace_death_event);
-
-                SilkenSisters.Log.LogInfo("Editing NPC routes to skip dialogue");
-                PlayMakerFSM laceCorpseNPCFSM = FsmUtil.GetFsmPreprocessed(laceCorpseNPC, "Control");
-                SilkenSisters.Log.LogInfo("Editing Idle");
-                laceCorpseNPCFSM.ChangeTransition("Idle", "INTERACT", "Drop Pause");
-                SilkenSisters.Log.LogInfo("Drop Pause");
-                laceCorpseNPCFSM.DisableAction("Drop Pause", 0);
-                laceCorpseNPCFSM.ChangeTransition("Drop Down", "FINISHED", "End Pause");
-                laceCorpseNPCFSM.ChangeTransition("Drop Down", "IS_HURT", "End Pause");
-                SilkenSisters.Log.LogInfo("End Pause");
-                laceCorpseNPCFSM.DisableAction("End Pause", 0);
-                laceCorpseNPCFSM.GetAction<Wait>("End Pause", 1).time = 0.5f;
-
-                SilkenSisters.Log.LogInfo("Disabling end actions");
-                laceCorpseNPCFSM.DisableAction("End", 5);
-                laceCorpseNPCFSM.DisableAction("End", 6);
-                laceCorpseNPCFSM.DisableAction("End", 7);
-                laceCorpseNPCFSM.DisableAction("End", 8);
-                laceCorpseNPCFSM.DisableAction("End", 9);
-                laceCorpseNPCFSM.DisableAction("End", 10);
-                laceCorpseNPCFSM.DisableAction("End", 11);
-                laceCorpseNPCFSM.DisableAction("End", 12);
-                laceCorpseNPCFSM.DisableAction("End", 13);
-
-                SilkenSisters.Log.LogInfo("Disabling audio cutting");
-                laceCorpseFSM.DisableAction("Start", 0);
-                laceCorpseNPCFSM.DisableAction("Talk 1 Start", 3);
-                laceCorpseNPCFSM.DisableAction("End", 0);
-
-                SilkenSisters.Log.LogInfo("Finished setting up corpse handler");
-            }
-
+            
             if (__instance.Fsm.GameObject.name == "Lace NPC Blasted Bridge(Clone)" && __instance.Fsm.Name == "Control")
             {
                 SilkenSisters.Log.LogInfo($"[StateListen] {__instance.Name}");
@@ -385,18 +247,6 @@ namespace SilkenSisters
                 }
             }
         }
-
-        /*
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(AssetBundle), "UnloadAsync")]
-        private static void setBundleListener2(AssetBundle __instance)
-        {
-            SilkenSisters.Log.LogInfo($"[AssetBundle.UnloadAsync] {__instance.GetName()} {__instance.name}");
-            foreach (string scenePath in __instance.GetAllScenePaths())
-            {
-                SilkenSisters.Log.LogInfo($"[AssetBundle.UnloadAsync]        {scenePath}");
-            }
-        }*/
 
         /*
         [HarmonyPostfix]

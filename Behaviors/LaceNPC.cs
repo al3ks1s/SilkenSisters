@@ -84,7 +84,8 @@ namespace SilkenSisters.Behaviors
             _control.AddState("Conduct");
             _control.AddTransition("Init", "CONDUCT", "Conduct");
             _control.AddTransition("Conduct", "FINISHED", "Dormant");
-            _control.AddAction("Conduct", new InvokeMethod(setConductPosition));
+            _control.AddMethod("Conduct", setConductPosition);
+            
             _control.AddAction("Conduct", new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, animLibName = "", clipName = "Conduct" });
 
             _control.DisableAction("Take Control", 1);
@@ -142,8 +143,7 @@ namespace SilkenSisters.Behaviors
         {
             SilkenSisters.Log.LogMessage("[LaceNPC.editFSMAnimations] Editing Lace NPC FSM");
 
-            InvokeMethod fliesLeave = new InvokeMethod(makeFliesLeave);
-            _control.AddAction("Take Control", fliesLeave);
+            _control.AddMethod("Take Control", makeFliesLeave);
 
             SetPosition laceTargetPos = _control.GetAction<SetPosition>("Sit Up", 3);
             laceTargetPos.vector = new Vector3(81.9569f, 106.7942f, 2.7021f);
@@ -151,11 +151,8 @@ namespace SilkenSisters.Behaviors
             laceTargetPos.y = 106.7942f;
             laceTargetPos.z = 2.7021f;
 
-            InvokeMethod toggleChall = new InvokeMethod(toggleChallenge);
-            _control.AddAction("Jump Away", toggleChall);
-
-            InvokeMethod constrainHornet = new InvokeMethod(startConstrainHornet);
-            _control.AddAction("Jump Away", constrainHornet);
+            _control.AddMethod("Jump Away", toggleChallenge);
+            _control.AddMethod("Jump Away", startConstrainHornet);
 
             _control.DisableAction("Jump Antic", 4);
 
@@ -192,7 +189,6 @@ namespace SilkenSisters.Behaviors
             _npcTransform.position = new Vector3(81.9569f, 106.9124f, 2.9723f);
             _control.GetBoolVariable("IsConducting").Value = true;
             _control.GetBoolVariable("IsNotConducting").Value = false;
-
         }
 
         private void toggleChallenge()

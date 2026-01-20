@@ -2,6 +2,7 @@
 using HutongGames.PlayMaker.Actions;
 using Silksong.AssetHelper.ManagedAssets;
 using Silksong.FsmUtil;
+using Silksong.FsmUtil.Actions;
 using Silksong.UnityHelper.Extensions;
 using System;
 using System.Threading.Tasks;
@@ -36,8 +37,7 @@ namespace SilkenSisters.Behaviors
 
                 prepareSync();
 
-                InvokeMethod constrainHornet = new InvokeMethod(endHornetConstrain);
-                _control.AddAction("Final Parry", constrainHornet);
+                _control.AddMethod("Final Parry", endHornetConstrain);
 
                 SilkenSisters.Log.LogMessage($"[PhantomBoss.Setup] Finished setting phantom boss up");
             }

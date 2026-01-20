@@ -93,12 +93,8 @@ namespace SilkenSisters.Behaviors
 
         private void manageTransitionGates()
         {
-
-            InvokeMethod resp = new InvokeMethod(disableRespawn);
-            _control.AddAction("Transition Scene", resp);
-
-            InvokeMethod door = new InvokeMethod(enableDoor);
-            _control.InsertAction("Transition Scene", door, 0);
+            _control.AddMethod("Transition Scene", disableRespawn);
+            _control.InsertMethod("Transition Scene", enableDoor, 0);
 
         }
 
@@ -167,26 +163,16 @@ namespace SilkenSisters.Behaviors
         {
             SilkenSisters.Log.LogInfo("[WakeUpMemory.editFSM] Editing the door FSM");
 
-            InvokeMethod inv2 = new InvokeMethod(enableRespawn);
-            _control.AddAction("Take Control", inv2);
-
-            InvokeMethod inv3 = new InvokeMethod(enableIsMemory);
-            _control.AddAction("Take Control", inv3);
-
-            InvokeMethod inv4 = new InvokeMethod(recordHeroState);
-            _control.AddAction("Take Control", inv4);
-
-            InvokeMethod inv = new InvokeMethod(SilkenSisters.plugin.setupMemoryFight);
-            _control.AddAction("Take Control", inv);
+            _control.AddMethod("Take Control", enableRespawn);
+            _control.AddMethod("Take Control", enableIsMemory);
+            _control.AddMethod("Take Control", recordHeroState);
+            _control.AddMethod("Take Control", SilkenSisters.plugin.setupMemoryFight);
+            _control.AddMethod("End", disableSelf);
+            _control.AddMethod("End", closeOffOrgan);
 
             _control.GetAction<ConvertBoolToFloat>("Fade Up", 1).falseValue = 3f;
             _control.GetAction<ConvertBoolToFloat>("Fade Up", 1).trueValue = 3f;
 
-            InvokeMethod disSelf = new InvokeMethod(disableSelf);
-            _control.AddAction("End", disSelf);
-
-            InvokeMethod closeOrgan = new InvokeMethod(closeOffOrgan);
-            _control.AddAction("End", closeOrgan);
         }
 
         private void enableIsMemory()
@@ -275,14 +261,9 @@ namespace SilkenSisters.Behaviors
             PlayMakerFSM respawnFSM = gameObject.GetFsmPreprocessed("Wake Up");
             respawnFSM.DisableAction("Save?", 1);
 
-            InvokeMethod restoreHeroAction = new InvokeMethod(restoreHeroState);
-            respawnFSM.AddAction("Fade Up", restoreHeroAction);
-
-            InvokeMethod inv3 = new InvokeMethod(disableDoor);
-            respawnFSM.AddAction("End", inv3);
-
-            InvokeMethod disSelf = new InvokeMethod(disableSelf);
-            respawnFSM.AddAction("End", disSelf);
+            _control.AddMethod("Fade Up", restoreHeroState);
+            _control.AddMethod("End", disableDoor);
+            _control.AddMethod("End", disableSelf);
         }
 
         private void disableDoor()

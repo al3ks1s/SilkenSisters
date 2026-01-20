@@ -41,9 +41,9 @@
     <PackageReference Include="HarmonyX" Version="2.9.0" />
     <PackageReference Include="Hamunii.BepInEx.AutoPlugin" Version="2.1.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.25.0" PrivateAssets="all" />
-    <PackageReference Include="Silksong.AssetHelper" Version="1.0.0" />
+    <PackageReference Include="Silksong.AssetHelper" Version="1.0.1" />
     <PackageReference Include="Silksong.FilteredLogs" Version="1.0.0" />
-    <PackageReference Include="Silksong.FsmUtil" Version="0.3.5" />
+    <PackageReference Include="Silksong.FsmUtil" Version="0.3.9" />
     <PackageReference Include="Silksong.UnityHelper" Version="1.1.1" />
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
     <!--If you're unable resolve this dependency, check that you're using the nuget v3 package feed instead of v2.-->
