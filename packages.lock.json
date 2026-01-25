@@ -42,11 +42,11 @@
       },
       "Silksong.AssetHelper": {
         "type": "Direct",
-        "requested": "[1.0.1, )",
-        "resolved": "1.0.1",
-        "contentHash": "6nEnc6y9X5sFEsDqK1q/t/k0ZOm/BvPNjf7fNOUvvLszym/MpRsPEJUZL2BXQLZqL2Lv/+nRUDhle+cpbPCZQw==",
+        "requested": "[1.0.2, )",
+        "resolved": "1.0.2",
+        "contentHash": "Ba8q6r4rIKu+LdeARJfdTRFV4e35RgEXzIId5b1PH+PzUlLSCoiu0leaMwaNlc8XGX+g/RAQTpcXnfn3MrjdOw==",
         "dependencies": {
-          "AssetHelperLib": "0.9.3",
+          "AssetHelperLib": "0.10.0",
           "AssetsTools.NET": "3.0.3",
           "BepInEx.Core": "5.4.21",
           "HarmonyX": "2.9.0",
@@ -102,8 +102,8 @@
       },
       "AssetHelperLib": {
         "type": "Transitive",
-        "resolved": "0.9.3",
-        "contentHash": "D9DmzMFD8XMafE7Jy+DpOSJrO2E/7/rUaHzl0f8EEAY3nQTm4Hz2FtYt+q8yZymdaN8ZKH5+my35aIkFnX5yGA=="
+        "resolved": "0.10.0",
+        "contentHash": "J9wqIP+u2FPxpUEs07tTSQLQw8wSCRHnDx1UV0QwWFdra7CPP98Xj65ya3224hBklU2K0tb/cYWSEJ1hBA9ZwA=="
       },
       "AssetsTools.NET": {
         "type": "Transitive",
