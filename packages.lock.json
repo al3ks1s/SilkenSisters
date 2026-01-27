@@ -42,9 +42,9 @@
       },
       "Silksong.AssetHelper": {
         "type": "Direct",
-        "requested": "[1.1.0, )",
-        "resolved": "1.1.0",
-        "contentHash": "FrQx2o9RcvlkGfWu8jkpo9A194jJMeK73xq9P+G1zW4LoaDJNhzcumg+F5NkZsex+0RILR32/BkOTIIMh5FbxQ==",
+        "requested": "[1.1.1, )",
+        "resolved": "1.1.1",
+        "contentHash": "QLKRwm/+Mu7lfFNaT5cCiyCno9jpEVOO7xTTHSWNTKkyVcqN82Mcxa0A/2IbZPy/haRfslZiwROECHBG1dY0pw==",
         "dependencies": {
           "AssetHelperLib": "0.10.1",
           "AssetsTools.NET": "3.0.3",
