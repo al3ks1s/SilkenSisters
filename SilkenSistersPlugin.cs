@@ -126,6 +126,8 @@ namespace SilkenSisters
         internal ConfigEntry<int> MaxHP;
         internal ConfigEntry<int> P2HP;
         internal ConfigEntry<int> P3HP;
+        internal ConfigEntry<float> ParryBaitDistance;
+        internal ConfigEntry<float> DefenseParryDistance;
         public static ConfigEntry<bool> syncedFight;
 
         public static bool debugBuild;
@@ -148,7 +150,6 @@ namespace SilkenSisters
 
             SceneManager.sceneLoaded += onSceneLoaded;
             Harmony.CreateAndPatchAll(typeof(UtilityPatches));
-            Harmony.CreateAndPatchAll(typeof(LaceCorpsePatch));
             Harmony.CreateAndPatchAll(typeof(EncounterPatches));
             
             Logger.LogMessage($"Plugin loaded and initialized");
@@ -219,6 +220,20 @@ namespace SilkenSisters
                 "Debug Config that defines pooled hp p3 shift."
             );
 
+            ParryBaitDistance = Config.Bind(
+                "Sync fight",
+                "Parry Bait Distance",
+                1.75f,
+                "Debug Config that defines the distance at which they tp for parrybait."
+            );
+
+            DefenseParryDistance = Config.Bind(
+                "Sync fight",
+                "Defense Parry Distance",
+                1.75f,
+                "Debug Config that defines the distance at which they tp for defend parry."
+            );
+
         }
 
         private void requestAssets()
@@ -241,6 +256,7 @@ namespace SilkenSisters
         {
             yield return new WaitForSeconds(10f); // Give game time to init Language
             Harmony.CreateAndPatchAll(typeof(Language_Get_Patch));
+            Harmony.CreateAndPatchAll(typeof(FSM_Event_Patch));
         }
 
         public static bool canSetupLaceInteraction()
@@ -334,7 +350,7 @@ namespace SilkenSisters
 
             string[] excludedScenes = new string[]{ "Menu_Title", "Pre_Menu_Loader", "Pre_Menu_Intro", "Quit_To_Menu" };
             
-
+            
             if (!cachingSceneObjects) { 
                 if (scene.name == "Organ_01")
                 {
@@ -605,21 +621,23 @@ namespace SilkenSisters
         private void Update()
         {
 
+            
+
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Keypad0))
             {
-                ((PlayMakerFSM)phantomBossScene.FindChild("Phantom").GetComponent(typeof(PlayMakerFSM))).SetState("Stab Antic");
+                ((PlayMakerFSM)phantomBossScene.FindChild("Phantom").GetComponent(typeof(PlayMakerFSM))).SetState("Phase Parry Bait");
             }
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Keypad1))
             {
-                ((PlayMakerFSM)phantomBossScene.FindChild("Phantom").GetComponent(typeof(PlayMakerFSM))).SetState("Run Away Antic");
+                ((PlayMakerFSM)phantomBossScene.FindChild("Phantom").GetComponent(typeof(PlayMakerFSM))).SetState("Phase Defense Parry");
             }
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Keypad2))
             {
-                ((PlayMakerFSM)phantomBossScene.FindChild("Phantom").GetComponent(typeof(PlayMakerFSM))).SetState("Run To Antic");
+                ((PlayMakerFSM)phantomBossScene.FindChild("Phantom").GetComponent(typeof(PlayMakerFSM))).SetState("Evade Antic");
             }
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Keypad3))
             {
-                ((PlayMakerFSM)phantomBossScene.FindChild("Phantom").GetComponent(typeof(PlayMakerFSM))).SetState("Evade Antic");
+                ((PlayMakerFSM)phantomBossScene.FindChild("Phantom").GetComponent(typeof(PlayMakerFSM))).SetState("Run To Lace");
             }
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Keypad4))
             {
@@ -678,7 +696,23 @@ namespace SilkenSisters
             {
                 ((PlayMakerFSM)laceBossInstance.GetComponent(typeof(PlayMakerFSM))).SetState("Tele Out");
             }
+            if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.Keypad7))
+            {
+                ((PlayMakerFSM)laceBossInstance.GetComponent(typeof(PlayMakerFSM))).SetState("Hop To Phantom");
+            }
+            if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.Keypad8))
+            {
+                ((PlayMakerFSM)laceBossInstance.GetComponent(typeof(PlayMakerFSM))).SetState("Tele Out Defense");
+            }
+            if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.Keypad9))
+            {
+                ((PlayMakerFSM)laceBossInstance.GetComponent(typeof(PlayMakerFSM))).SetState("Tele Out Bait");
+            }
 
+            if (Input.GetKey(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.P))
+            {
+                phantomBossScene.GetFsm("Silken Sisters Sync Control").SendEvent("FINISHE");
+            }
 
 
             if (Input.GetKey(modifierKey.Value) && Input.GetKeyDown(KeyCode.H))

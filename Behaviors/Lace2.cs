@@ -3,6 +3,7 @@ using HutongGames.PlayMaker.Actions;
 using Silksong.FsmUtil;
 using Silksong.UnityHelper.Extensions;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -35,6 +36,7 @@ namespace SilkenSisters.Behaviors
                 fixWallRangeAlert(); 
                 disableLaceMusic();
                 setLaceFacing();
+                addDamageDelegate();
                 PrepareCorpse();
                 prepareSync();
                 SilkenSisters.Log.LogMessage($"Damage scaling: {_healthManager.damageScaling.Level1Mult} {_healthManager.damageScaling.Level2Mult} {_healthManager.damageScaling.Level3Mult} {_healthManager.damageScaling.Level4Mult} {_healthManager.damageScaling.Level5Mult} ");
@@ -215,7 +217,6 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogInfo($"[Lace2.Refight Engarde] Base facing active?:{_control.GetStateAction("Refight Engarde", 0).active}");
         }
 
-
         private void PrepareCorpse()
         {
             SilkenSisters.Log.LogDebug("Started setting corpse handler");
@@ -274,7 +275,21 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogDebug("Finished setting up corpse handler");
         }
 
+        private void addDamageDelegate()
+        {
+            _healthManager.initHp = SilkenSisters.plugin.MaxHP.Value;
+            _healthManager.HealToMax();
+            _healthManager.TookDamage += TransferDamage;
+        }
 
+        private void TransferDamage()
+        {
+            SilkenSisters.Log.LogInfo($"Lace: {_healthManager.hp}");
+            SilkenSisters.Log.LogInfo($"Lace: {_healthManager.lastHitInstance.DamageDealt}");
+
+            HealthManager phantomManager = SilkenSisters.plugin.phantomBossScene.FindChild("Phantom").GetComponent<HealthManager>();
+            if (phantomManager.hp - _healthManager.lastHitInstance.DamageDealt > 0) { phantomManager.ApplyExtraDamage(_healthManager.lastHitInstance.DamageDealt); }
+        }
 
         // Sync fight edits
         private void prepareSync()
@@ -282,14 +297,43 @@ namespace SilkenSisters.Behaviors
             if (SilkenSisters.syncedFight.Value && SilkenSisters.debugBuild) {
 
                 _control.enabled = false;
-                
+
+                AddVars();
                 NukeCoreAI();
                 SyncTransitions();
+                SetupHopToPhantom();
+                SetupEvadeToPhantom();
+                SetupTele();
+                SetupParryBait();
+                SetupDefenseParry();
+                SetupMock();
 
                 _control.enabled = true;
 
                 SilkenSisters.Log.LogMessage($"[Lace.prepareSync] Finished doing the sync stuff");
             }
+        }
+
+        private void AddVars()
+        {
+            _control.AddGameObjectVariable("Phantom").Value = SilkenSisters.plugin.phantomBossFSMOwner.GameObject.Value;
+
+            _control.AddFloatVariable("Wait Time").Value = SilkenSisters.plugin.syncWaitTime.Value;
+            _control.AddFloatVariable("Async Delay").Value = SilkenSisters.plugin.syncDelay.Value;
+
+            _control.AddFloatVariable("Gather Distance").Value = SilkenSisters.plugin.syncGatherDistance.Value;
+            _control.AddFloatVariable("Tele Distance").Value = SilkenSisters.plugin.syncTeleDistance.Value;
+
+            _control.AddFloatVariable("Phase Left X").Value = 73;
+            _control.AddFloatVariable("Phase Right X").Value = 96;
+
+            _control.AddVector3Variable("Hornet Pos");
+            _control.AddVector3Variable("Phantom Pos");
+
+            _control.AddFloatVariable("Hornet Facing Right");
+
+            _control.AddFloatVariable("Is Landed");
+
         }
 
         private void NukeCoreAI()
@@ -321,7 +365,6 @@ namespace SilkenSisters.Behaviors
             //*/
         }
 
-
         private void SyncTransitions()
         {
             _control.AddState("SyncWait");
@@ -336,6 +379,28 @@ namespace SilkenSisters.Behaviors
             _control.AddTransition("SyncWait", "TO P2", "Hop To P2");
             _control.AddTransition("SyncWait", "TO P3", "Hop To P3");
             _control.AddTransition("SyncWait", "CROSS SLASH", "CrossSlash Aim");
+            _control.AddTransition("SyncWait", "EVADE ", "Evade");
+
+            _control.AddAction(
+                "SyncWait",
+                new SetIntValue
+                {
+                    intVariable = _control.GetIntVariable("Hops"),
+                    intValue = 0
+                }
+            );
+
+            //*
+            _control.AddAction(
+                "SyncWait",
+                new Tk2dPlayAnimation
+                {
+                    animLibName = "",
+                    clipName = "Idle",
+                    gameObject = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner }
+                }
+            );
+            //*/
 
             _control.AddAction(
                 "SyncWait", 
@@ -352,6 +417,362 @@ namespace SilkenSisters.Behaviors
             );
 
         }
+
+        private void SetupHopToPhantom()
+        {
+            _control.CopyState("Hop To Combo", "Hop To Phantom");
+
+            _control.CopyState("Hop Check", "Hop Check Phantom");
+            _control.CopyState("Hop Antic", "Hop Antic Phantom");
+            _control.CopyState("Hop", "Hop Phantom");
+            _control.CopyState("Hop Recover", "Hop Recover Phantom");
+            _control.CopyState("Hop Cancel", "Hop Cancel Phantom");
+            _control.CopyState("Hop End", "Hop End Phantom");
+
+            _control.AddTransition("SyncWait", "HOP PHANTOM", "Hop To Phantom");
+            _control.ChangeTransition("Hop To Phantom", "FINISHED", "Hop Check Phantom");
+
+            _control.ChangeTransition("Hop Check Phantom", "HOP END", "Hop End Phantom");
+            _control.ChangeTransition("Hop Check Phantom", "FINISHED", "Hop Antic Phantom");
+            _control.ChangeTransition("Hop Antic Phantom", "FINISHED", "Hop Phantom");
+            _control.ChangeTransition("Hop Phantom", "FINISHED", "Hop Recover Phantom");
+            _control.ChangeTransition("Hop Phantom", "CANCEL", "Hop Cancel Phantom");
+            _control.ChangeTransition("Hop Recover Phantom", "FINISHED", "Hop Check Phantom");
+            _control.ChangeTransition("Hop Cancel Phantom", "FINISHED", "Hop Recover Phantom");
+
+            _control.AddTransition("Hop End Phantom", "NONE", "Pose");
+
+            _control.GetAction<SetStringValue>("Hop To Phantom", 1).stringValue = "NONE";
+            _control.GetAction<SetStringValue>("Hop To Phantom", 1).stringVariable = _control.GetStringVariable("Next Event");
+
+            _control.DisableAction("Hop To Phantom", 0);
+            _control.InsertAction(
+                "Hop To Phantom",
+                new SetFloatValue
+                {
+                    floatVariable = _control.GetFloatVariable("Target Distance"),
+                    floatValue = SilkenSisters.plugin.syncGatherDistance.Value
+                },
+                0
+            );
+
+            _control.AddAction(
+                "Hop To Phantom",
+                new SetIntValue
+                {
+                    intVariable = _control.GetIntVariable("Hops"),
+                    intValue = 0
+                }
+            );
+
+            _control.GetAction<GetXDistance>("Hop Check Phantom", 3).target = _control.GetGameObjectVariable("Phantom");
+            _control.GetAction<GetXDistance>("Hop Phantom", 2).target = _control.GetGameObjectVariable("Phantom");
+            _control.GetAction<FloatCompare>("Hop Phantom", 3).float2 = SilkenSisters.plugin.syncGatherDistance.Value;
+            _control.GetAction<FaceObjectV2>("Hop Antic Phantom", 1).objectB = _control.GetGameObjectVariable("Phantom");
+
+
+        }
+
+        private void SetupEvadeToPhantom()
+        {
+            _control.CopyState("Evade", "Evade Phantom");
+            _control.CopyState("Evade Recover", "Evade Recover Phantom");
+
+            _control.ChangeTransition("Evade Phantom", "FINISHED", "Evade Recover Phantom");
+
+            _control.AddTransition("SyncWait", "EVADE PHANTOM", "Evade Phantom");
+            //_control.GetAction<Tk2dWatchAnimationEvents>("Evade Phantom",3).animationTriggerEvent = FsmEvent.GetFsmEvent("");
+            //_control.GetAction<Tk2dWatchAnimationEvents>("Evade Phantom",3).animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED");
+
+            _control.AddAction(
+                "Evade Phantom",
+                new GetXDistance
+                {
+                    gameObject = new FsmOwnerDefault
+                    {
+                        OwnerOption = OwnerDefaultOption.UseOwner,
+                    },
+                    target = _control.GetGameObjectVariable("Phantom"),
+                    storeResult = _control.GetFloatVariable("Distance"),
+                    everyFrame = true
+                }
+            );
+
+            _control.AddAction(
+                "Evade Phantom", 
+                new FloatCompare
+                {
+                    float1 = _control.GetFloatVariable("Distance"),
+                    float2 = _control.GetFloatVariable("Gather Distance"),
+                    tolerance = 0,
+                    lessThan = FsmEvent.GetFsmEvent("FINISHED"),
+                    equal = FsmEvent.GetFsmEvent("FINISHED")
+                } 
+            );
+
+        }
+        
+        private void SetupTele()
+        {
+            _control.CopyState("Tele Out", "Tele Out Movement");
+            _control.CopyState("Tele In", "Tele In Movement");
+
+            _control.ChangeTransition("Tele Out Movement", "FINISHED", "Tele In Movement");
+            _control.DisableAction("Tele In Movement", 2);
+            _control.DisableAction("Tele In Movement", 3);
+            _control.DisableAction("Tele In Movement", 4);
+            _control.DisableAction("Tele In Movement", 5);
+            _control.DisableAction("Tele In Movement", 6);
+
+            _control.InsertMethod("Tele In Movement", GetTelePos, 7);
+
+            _control.AddTransition("SyncWait", "TELE", "Tele Out Movement");
+        }
+
+        private void SetupParryBait()
+        {
+            _control.CopyState("Tele Out", "Tele Out Bait");
+            _control.CopyState("Tele In", "Tele In Bait");
+            
+            _control.ChangeTransition("Tele Out Bait", "FINISHED", "Tele In Bait");
+            _control.DisableAction("Tele In Bait", 2);
+            _control.DisableAction("Tele In Bait", 3);
+            _control.DisableAction("Tele In Bait", 4);
+            _control.DisableAction("Tele In Bait", 5);
+            _control.DisableAction("Tele In Bait", 6);
+            _control.DisableAction("Tele In Bait", 7);
+
+            _control.InsertAction(
+                "Tele In Bait",
+                new GetPosition
+                {
+                    gameObject = SilkenSisters.hornetFSMOwner,
+                    vector = _control.GetVector3Variable("Hornet Pos"),
+                    x = new FsmFloat(),
+                    y = new FsmFloat(),
+                    z = new FsmFloat(),
+                    everyFrame = false,
+                },
+                8
+            );
+
+            _control.InsertAction(
+                "Tele In Bait",
+                new GetScale
+                {
+                    gameObject = SilkenSisters.hornetFSMOwner,
+                    vector = new FsmVector3(),
+                    xScale = _control.GetFloatVariable("Hornet Facing Right"),
+                    yScale = new FsmFloat(),
+                    zScale = new FsmFloat(),
+                    everyFrame = false,
+                },
+                9
+            );
+
+            _control.InsertMethod("Tele In Bait", SetParryBaitPos, 10);
+
+            _control.InsertAction(
+                "Tele In Bait",
+                new SetPosition
+                {
+                    gameObject = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner },
+                    vector = _control.GetVector3Variable("Hornet Pos"),
+                    x = new FsmFloat { UseVariable = true },
+                    y = new FsmFloat { UseVariable = true },
+                    z = new FsmFloat { UseVariable = true },
+                },
+                11
+            );
+
+            _control.CopyState("Counter Antic", "Counter Antic Bait");
+            _control.ChangeTransition("Tele In Bait", "FINISHED", "Counter Antic Bait");
+            _control.DisableAction("Counter Antic Bait", 1);
+
+            _control.AddAction(
+                "Counter End",
+                new SetIsKinematic2d
+                {
+                    gameObject = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner },
+                    isKinematic = false
+                }
+            );
+
+            _control.InsertAction(
+                "Counter Type",
+                new CheckCollisionSide
+                {
+                    collidingObject = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner },
+                    topHit = new FsmBool { useVariable = true },
+                    rightHit = new FsmBool { useVariable = true },
+                    bottomHit = _control.GetBoolVariable("Is Landed"),
+                    leftHit = new FsmBool { useVariable = true },
+                    ignoreTriggers = false,
+                    otherLayer = false,
+                    otherLayerNumber = 0,
+                },
+                0
+            );
+
+            _control.InsertAction(
+                "Counter Type",
+                new BoolTest
+                {
+                    boolVariable = _control.GetBoolVariable("Is Landed"),
+                    isFalse = FsmEvent.GetFsmEvent("AIR"),
+                    everyFrame = false
+                },
+                1
+            );
+
+            _control.AddTransition("SyncWait", "PARRY BAIT", "Tele Out Bait");
+        }
+
+        private void SetupDefenseParry()
+        {
+
+            _control.CopyState("Tele Out", "Tele Out Defense");
+            _control.CopyState("Tele In", "Tele In Defense");
+
+            _control.ChangeTransition("Tele Out Defense", "FINISHED", "Tele In Defense");
+            _control.DisableAction("Tele In Defense", 2);
+            _control.DisableAction("Tele In Defense", 3);
+            _control.DisableAction("Tele In Defense", 4);
+            _control.DisableAction("Tele In Defense", 5);
+            _control.DisableAction("Tele In Defense", 6);
+            _control.DisableAction("Tele In Defense", 7);
+
+            _control.InsertAction(
+                "Tele In Defense",
+                new GetPosition
+                {
+                    gameObject = SilkenSisters.hornetFSMOwner,
+                    vector = _control.GetVector3Variable("Hornet Pos"),
+                    x = new FsmFloat(),
+                    y = new FsmFloat(),
+                    z = new FsmFloat(),
+                    everyFrame = false,
+                },
+                9
+            );
+
+            _control.InsertAction(
+                "Tele In Defense",
+                new GetPosition
+                {
+                    gameObject = SilkenSisters.plugin.phantomBossFSMOwner,
+                    vector = _control.GetVector3Variable("Phantom Pos"),
+                    x = new FsmFloat(),
+                    y = new FsmFloat(),
+                    z = new FsmFloat(),
+                    everyFrame = false,
+                },
+                10
+            );
+
+
+            _control.InsertMethod("Tele In Defense", SetDefenseParryPos, 11);
+
+            _control.InsertAction(
+                "Tele In Defense",
+                new SetPosition
+                {
+                    gameObject = new FsmOwnerDefault { OwnerOption = OwnerDefaultOption.UseOwner },
+                    vector = _control.GetVector3Variable("Phantom Pos"),
+                    x = new FsmFloat { UseVariable = true },
+                    y = new FsmFloat { UseVariable = true },
+                    z = new FsmFloat { UseVariable = true },
+                },
+                12
+            );
+
+            _control.CopyState("Counter Antic", "Counter Antic Defense");
+            _control.ChangeTransition("Tele In Defense", "FINISHED", "Counter Antic Defense");
+            _control.DisableAction("Counter Antic Defense", 1);
+
+            _control.AddTransition("SyncWait", "DEFEND", "Tele Out Defense");
+
+        }
+
+        private void SetupMock() 
+        {
+            _control.CopyState("Death Pose", "Mock");
+            _control.AddTransition("Mock", "FINISHED", "Idle");
+
+            _control.AddTransition("SyncWait", "MOCK", "Mock");
+            
+            _control.AddAction("Mock", new Wait { time = 0.65f, finishEvent = FsmEvent.GetFsmEvent("FINISHED") });
+        }
+
+
+
+        private void Update()
+        {
+            if (SilkenSisters.plugin.syncWaitTime.Value != _control.GetFloatVariable("Wait Time").Value)
+            {
+                _control.GetFloatVariable("Wait Time").Value = SilkenSisters.plugin.syncWaitTime.Value;
+            }
+
+            if (SilkenSisters.plugin.syncDelay.Value != _control.GetFloatVariable("Async Delay").Value)
+            {
+                _control.GetFloatVariable("Async Delay").Value = SilkenSisters.plugin.syncDelay.Value;
+            }
+
+            if (SilkenSisters.plugin.syncGatherDistance.Value != _control.GetFloatVariable("Gather Distance").Value)
+            {
+                _control.GetFloatVariable("Gather Distance").Value = SilkenSisters.plugin.syncGatherDistance.Value;
+            }
+
+            if (SilkenSisters.plugin.syncTeleDistance.Value != _control.GetFloatVariable("Tele Distance").Value)
+            {
+                _control.GetFloatVariable("Tele Distance").Value = SilkenSisters.plugin.syncTeleDistance.Value;
+            }
+
+        }
+
+
+        // Additional action methods
+        private void SetParryBaitPos()
+        {
+
+            FsmVector3 hornet_pos = _control.GetVector3Variable("Hornet Pos");
+            float hornet_facing = _control.GetFloatVariable("Hornet Facing Right").Value;
+
+            float distance_offset = hornet_facing * SilkenSisters.plugin.ParryBaitDistance.Value;
+
+            if (hornet_pos.value.x - distance_offset < _control.GetFloatVariable("Phase Left X").Value ||
+                hornet_pos.value.x - distance_offset > _control.GetFloatVariable("Phase Right X").Value)
+            {
+                distance_offset *= -1;
+            }
+
+            hornet_pos.value.x -= distance_offset;
+            hornet_pos.value.y -= (0.5677f - 0.5462f);
+
+        }
+
+        private void SetDefenseParryPos()
+        {
+            FsmVector3 phantom_pos = _control.GetVector3Variable("Phantom Pos");
+            FsmVector3 hornet_pos = _control.GetVector3Variable("Hornet Pos");
+
+            if (phantom_pos.Value.x > hornet_pos.Value.x)
+            {
+                phantom_pos.value.x -= SilkenSisters.plugin.DefenseParryDistance.Value;
+            }
+            else if (phantom_pos.Value.x < hornet_pos.Value.x)
+            {
+                phantom_pos.value.x += SilkenSisters.plugin.DefenseParryDistance.Value;
+            }
+
+            phantom_pos.value.y += (0.5462f - 0.2494f);
+        }
+
+        private void GetTelePos()
+        {
+            _control.GetFloatVariable("Tele X").Value = SilkenSisters.plugin.phantomBossScene.GetFsm("Silken Sisters Sync Control").GetFloatVariable("Lace X").Value;
+        }
+
 
     }
 
@@ -406,7 +827,7 @@ namespace SilkenSisters.Behaviors
 
         private void Setup()
         {
-
+            
         }
 
 

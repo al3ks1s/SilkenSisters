@@ -36,9 +36,9 @@
       },
       "Microsoft.Unity.Analyzers": {
         "type": "Direct",
-        "requested": "[1.25.0, )",
-        "resolved": "1.25.0",
-        "contentHash": "jOclVb2PVoOdKafuzt3bJ3BHkbjsfuAx+60yqP4zCAhlNa1rwn1Jt05qrmqJgmBY42S08hXbps9KA6QR2Z7aOA=="
+        "requested": "[1.26.0, )",
+        "resolved": "1.26.0",
+        "contentHash": "lU4QRpGxzwBGkDJs86Q18CwhiqigssQrItJFr+c1Ijra35Y/uTwV/bRiSIYcXSaWl9RsXCi6dqG4xVAXb9sCtQ=="
       },
       "Silksong.AssetHelper": {
         "type": "Direct",
@@ -68,9 +68,9 @@
       },
       "Silksong.FsmUtil": {
         "type": "Direct",
-        "requested": "[0.3.12, )",
-        "resolved": "0.3.12",
-        "contentHash": "HGncQoo+xyiSrlwAVjJg0okj1uWJm5ibtWjMdkJNy+ew7mJ+mY2DNA3+5i6qIw5/8OwtONBL0ByvLTo+VDHRjg==",
+        "requested": "[0.3.13, )",
+        "resolved": "0.3.13",
+        "contentHash": "CUZ7PKKUu3O7byEW4iEOkVOGcJPbHI28Z7D+Pn0LMxiSv/VjIjixG4JYH6GMgbE4uIbtpfF1Bon769cJt2w1RQ==",
         "dependencies": {
           "BepInEx.Core": "5.4.21",
           "HarmonyX": "2.9.0",

@@ -3,6 +3,8 @@ using HutongGames.PlayMaker;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TeamCherry.Localization;
+using static HutongGames.PlayMaker.FsmEventTarget;
 
 namespace SilkenSisters.Patches
 {
@@ -45,6 +47,10 @@ namespace SilkenSisters.Patches
 
             if (__instance.Fsm.GameObject.name == "Lace Boss2 New" && __instance.Fsm.Name == "Control")
             {
+                //SilkenSisters.Log.LogInfo($"[StateListen] {__instance.Name}");
+            }
+            if (__instance.Fsm.GameObject.name == "Boss Scene" && __instance.Fsm.Name == "Silken Sisters Sync Control")
+            {
                 SilkenSisters.Log.LogInfo($"[StateListen] {__instance.Name}");
             }
 
@@ -67,30 +73,19 @@ namespace SilkenSisters.Patches
             }
         }
 
-        /*
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(FsmState), "OnEnter")]
-        private static void setPostEventListener(FsmState __instance)
+    }
+
+    [HarmonyPatch(typeof(Fsm), "Event")]
+    [HarmonyPatch(new[] { typeof(FsmEventTarget), typeof(FsmEvent) })]
+    public static class FSM_Event_Patch
+    {
+        private static void Prefix(Fsm __instance, ref FsmEventTarget eventTarget, ref FsmEvent fsmEvent)
         {
-
-            bool logDeepMemory = true;
-            if (logDeepMemory && (__instance.Fsm.GameObject.name == $"Lace Boss2 New" && (__instance.name == "Bounce Back")))
+            if (__instance.Name == "Silken Sisters Sync Control")
             {
-                SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, {__instance.fsm.name}, Entering state {__instance.Name}");
-                if (__instance.Actions.Length > 0)
-                {
-                    foreach (FsmTransition transi in __instance.transitions)
-                    {
-                        SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
-                    }
-
-                    foreach (FsmStateAction action in __instance.Actions)
-                    {
-                        SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
-                    }
-                }
+                SilkenSisters.Log.LogMessage(fsmEvent.Name);
             }
-        }*/
 
+        }
     }
 }

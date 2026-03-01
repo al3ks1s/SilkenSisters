@@ -240,7 +240,7 @@ namespace SilkenSisters.Behaviors
 
         private void getComponents()
         {
-            _control = gameObject.GetFsmPreprocessed("Control");
+            _control = gameObject.GetFsmPreprocessed("Wake Up");
         }
 
         private void setName()
