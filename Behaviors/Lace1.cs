@@ -3,8 +3,6 @@ using HutongGames.PlayMaker.Actions;
 using Silksong.FsmUtil;
 using Silksong.UnityHelper.Extensions;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 

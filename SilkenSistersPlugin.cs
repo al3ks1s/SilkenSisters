@@ -3,24 +3,16 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
-using HutongGames.PlayMaker.Actions;
 using SilkenSisters.Behaviors;
 using SilkenSisters.Patches;
-using Silksong.AssetHelper.Core;
 using Silksong.AssetHelper.ManagedAssets;
-using Silksong.AssetHelper.Plugin;
 using Silksong.FsmUtil;
 using Silksong.UnityHelper.Extensions;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
-using TeamCherry.Localization;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
 // Idea by AidaCamelia0516

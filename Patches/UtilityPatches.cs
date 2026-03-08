@@ -1,10 +1,6 @@
 ﻿using HarmonyLib;
 using HutongGames.PlayMaker;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using TeamCherry.Localization;
-using static HutongGames.PlayMaker.FsmEventTarget;
 
 namespace SilkenSisters.Patches
 {
