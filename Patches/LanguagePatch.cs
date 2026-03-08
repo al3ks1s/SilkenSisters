@@ -14,6 +14,7 @@ namespace SilkenSisters.Patches
         private static void Prefix(ref string key, ref string sheetTitle)
         {
             if (key.Contains("SILKEN_SISTERS")) sheetTitle = $"Mods.{SilkenSisters.Id}";
+            if (key.Contains("SILKEN_SISTERS_SUB") && SilkenSisters.syncedFight.Value) key = $"SILKEN_SISTERS_SUB_DEBUG";
         }
     }
     
