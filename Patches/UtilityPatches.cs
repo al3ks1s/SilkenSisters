@@ -15,8 +15,8 @@ namespace SilkenSisters.Patches
         [HarmonyPatch(typeof(HeroController), "Die")]
         private static void setDeathListener(HeroController __instance, ref bool nonLethal, ref bool frostDeath)
         {
-            SilkenSisters.Log.LogInfo($"[DeathListener] Hornet died nonLethal:{nonLethal} frost:{frostDeath} / isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}");
-            if (SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene())
+            SilkenSisters.Log.LogDebug($"[DeathListener] Hornet died / isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}");
+            if (SilkenSisters.isMemory() && GameManager._instance.IsMemoryScene())
             {
 
                 PlayerData._instance.defeatedPhantom = true;
@@ -26,7 +26,7 @@ namespace SilkenSisters.Patches
                     SilkenSisters.hornetConstrain.enabled = false;
                 }
 
-                SilkenSisters.Log.LogInfo($"[DeathListener] Hornet died in memory, variable reset: defeatedPhantom:{PlayerData._instance.defeatedPhantom}, blackThreadWorld:{PlayerData._instance.blackThreadWorld}");
+                SilkenSisters.Log.LogDebug($"[DeathListener] Hornet died in memory, variable reset: defeatedPhantom:{PlayerData._instance.defeatedPhantom}, blackThreadWorld:{PlayerData._instance.blackThreadWorld}");
 
             }
         }
@@ -36,7 +36,7 @@ namespace SilkenSisters.Patches
         private static bool setSaveListener(GameManager __instance, ref int saveSlot, ref Action<bool> ogCallback, ref bool withAutoSave, ref AutoSaveName autoSaveName)
         {
             ogCallback?.Invoke(true);
-            SilkenSisters.Log.LogInfo($"[SaveListener] Trying to save game. isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}. Skipping?:{SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene()}");
+            SilkenSisters.Log.LogDebug($"[SaveListener] Trying to save game. isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}. Skipping?:{SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene()}");
             return !(SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene());
         }
 
@@ -47,27 +47,27 @@ namespace SilkenSisters.Patches
 
             if (__instance.Fsm.GameObject.name == "Lace Boss2 New" && __instance.Fsm.Name == "Control")
             {
-                //SilkenSisters.Log.LogInfo($"[StateListen] {__instance.Name}");
+                //SilkenSisters.Log.LogDebug($"[StateListen] {__instance.Name}");
             }
             if (__instance.Fsm.GameObject.name == "Boss Scene" && __instance.Fsm.Name == "Silken Sisters Sync Control")
             {
-                SilkenSisters.Log.LogInfo($"[StateListen] {__instance.Name}");
+                SilkenSisters.Log.LogDebug($"[StateListen] {__instance.Name}");
             }
 
             bool logDeepMemory = false;
             if (logDeepMemory && (__instance.Fsm.GameObject.name == $"{SilkenSisters.plugin.deepMemoryInstance}" || __instance.Fsm.GameObject.name == $"before" || __instance.Fsm.GameObject.name == $"thread_memory"))
             {
-                SilkenSisters.Log.LogInfo($"{__instance.Fsm.GameObject.name}, {__instance.fsm.name}, Entering state {__instance.Name}");
+                SilkenSisters.Log.LogDebug($"{__instance.Fsm.GameObject.name}, {__instance.fsm.name}, Entering state {__instance.Name}");
                 if (__instance.Actions.Length > 0)
                 {
                     foreach (FsmTransition transi in __instance.transitions)
                     {
-                        SilkenSisters.Log.LogInfo($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
+                        SilkenSisters.Log.LogDebug($"    transitions for state {__instance.Name}: {transi.EventName} to {transi.toState}");
                     }
 
                     foreach (FsmStateAction action in __instance.Actions)
                     {
-                        SilkenSisters.Log.LogInfo($"        Action for state {__instance.Name}: {action.GetType()}");
+                        SilkenSisters.Log.LogDebug($"        Action for state {__instance.Name}: {action.GetType()}");
                     }
                 }
             }
@@ -83,7 +83,7 @@ namespace SilkenSisters.Patches
         {
             if (__instance.Name == "Silken Sisters Sync Control")
             {
-                SilkenSisters.Log.LogMessage(fsmEvent.Name);
+                SilkenSisters.Log.LogDebug(fsmEvent.Name);
             }
 
         }

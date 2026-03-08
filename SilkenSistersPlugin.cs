@@ -123,35 +123,31 @@ namespace SilkenSisters
         internal ConfigEntry<float> syncDelay;
         internal ConfigEntry<float> syncGatherDistance;
         internal ConfigEntry<float> syncTeleDistance;
+        internal ConfigEntry<float> syncRangeDistance;
         internal ConfigEntry<int> MaxHP;
         internal ConfigEntry<int> P2HP;
         internal ConfigEntry<int> P3HP;
+        internal ConfigEntry<int> ParryCooldown;
         internal ConfigEntry<float> ParryBaitDistance;
         internal ConfigEntry<float> DefenseParryDistance;
         public static ConfigEntry<bool> syncedFight;
 
-        public static bool debugBuild;
-
         private void Awake()
         {
-            //FilteredLogs.API.ApplyFilter(Name);
+            FilteredLogs.API.ApplyFilter(Name, BepInEx.Logging.LogLevel.Fatal | BepInEx.Logging.LogLevel.Error);
 
             SilkenSisters.Log = new ManualLogSource("SilkenSisters");
             BepInEx.Logging.Logger.Sources.Add(Log);
 
-            debugBuild = true;
-
             SilkenSisters.plugin = this;
             bindConfig();
-
-            StartCoroutine(WaitAndPatch());
-
             requestAssets();
 
             SceneManager.sceneLoaded += onSceneLoaded;
             Harmony.CreateAndPatchAll(typeof(UtilityPatches));
             Harmony.CreateAndPatchAll(typeof(EncounterPatches));
-            
+            StartCoroutine(WaitAndPatch());
+
             Logger.LogMessage($"Plugin loaded and initialized");
         }
         
@@ -168,13 +164,13 @@ namespace SilkenSisters
                 "General",
                 "SyncedFight",
                 false,
-                "Use the Synced patterns for the boss fights. Unavailable as of yet."
+                "Use the Synced patterns for the boss fights. Playtest version"
             );
 
             syncWaitTime = Config.Bind(
                 "Sync fight",
                 "Idle time", 
-                0.5f,
+                1.5f,
                 "Debug config for defining how long they will wait for each other to finish their actions"
             );
 
@@ -195,8 +191,15 @@ namespace SilkenSisters
             syncTeleDistance = Config.Bind(
                 "Sync fight",
                 "Tele Distance",
-                7f,
-                "Debug Config that defines how far lace and phantom must be for teleportation move. Is also the checking distance between the siblings and hornet."
+                8f,
+                "Debug Config that defines how far lace and phantom must be for teleportation move."
+            );
+
+            syncRangeDistance = Config.Bind(
+                "Sync fight",
+                "Range Distance",
+                6f,
+                "Debug Config that defines the checking distance between the siblings and hornet."
             );
 
             MaxHP = Config.Bind(
@@ -220,17 +223,24 @@ namespace SilkenSisters
                 "Debug Config that defines pooled hp p3 shift."
             );
 
+            ParryCooldown = Config.Bind(
+                "Sync fight",
+                "Parry CoolDown",
+                3,
+                "Debug Config that defines the number of attacks between each parry attempt."
+            );
+
             ParryBaitDistance = Config.Bind(
                 "Sync fight",
                 "Parry Bait Distance",
-                1.75f,
+                3f,
                 "Debug Config that defines the distance at which they tp for parrybait."
             );
 
             DefenseParryDistance = Config.Bind(
                 "Sync fight",
                 "Defense Parry Distance",
-                1.75f,
+                2f,
                 "Debug Config that defines the distance at which they tp for defend parry."
             );
 
@@ -249,7 +259,6 @@ namespace SilkenSisters
             deepMemoryCache = ManagedAsset<GameObject>.FromSceneAsset("Coral_Tower_01", "Memory Group");
 
             infoPromptCache = ManagedAsset<GameObject>.FromSceneAsset("Arborium_01", "Inspect Region");
-
         }
 
         private IEnumerator WaitAndPatch()
@@ -375,6 +384,7 @@ namespace SilkenSisters
                 clearCache();
             }
         }
+        
         private IEnumerator preloadOrgan()
         {
 
@@ -384,9 +394,9 @@ namespace SilkenSisters
                 Logger.LogMessage($"[preloadOrgan] Is not memory and all requirements met, setting things up");
                 setupDeepMemoryZone();
             }
-            else if (!isMemory() && canSetupNormalFight() && SilkenSisters.debugBuild)
+            else if (!isMemory() && canSetupNormalFight())
             {
-                Logger.LogMessage($"[preloadOrgan] Setting up normalFight (not available as of yet)");
+                Logger.LogMessage($"[preloadOrgan] Setting up normal fight");
                 setupNormalFight();
             }
             else
@@ -586,7 +596,6 @@ namespace SilkenSisters
             }
         }
 
-       
         public void FindHornet()
         {
             if (SilkenSisters.hornet == null)
@@ -620,8 +629,6 @@ namespace SilkenSisters
 
         private void Update()
         {
-
-            
 
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Keypad0))
             {
