@@ -56,12 +56,12 @@
       },
       "Silksong.FilteredLogs": {
         "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "El96ECSmeeK5wHxB3uTeNzQuoNIyn3gAAtiU3zVVp9bJk41bDXzSFR5HplqVjoZ36mb/75FCIy6hRXIgWTjXNw==",
+        "requested": "[1.1.0, )",
+        "resolved": "1.1.0",
+        "contentHash": "Q/m0J8CkWzapecP2yHKGxsuAoGCXFXeiHfTw8/tJt131EYD2kF47VdC43V92p8z/pJP/JD/J07PBpoprHyj9Ow==",
         "dependencies": {
           "BepInEx.Core": "5.4.21",
-          "Harmonize": "1.0.3",
+          "Harmonize": "1.0.6",
           "HarmonyX": "2.9.0",
           "UnityEngine.Modules": "6000.0.50"
         }
@@ -117,8 +117,8 @@
       },
       "Harmonize": {
         "type": "Transitive",
-        "resolved": "1.0.3",
-        "contentHash": "jkcOJdYmQrFAwIanmaRiRhYdJnsjtczrzOdwcUU67mbx23e/cHZRErryfdWvASGjXQtDYfjEWNfxHml4DtkDVA=="
+        "resolved": "1.0.6",
+        "contentHash": "V5Y8evixyTU1MO0klQfV64vEwbMuitlNUEi3o/tvN/9PUS5Iitcn6RZxz3vW1MKfrywHayLR1jLxiL8TlaH5pQ=="
       },
       "Microsoft.NETCore.Platforms": {
         "type": "Transitive",

@@ -279,6 +279,8 @@ namespace SilkenSisters.Behaviors
         {
             _healthManager.initHp = SilkenSisters.plugin.MaxHP.Value;
             _healthManager.HealToMax();
+            _control.GetIntVariable("P2 HP").Value = SilkenSisters.plugin.P2HP.Value;
+            _control.GetIntVariable("P3 HP").Value = SilkenSisters.plugin.P3HP.Value;
             _healthManager.TookDamage += TransferDamage;
         }
 
@@ -294,7 +296,7 @@ namespace SilkenSisters.Behaviors
         // Sync fight edits
         private void prepareSync()
         {
-            if (SilkenSisters.syncedFight.Value && SilkenSisters.debugBuild) {
+            if (SilkenSisters.syncedFight.Value) {
 
                 _control.enabled = false;
 
@@ -307,6 +309,7 @@ namespace SilkenSisters.Behaviors
                 SetupParryBait();
                 SetupDefenseParry();
                 SetupMock();
+                AddWaitDefense();
 
                 _control.enabled = true;
 
@@ -333,6 +336,8 @@ namespace SilkenSisters.Behaviors
             _control.AddFloatVariable("Hornet Facing Right");
 
             _control.AddFloatVariable("Is Landed");
+
+            _control.AddBoolVariable("Stun Defense").Value = true;
 
         }
 
@@ -373,13 +378,14 @@ namespace SilkenSisters.Behaviors
             _control.AddTransition("SyncWait", "HOP CHARGE", "Hop To Charge");
             _control.AddTransition("SyncWait", "HOP JSLASH", "Hop To J Slash");
             _control.AddTransition("SyncWait", "HOP COMBO", "Hop To Combo");
+            _control.AddTransition("SyncWait", "CHARGE", "Charge Antic");
             _control.AddTransition("SyncWait", "COMBO", "ComboSlash 1");
             _control.AddTransition("SyncWait", "JSLASH", "J Slash Antic");
             _control.AddTransition("SyncWait", "COUNTER", "Counter Antic");
             _control.AddTransition("SyncWait", "TO P2", "Hop To P2");
             _control.AddTransition("SyncWait", "TO P3", "Hop To P3");
             _control.AddTransition("SyncWait", "CROSS SLASH", "CrossSlash Aim");
-            _control.AddTransition("SyncWait", "EVADE ", "Evade");
+            _control.AddTransition("SyncWait", "EVADE", "Evade");
 
             _control.AddAction(
                 "SyncWait",
@@ -390,7 +396,7 @@ namespace SilkenSisters.Behaviors
                 }
             );
 
-            //*
+            /*
             _control.AddAction(
                 "SyncWait",
                 new Tk2dPlayAnimation
@@ -441,6 +447,7 @@ namespace SilkenSisters.Behaviors
             _control.ChangeTransition("Hop Cancel Phantom", "FINISHED", "Hop Recover Phantom");
 
             _control.AddTransition("Hop End Phantom", "NONE", "Pose");
+            _control.AddTransition("Hop End", "NONE", "Pose");
 
             _control.GetAction<SetStringValue>("Hop To Phantom", 1).stringValue = "NONE";
             _control.GetAction<SetStringValue>("Hop To Phantom", 1).stringVariable = _control.GetStringVariable("Next Event");
@@ -470,6 +477,11 @@ namespace SilkenSisters.Behaviors
             _control.GetAction<FloatCompare>("Hop Phantom", 3).float2 = SilkenSisters.plugin.syncGatherDistance.Value;
             _control.GetAction<FaceObjectV2>("Hop Antic Phantom", 1).objectB = _control.GetGameObjectVariable("Phantom");
 
+
+
+            _control.CopyState("Hop To Combo", "Hop To None");
+            _control.GetAction<SetStringValue>("Hop To None", 1).stringValue = "NONE";
+            _control.AddTransition("SyncWait", "HOP NONE", "Hop To None");
 
         }
 
@@ -692,6 +704,25 @@ namespace SilkenSisters.Behaviors
 
             _control.AddTransition("SyncWait", "DEFEND", "Tele Out Defense");
 
+            // Setup stun defense
+            _control.AddGlobalTransition("PHANTOM STUN", "Tele Out Defense");
+            _control.InsertAction(
+                "Stun Damage", 
+                new SendEventByNameV3 { 
+                    eventTarget = new FsmEventTarget
+                    {
+                        gameObject = SilkenSisters.plugin.phantomBossFSMOwner,
+                        fsmName = "Control",
+                        target = FsmEventTarget.EventTarget.GameObjectFSM
+                    }, 
+                    sendEvent = "LACE STUN",
+                    activeBool = _control.GetBoolVariable("Stun Defense"),
+                    delay = 0
+                }, 0
+            );
+            _control.InsertAction("Stun Damage", new SetBoolValue { boolValue = false, boolVariable = _control.GetBoolVariable("Stun Defense") }, 1);
+            _control.InsertAction("Stun Recover", new SetBoolValue { boolValue = true, boolVariable = _control.GetBoolVariable("Stun Defense") }, 0);
+
         }
 
         private void SetupMock() 
@@ -704,7 +735,29 @@ namespace SilkenSisters.Behaviors
             _control.AddAction("Mock", new Wait { time = 0.65f, finishEvent = FsmEvent.GetFsmEvent("FINISHED") });
         }
 
+        private void AddWaitDefense()
+        {
 
+            _control.AddState("Wait Move");
+
+            _control.AddTransition("SyncWait", "TOOK DAMAGE", "Wait Move");
+            _control.AddTransition("Wait Move", "EVADE", "Evade");
+            _control.AddTransition("Wait Move", "PARRY", "Counter Antic");
+            _control.AddTransition("Wait Move", "NONE", "SyncWait");
+
+            _control.AddAction(
+                "Wait Move",
+                new SendRandomEventV4
+                {
+                    events = new FsmEvent[] { FsmEvent.GetFsmEvent("EVADE"), FsmEvent.GetFsmEvent("PARRY"), FsmEvent.GetFsmEvent("NONE") },
+                    weights = new FsmFloat[] { 1, 1, 0 },
+                    missedMax = new FsmInt[] { 10, 10, 10 },
+                    eventMax = new FsmInt[] { 2, 2, 2 },
+                    activeBool = true
+                }
+            );
+
+        }
 
         private void Update()
         {
