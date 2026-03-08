@@ -357,7 +357,7 @@ namespace SilkenSisters.Behaviors
         {
             _control.AddState("SyncWait");
 
-            /*
+            //*
             _control.AddAction(
                 "SyncWait",
                 new Tk2dPlayAnimation

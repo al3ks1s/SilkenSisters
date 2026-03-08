@@ -395,7 +395,7 @@ namespace SilkenSisters.Behaviors
                 }
             );
 
-            /*
+            //*
             _control.AddAction(
                 "SyncWait",
                 new Tk2dPlayAnimation
