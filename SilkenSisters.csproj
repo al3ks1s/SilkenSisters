@@ -42,7 +42,7 @@
     <PackageReference Include="Hamunii.BepInEx.AutoPlugin" Version="2.1.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.26.0" PrivateAssets="all" />
     <PackageReference Include="Silksong.AssetHelper" Version="1.2.2" />
-    <PackageReference Include="Silksong.FsmUtil" Version="0.3.14" />
+    <PackageReference Include="Silksong.FsmUtil" Version="0.3.16" />
     <PackageReference Include="Silksong.FilteredLogs" Version="1.1.0" />
     <PackageReference Include="Silksong.UnityHelper" Version="1.1.1" />
     <PackageReference Include="UnityEngine.Modules" Version="6000.0.50" IncludeAssets="compile" />
