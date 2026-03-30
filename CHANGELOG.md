@@ -1,5 +1,9 @@
 # Changelog 
 
+## 0.4.1
+
+- Added a properly synchronized fight, access it by changing the config value
+
 ## 0.3.0
 
 - Changed backend object management to use AssetHelper and Unity Helper

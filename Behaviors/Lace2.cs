@@ -25,7 +25,7 @@ namespace SilkenSisters.Behaviors
         private async Task Setup()
         {
             try { 
-                SilkenSisters.Log.LogMessage($"[Lace2.Setup] Started setting up Lace");
+                SilkenSisters.Log.LogDebug($"[Lace2.Setup] Started setting up Lace");
                 getComponents();
                 disableParticleEffects();
                 editPositionConstraint();
@@ -38,8 +38,8 @@ namespace SilkenSisters.Behaviors
                 addDamageDelegate();
                 PrepareCorpse();
                 prepareSync();
-                SilkenSisters.Log.LogMessage($"Damage scaling: {_healthManager.damageScaling.Level1Mult} {_healthManager.damageScaling.Level2Mult} {_healthManager.damageScaling.Level3Mult} {_healthManager.damageScaling.Level4Mult} {_healthManager.damageScaling.Level5Mult} ");
-                SilkenSisters.Log.LogMessage($"[Lace2.Setup] Finished setting up Lace");
+                SilkenSisters.Log.LogDebug($"Damage scaling: {_healthManager.damageScaling.Level1Mult} {_healthManager.damageScaling.Level2Mult} {_healthManager.damageScaling.Level3Mult} {_healthManager.damageScaling.Level4Mult} {_healthManager.damageScaling.Level5Mult} ");
+                SilkenSisters.Log.LogDebug($"[Lace2.Setup] Finished setting up Lace");
 
                 gameObject.SetActive(false);
 
@@ -51,7 +51,7 @@ namespace SilkenSisters.Behaviors
         private void getComponents()
         {
             gameObject.transform.position = new Vector3(78.2832f, 104.5677f, 0.004f);
-            SilkenSisters.Log.LogInfo($"[Lace2.getComponents] position:{gameObject.transform.position}");
+            SilkenSisters.Log.LogDebug($"[Lace2.getComponents] position:{gameObject.transform.position}");
             _control = gameObject.GetFsmPreprocessed("Control");
             _healthManager = gameObject.GetComponent<HealthManager>();
             _healthManager.damageScaling = SilkenSisters.plugin.phantomBossScene.FindChild("Phantom").GetComponent<HealthManager>().damageScaling;
@@ -75,7 +75,7 @@ namespace SilkenSisters.Behaviors
             laceBossConstraint.constrainX = true;
             laceBossConstraint.constrainY = true;
 
-            SilkenSisters.Log.LogInfo($"[Lace2.editPositionConstraint] Constraints: " +
+            SilkenSisters.Log.LogDebug($"[Lace2.editPositionConstraint] Constraints: " +
                 $"MinX:{laceBossConstraint.xMin}" +
                 $"MaxX:{laceBossConstraint.xMax}" +
                 $"MinY:{laceBossConstraint.yMin}"
@@ -93,7 +93,7 @@ namespace SilkenSisters.Behaviors
             wait_engarde.time = 2f;
             //_control.AddAction("Refight Engarde", wait_engarde);
 
-            SilkenSisters.Log.LogInfo($"[Lace2.rerouteState] \n" +
+            SilkenSisters.Log.LogDebug($"[Lace2.rerouteState] \n" +
                 $"              Init:REFIGHT -> {_control.GetTransition("Init", "REFIGHT").ToState} \n" +
                 $"              Start Battle Wait:BATTLE START REFIGHT -> {_control.GetTransition("Start Battle Wait", "BATTLE START REFIGHT").ToState}\n" +
                 $"              Start Battle Wait:BATTLE START FIRST -> {_control.GetTransition("Start Battle Wait", "BATTLE START FIRST").ToState}");
@@ -103,19 +103,19 @@ namespace SilkenSisters.Behaviors
         private void fixActionsPositions()
         {
             // Change floor height
-            SilkenSisters.Log.LogMessage("Fix floor heights");
+            SilkenSisters.Log.LogDebug("Fix floor heights");
             _control.GetAction<SetPosition2d>("ComboSlash 1", 0).y = 104.5677f;
             _control.GetAction<SetPosition2d>("Charge Antic", 2).y = 104.5677f;
             _control.GetAction<SetPosition2d>("Counter Antic", 1).y = 104.5677f;
 
-            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] Floor heights:\n" +
+            SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] Floor heights:\n" +
                 $"              ComboSlash 1: {_control.GetAction<SetPosition2d>("ComboSlash 1", 0).y}\n" +
                 $"              Charge Antic: {_control.GetAction<SetPosition2d>("Charge Antic", 2).y}\n" +
                 $"              Counter Antic {_control.GetAction<SetPosition2d>("Counter Antic", 1).y}"
             );
 
             _control.GetAction<SetPosition>("Counter TeleIn", 4).y = 110f;
-            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] TeleHeight: {_control.GetAction<SetPosition>("Counter TeleIn", 4).y}");
+            SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] TeleHeight: {_control.GetAction<SetPosition>("Counter TeleIn", 4).y}");
 
             FloatClamp clamp_pos = new FloatClamp();
             clamp_pos.floatVariable = _control.FindFloatVariable("Tele X");
@@ -123,7 +123,7 @@ namespace SilkenSisters.Behaviors
             clamp_pos.minValue = 73f;
 
             _control.InsertAction("Counter TeleIn", clamp_pos, 4);
-            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] TeleXClamp: min:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).minValue}, max:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).maxValue}");
+            SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] TeleXClamp: min:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).minValue}, max:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).maxValue}");
 
 
             _control.FindFloatVariable("Tele Out Floor").Value = 103f;
@@ -134,12 +134,12 @@ namespace SilkenSisters.Behaviors
             // -----
             _control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).minValue = 73f;
             _control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).maxValue = 96f;
-            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] CrossSlash Pos: min:{_control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).minValue}, max:{_control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).maxValue}");
+            SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] CrossSlash Pos: min:{_control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).minValue}, max:{_control.GetAction<FloatClamp>("Set CrossSlash Pos", 1).maxValue}");
 
             _control.FindFloatVariable("Land Y").Value = 104.5677f;
             _control.FindFloatVariable("Arena Plat Bot Y").Value = 102f;
             _control.FindFloatVariable("Centre X").Value = 84f;
-            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] Float vars: " +
+            SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] Float vars: " +
                 $"Land Y: {_control.FindFloatVariable("Land Y").Value} " +
                 $"Arena Plat Bot Y: {_control.FindFloatVariable("Arena Plat Bot Y").Value} " +
                 $"Centre X: {_control.FindFloatVariable("Centre X").Value}"
@@ -149,7 +149,7 @@ namespace SilkenSisters.Behaviors
             // -----
             _control.GetAction<CheckXPosition>("Force R?", 2).compareTo = 73f;
             _control.GetAction<CheckXPosition>("Force L?", 1).compareTo = 96f;
-            SilkenSisters.Log.LogInfo($"[Lace2.fixActionsPositions] Lace Dstab bounds: Left:{_control.GetAction<CheckXPosition>("Force R?", 2).compareTo}, Right:{_control.GetAction<CheckXPosition>("Force L?", 1).compareTo}");
+            SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] Lace Dstab bounds: Left:{_control.GetAction<CheckXPosition>("Force R?", 2).compareTo}, Right:{_control.GetAction<CheckXPosition>("Force L?", 1).compareTo}");
 
             _control.GetAction<FloatTestToBool>("CrossSlash Aim", 10);
 
@@ -163,11 +163,11 @@ namespace SilkenSisters.Behaviors
 
         private void disableTitleCard()
         {
-            SilkenSisters.Log.LogMessage("[Lace2.disableTitleCard] Disabling title card");
+            SilkenSisters.Log.LogDebug("[Lace2.disableTitleCard] Disabling title card");
             _control.DisableAction("Start Battle Refight", 4);
             _control.DisableAction("Start Battle", 4);
 
-            SilkenSisters.Log.LogInfo($"[Lace2.disableTitleCard] " +
+            SilkenSisters.Log.LogDebug($"[Lace2.disableTitleCard] " +
                 $"(Start Battle Refight):{_control.GetStateAction("Start Battle Refight", 4).active}, " +
                 $"(Start Battle):{_control.GetStateAction("Start Battle", 4).active}");
 
@@ -183,7 +183,7 @@ namespace SilkenSisters.Behaviors
         {
             GameObject wallRange = gameObject.transform.parent.gameObject.FindChild("Wall Range");
             wallRange.transform.SetPosition3D(84.0349f, 103.67f, 0f);
-            SilkenSisters.Log.LogInfo($"[Lace2.fixWallRangeAlert] position:{wallRange.transform.position}");
+            SilkenSisters.Log.LogDebug($"[Lace2.fixWallRangeAlert] position:{wallRange.transform.position}");
 
             BoxCollider2D[] boxes = wallRange.GetComponents<BoxCollider2D>();
             boxes[0].size = new Vector2(5f, 30f);
@@ -193,8 +193,8 @@ namespace SilkenSisters.Behaviors
             boxes[1].offset = new Vector2(10f, 7.1234f);
 
 
-            SilkenSisters.Log.LogInfo($"[Lace2.fixWallRangeAlert] alertLeft: Size:{boxes[0].size}, Size:{boxes[0].offset}");
-            SilkenSisters.Log.LogInfo($"[Lace2.fixWallRangeAlert] alertRight: Size:{boxes[1].size}, Size:{boxes[1].offset}");
+            SilkenSisters.Log.LogDebug($"[Lace2.fixWallRangeAlert] alertLeft: Size:{boxes[0].size}, Size:{boxes[0].offset}");
+            SilkenSisters.Log.LogDebug($"[Lace2.fixWallRangeAlert] alertRight: Size:{boxes[1].size}, Size:{boxes[1].offset}");
         }
 
         private void setLaceFacing()
@@ -212,8 +212,8 @@ namespace SilkenSisters.Behaviors
             _control.InsertAction("Init", faceRight, 4);
             _control.DisableAction("Refight Engarde", 0);
 
-            SilkenSisters.Log.LogInfo($"[Lace2.setLaceFacing] Facing Action:{_control.GetStateAction("Init", 4).GetType()}");
-            SilkenSisters.Log.LogInfo($"[Lace2.Refight Engarde] Base facing active?:{_control.GetStateAction("Refight Engarde", 0).active}");
+            SilkenSisters.Log.LogDebug($"[Lace2.setLaceFacing] Facing Action:{_control.GetStateAction("Init", 4).GetType()}");
+            SilkenSisters.Log.LogDebug($"[Lace2.Refight Engarde] Base facing active?:{_control.GetStateAction("Refight Engarde", 0).active}");
         }
 
         private void PrepareCorpse()
@@ -276,17 +276,17 @@ namespace SilkenSisters.Behaviors
 
         private void addDamageDelegate()
         {
-            _healthManager.initHp = SilkenSisters.plugin.MaxHP.Value;
+            _healthManager.initHp = SilkenSisters.plugin.configManager.MaxHP.Value;
             _healthManager.HealToMax();
-            _control.GetIntVariable("P2 HP").Value = SilkenSisters.plugin.P2HP.Value;
-            _control.GetIntVariable("P3 HP").Value = SilkenSisters.plugin.P3HP.Value;
+            _control.GetIntVariable("P2 HP").Value = SilkenSisters.plugin.configManager.P2HP.Value;
+            _control.GetIntVariable("P3 HP").Value = SilkenSisters.plugin.configManager.P3HP.Value;
             _healthManager.TookDamage += TransferDamage;
         }
 
         private void TransferDamage()
         {
-            SilkenSisters.Log.LogInfo($"Lace: {_healthManager.hp}");
-            SilkenSisters.Log.LogInfo($"Lace: {_healthManager.lastHitInstance.DamageDealt}");
+            SilkenSisters.Log.LogDebug($"Lace: {_healthManager.hp}");
+            SilkenSisters.Log.LogDebug($"Lace: {_healthManager.lastHitInstance.DamageDealt}");
 
             HealthManager phantomManager = SilkenSisters.plugin.phantomBossScene.FindChild("Phantom").GetComponent<HealthManager>();
             if (phantomManager.hp - _healthManager.lastHitInstance.DamageDealt > 0) { phantomManager.ApplyExtraDamage(_healthManager.lastHitInstance.DamageDealt); }
@@ -295,7 +295,7 @@ namespace SilkenSisters.Behaviors
         // Sync fight edits
         private void prepareSync()
         {
-            if (SilkenSisters.syncedFight.Value) {
+            if (SilkenSisters.plugin.configManager.syncedFight.Value) {
 
                 _control.enabled = false;
 
@@ -312,7 +312,7 @@ namespace SilkenSisters.Behaviors
 
                 _control.enabled = true;
 
-                SilkenSisters.Log.LogMessage($"[Lace.prepareSync] Finished doing the sync stuff");
+                SilkenSisters.Log.LogDebug($"[Lace.prepareSync] Finished doing the sync stuff");
             }
         }
 
@@ -320,11 +320,11 @@ namespace SilkenSisters.Behaviors
         {
             _control.AddGameObjectVariable("Phantom").Value = SilkenSisters.plugin.phantomBossFSMOwner.GameObject.Value;
 
-            _control.AddFloatVariable("Wait Time").Value = SilkenSisters.plugin.syncWaitTime.Value;
-            _control.AddFloatVariable("Async Delay").Value = SilkenSisters.plugin.syncDelay.Value;
+            _control.AddFloatVariable("Wait Time").Value = SilkenSisters.plugin.configManager.syncWaitTime.Value;
+            _control.AddFloatVariable("Async Delay").Value = SilkenSisters.plugin.configManager.syncDelay.Value;
 
-            _control.AddFloatVariable("Gather Distance").Value = SilkenSisters.plugin.syncGatherDistance.Value;
-            _control.AddFloatVariable("Tele Distance").Value = SilkenSisters.plugin.syncTeleDistance.Value;
+            _control.AddFloatVariable("Gather Distance").Value = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
+            _control.AddFloatVariable("Tele Distance").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
 
             _control.AddFloatVariable("Phase Left X").Value = 73;
             _control.AddFloatVariable("Phase Right X").Value = 96;
@@ -342,7 +342,7 @@ namespace SilkenSisters.Behaviors
 
         private void NukeCoreAI()
         {
-            SilkenSisters.Log.LogMessage($"[Lace.prepareSync] Nuking a few states");
+            SilkenSisters.Log.LogDebug($"[Lace.prepareSync] Nuking a few states");
 
             _control.RemoveState("Close");
             _control.RemoveState("Far");
@@ -457,7 +457,7 @@ namespace SilkenSisters.Behaviors
                 new SetFloatValue
                 {
                     floatVariable = _control.GetFloatVariable("Target Distance"),
-                    floatValue = SilkenSisters.plugin.syncGatherDistance.Value
+                    floatValue = SilkenSisters.plugin.configManager.syncGatherDistance.Value
                 },
                 0
             );
@@ -473,7 +473,7 @@ namespace SilkenSisters.Behaviors
 
             _control.GetAction<GetXDistance>("Hop Check Phantom", 3).target = _control.GetGameObjectVariable("Phantom");
             _control.GetAction<GetXDistance>("Hop Phantom", 2).target = _control.GetGameObjectVariable("Phantom");
-            _control.GetAction<FloatCompare>("Hop Phantom", 3).float2 = SilkenSisters.plugin.syncGatherDistance.Value;
+            _control.GetAction<FloatCompare>("Hop Phantom", 3).float2 = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
             _control.GetAction<FaceObjectV2>("Hop Antic Phantom", 1).objectB = _control.GetGameObjectVariable("Phantom");
 
 
@@ -736,7 +736,7 @@ namespace SilkenSisters.Behaviors
 
         private void AddWaitDefense()
         {
-
+            new SendEventByName { eventTarget = FsmEventTarget.targetSelf, sendEvent = "RINGS" };
             _control.AddState("Wait Move");
 
             _control.AddTransition("SyncWait", "TOOK DAMAGE", "Wait Move");
@@ -760,24 +760,24 @@ namespace SilkenSisters.Behaviors
 
         private void Update()
         {
-            if (SilkenSisters.plugin.syncWaitTime.Value != _control.GetFloatVariable("Wait Time").Value)
+            if (SilkenSisters.plugin.configManager.syncWaitTime.Value != _control.GetFloatVariable("Wait Time").Value)
             {
-                _control.GetFloatVariable("Wait Time").Value = SilkenSisters.plugin.syncWaitTime.Value;
+                _control.GetFloatVariable("Wait Time").Value = SilkenSisters.plugin.configManager.syncWaitTime.Value;
             }
 
-            if (SilkenSisters.plugin.syncDelay.Value != _control.GetFloatVariable("Async Delay").Value)
+            if (SilkenSisters.plugin.configManager.syncDelay.Value != _control.GetFloatVariable("Async Delay").Value)
             {
-                _control.GetFloatVariable("Async Delay").Value = SilkenSisters.plugin.syncDelay.Value;
+                _control.GetFloatVariable("Async Delay").Value = SilkenSisters.plugin.configManager.syncDelay.Value;
             }
 
-            if (SilkenSisters.plugin.syncGatherDistance.Value != _control.GetFloatVariable("Gather Distance").Value)
+            if (SilkenSisters.plugin.configManager.syncGatherDistance.Value != _control.GetFloatVariable("Gather Distance").Value)
             {
-                _control.GetFloatVariable("Gather Distance").Value = SilkenSisters.plugin.syncGatherDistance.Value;
+                _control.GetFloatVariable("Gather Distance").Value = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
             }
 
-            if (SilkenSisters.plugin.syncTeleDistance.Value != _control.GetFloatVariable("Tele Distance").Value)
+            if (SilkenSisters.plugin.configManager.syncTeleDistance.Value != _control.GetFloatVariable("Tele Distance").Value)
             {
-                _control.GetFloatVariable("Tele Distance").Value = SilkenSisters.plugin.syncTeleDistance.Value;
+                _control.GetFloatVariable("Tele Distance").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
             }
 
         }
@@ -790,7 +790,7 @@ namespace SilkenSisters.Behaviors
             FsmVector3 hornet_pos = _control.GetVector3Variable("Hornet Pos");
             float hornet_facing = _control.GetFloatVariable("Hornet Facing Right").Value;
 
-            float distance_offset = hornet_facing * SilkenSisters.plugin.ParryBaitDistance.Value;
+            float distance_offset = hornet_facing * SilkenSisters.plugin.configManager.ParryBaitDistance.Value;
 
             if (hornet_pos.value.x - distance_offset < _control.GetFloatVariable("Phase Left X").Value ||
                 hornet_pos.value.x - distance_offset > _control.GetFloatVariable("Phase Right X").Value)
@@ -810,11 +810,11 @@ namespace SilkenSisters.Behaviors
 
             if (phantom_pos.Value.x > hornet_pos.Value.x)
             {
-                phantom_pos.value.x -= SilkenSisters.plugin.DefenseParryDistance.Value;
+                phantom_pos.value.x -= SilkenSisters.plugin.configManager.DefenseParryDistance.Value;
             }
             else if (phantom_pos.Value.x < hornet_pos.Value.x)
             {
-                phantom_pos.value.x += SilkenSisters.plugin.DefenseParryDistance.Value;
+                phantom_pos.value.x += SilkenSisters.plugin.configManager.DefenseParryDistance.Value;
             }
 
             phantom_pos.value.y += (0.5462f - 0.2494f);
@@ -840,11 +840,11 @@ namespace SilkenSisters.Behaviors
 
         private async Task Setup()
         {
-            SilkenSisters.Log.LogMessage($"[Lace2Scene.Setup] Started setting Lace scene up");
+            SilkenSisters.Log.LogDebug($"[Lace2Scene.Setup] Started setting Lace scene up");
             getComponents();
             disableSceneObjects();
             moveSceneBounds();
-            SilkenSisters.Log.LogMessage($"[Lace2Scene.Setup] Finished setting Lace scene up");
+            SilkenSisters.Log.LogDebug($"[Lace2Scene.Setup] Finished setting Lace scene up");
         }
 
         private void getComponents()
@@ -854,7 +854,7 @@ namespace SilkenSisters.Behaviors
 
         private void disableSceneObjects()
         {
-            SilkenSisters.Log.LogMessage($"[Lace2Scene.disableSceneObjects] Disabling unwanted LaceBossScene items");
+            SilkenSisters.Log.LogDebug($"[Lace2Scene.disableSceneObjects] Disabling unwanted LaceBossScene items");
             gameObject.FindChild("Flower Effect Hornet").SetActive(false);
             gameObject.FindChild("steam hazard").SetActive(false);
             gameObject.FindChild("Silk Heart Memory Return").SetActive(false);
@@ -862,7 +862,7 @@ namespace SilkenSisters.Behaviors
 
         private void moveSceneBounds()
         {
-            SilkenSisters.Log.LogMessage($"[Lace2Scene.moveSceneBounds] Moving lace arena objects");
+            SilkenSisters.Log.LogDebug($"[Lace2Scene.moveSceneBounds] Moving lace arena objects");
             gameObject.FindChild("Arena L").transform.position = new Vector3(72f, 104f, 0f);
             gameObject.FindChild("Arena R").transform.position = new Vector3(97f, 104f, 0f);
             gameObject.FindChild("Centre").transform.position = new Vector3(84.5f, 104f, 0f);

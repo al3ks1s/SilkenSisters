@@ -3,5 +3,9 @@
   "SILKEN_SISTERS_MAIN": "Phantom & Lace",
   "SILKEN_SISTERS_SUB": "",
   "SILKEN_SISTERS_SUB_DEBUG": "WIP pls do not record (or do not publish at least)",
-  "SILKEN_SISTERS_INFOPROMPT": "Some conditions are not met to enter the memory fight.<page>You need to:\nDefeat Lace2\nDefeat Phantom\nBe in act3\nHave Elegy of the Deep<page>If you are using mods to replay bosses, you might have incorrect PlayerData.\n\nUse Lalt+P to enable all necessary data.\nExit and reenter Organ afterward."
+  "SILKEN_SISTERS_INFOPROMPT": "Some conditions are not met to enter the memory fight.<page>You need to:\nDefeat Lace2\nDefeat Phantom\nBe in act3\nHave Elegy of the Deep<page>If you are using mods to replay bosses, you might have incorrect PlayerData.\n\nUse Lalt+P to enable all necessary data.\nExit and reenter Organ afterward.",
+  "SILKEN_SISTERS_SYNC_FIGHT_ON": "Hit this lever to switch to the unsynchronized fight.",
+  "SILKEN_SISTERS_SYNC_FIGHT_OFF": "Hit this lever to switch to the synchronized fight.",
+  "SILKEN_SISTERS_LACE_MOURN_1": "Not here Spider, not now.",
+  "SILKEN_SISTERS_LACE_MOURN_2": "See you soon, dear Spider."
 }

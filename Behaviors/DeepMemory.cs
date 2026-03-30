@@ -24,7 +24,7 @@ namespace SilkenSisters.Behaviors
         {
             try
             {
-                SilkenSisters.Log.LogMessage($"[DeepMemory.Setup] Started setting deep memory up");
+                SilkenSisters.Log.LogDebug($"[DeepMemory.Setup] Started setting deep memory up");
                 getComponents();
                 setPosition();
                 disableCrustKingObjects();
@@ -32,7 +32,7 @@ namespace SilkenSisters.Behaviors
                 editPlayerData();
                 bypassToolPickup();
                 manageTransitionGates();
-                SilkenSisters.Log.LogMessage($"[DeepMemory.Setup] Done");
+                SilkenSisters.Log.LogDebug($"[DeepMemory.Setup] Done");
             }
             catch (Exception e)
             {
@@ -56,7 +56,7 @@ namespace SilkenSisters.Behaviors
 
         private void disableCrustKingObjects()
         {
-            SilkenSisters.Log.LogMessage($"[DeepMemory.disableCrustKingObjects] Finding and deleting coral king sprite");
+            SilkenSisters.Log.LogDebug($"[DeepMemory.disableCrustKingObjects] Finding and deleting coral king sprite");
             GameObject.Destroy(_before.FindChild("CK_ground_hit0004").gameObject);
         }
 
@@ -126,12 +126,12 @@ namespace SilkenSisters.Behaviors
         {
             try
             {
-                SilkenSisters.Log.LogMessage($"[WakeUpMemory.Setup] Started setting wakeup transition up");
+                SilkenSisters.Log.LogDebug($"[WakeUpMemory.Setup] Started setting wakeup transition up");
                 getComponents();
                 setName();
                 setPosition();
                 editFSM();
-                SilkenSisters.Log.LogMessage($"[WakeUpMemory.Setup] Finished");
+                SilkenSisters.Log.LogDebug($"[WakeUpMemory.Setup] Finished");
             }
             catch (Exception e)
             {
@@ -224,12 +224,12 @@ namespace SilkenSisters.Behaviors
         {
            try
            {
-                SilkenSisters.Log.LogMessage($"[WakeUpRespawn.Setup] Started setting WakeUpRespawn up");
+                SilkenSisters.Log.LogDebug($"[WakeUpRespawn.Setup] Started setting WakeUpRespawn up");
                 getComponents();
                 setName();
                 setPosition();
                 editFSM();
-                SilkenSisters.Log.LogMessage($"[WakeUpRespawn.Setup] Finished");
+                SilkenSisters.Log.LogDebug($"[WakeUpRespawn.Setup] Finished");
            }
            catch (Exception e)
            {

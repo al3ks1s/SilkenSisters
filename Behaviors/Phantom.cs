@@ -24,7 +24,7 @@ namespace SilkenSisters.Behaviors
         {
             try
             {
-                SilkenSisters.Log.LogMessage($"[PhantomBoss.Setup] Started setting phantom boss up");
+                SilkenSisters.Log.LogDebug($"[PhantomBoss.Setup] Started setting phantom boss up");
                 gameObject.transform.SetPositionX(77.1797f);
                 getComponents();
                 triggerLace();
@@ -33,6 +33,7 @@ namespace SilkenSisters.Behaviors
                 if (SilkenSisters.isMemory()) { 
                     skipCutscene();
                     prepareExitMemoryEffect();
+                    addDamageDelegate();
                     prepareSync();
                 }
                 else
@@ -40,10 +41,8 @@ namespace SilkenSisters.Behaviors
                     TriggerLace1Jump();
                 }
 
-
-                addDamageDelegate();
                 _control.AddMethod("Final Parry", endHornetConstrain);
-                SilkenSisters.Log.LogMessage($"[PhantomBoss.Setup] Finished setting phantom boss up");
+                SilkenSisters.Log.LogDebug($"[PhantomBoss.Setup] Finished setting phantom boss up");
             }
             catch (Exception e)
             {
@@ -60,7 +59,7 @@ namespace SilkenSisters.Behaviors
         private void triggerLace()
         {
             // FG Column - enable LaceBoss Object
-            SilkenSisters.Log.LogInfo($"[PhantomBoss.skipCutscene] Enable laceBoss {SilkenSisters.plugin.laceBossFSMOwner} {SilkenSisters.plugin.laceBossFSMOwner.gameObject}");
+            SilkenSisters.Log.LogDebug($"[PhantomBoss.skipCutscene] Enable laceBoss {SilkenSisters.plugin.laceBossFSMOwner} {SilkenSisters.plugin.laceBossFSMOwner.gameObject}");
             ActivateGameObject activate_lace_boss = new ActivateGameObject();
             activate_lace_boss.activate = true;
             activate_lace_boss.gameObject = SilkenSisters.plugin.laceBossFSMOwner;
@@ -69,7 +68,7 @@ namespace SilkenSisters.Behaviors
             _control.AddAction("Appear", activate_lace_boss);
 
             // Trigger lace 
-            SilkenSisters.Log.LogMessage($"[PhantomBoss.skipCutscene] Trigger lace boss");
+            SilkenSisters.Log.LogDebug($"[PhantomBoss.skipCutscene] Trigger lace boss");
             SendEventByName lace_boss_start = new SendEventByName();
             lace_boss_start.sendEvent = "BATTLE START FIRST";
             lace_boss_start.delay = 0;
@@ -84,7 +83,7 @@ namespace SilkenSisters.Behaviors
         private void skipCutscene()
         {
             // Skip 
-            SilkenSisters.Log.LogMessage($"[PhantomBoss.skipCutscene] Skip cutscene interaction");
+            SilkenSisters.Log.LogDebug($"[PhantomBoss.skipCutscene] Skip cutscene interaction");
             _control.GetAction<Wait>("Time Freeze", 4).time = 0.001f;
             _control.GetAction<ScaleTime>("Time Freeze", 5).timeScale = 1f;
 
@@ -124,7 +123,7 @@ namespace SilkenSisters.Behaviors
 
         private void prepareExitMemoryEffect()
         {
-            GameObject temp = SilkenSisters.plugin.deepMemoryCache.InstantiateAsset();
+            GameObject temp = SilkenSisters.plugin.assetManager.gameObjectCache.InstantiateAsset<GameObject>("deepMemoryCache");
             PlayMakerFSM sourceFSM = temp.FindChild("before/thread_memory").GetFsmPreprocessed("FSM");
             FsmGameObject deepMemVar = _control.AddGameObjectVariable("Deep Memory Enter");
 
@@ -277,10 +276,10 @@ namespace SilkenSisters.Behaviors
 
         private void addDamageDelegate()
         {
-            _healthManager.initHp = SilkenSisters.plugin.MaxHP.Value + 100;
+            _healthManager.initHp = SilkenSisters.plugin.configManager.MaxHP.Value + 100;
             _healthManager.HealToMax();
-            _control.GetIntVariable("Dragoon HP").Value = SilkenSisters.plugin.P2HP.Value;
-            _control.GetIntVariable("Rage HP").Value = SilkenSisters.plugin.P3HP.Value;
+            _control.GetIntVariable("Dragoon HP").Value = SilkenSisters.plugin.configManager.P2HP.Value;
+            _control.GetIntVariable("Rage HP").Value = SilkenSisters.plugin.configManager.P3HP.Value;
             _healthManager.TookDamage += TransferDamage;
         }
 
@@ -313,7 +312,7 @@ namespace SilkenSisters.Behaviors
 
         private void prepareSync()
         {
-            if (SilkenSisters.syncedFight.Value && SilkenSisters.isMemory())
+            if (SilkenSisters.plugin.configManager.syncedFight.Value && SilkenSisters.isMemory())
             {
 
                 AddVars();
@@ -343,11 +342,11 @@ namespace SilkenSisters.Behaviors
 
             _control.AddVector3Variable("Lace Pos");
 
-            _control.AddFloatVariable("Wait Time").Value = SilkenSisters.plugin.syncWaitTime.Value;
-            _control.AddFloatVariable("Async Delay").Value = SilkenSisters.plugin.syncDelay.Value;
+            _control.AddFloatVariable("Wait Time").Value = SilkenSisters.plugin.configManager.syncWaitTime.Value;
+            _control.AddFloatVariable("Async Delay").Value = SilkenSisters.plugin.configManager.syncDelay.Value;
 
-            _control.AddFloatVariable("Gather Distance").Value = SilkenSisters.plugin.syncGatherDistance.Value;
-            _control.AddFloatVariable("Tele Distance").Value = SilkenSisters.plugin.syncTeleDistance.Value;
+            _control.AddFloatVariable("Gather Distance").Value = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
+            _control.AddFloatVariable("Tele Distance").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
 
             _control.AddBoolVariable("Stun Defense").Value = false;
 
@@ -451,7 +450,7 @@ namespace SilkenSisters.Behaviors
                 new FloatCompare
                 {
                     float1 = _control.GetFloatVariable("Distance"),
-                    float2 = SilkenSisters.plugin.syncGatherDistance.Value,
+                    float2 = SilkenSisters.plugin.configManager.syncGatherDistance.Value,
                     tolerance = 0,
                     equal = FsmEvent.GetFsmEvent("FINISHED"),
                     lessThan = FsmEvent.GetFsmEvent("FINISHED"),
@@ -488,7 +487,7 @@ namespace SilkenSisters.Behaviors
                 new FloatCompare
                 {
                     float1 = _control.GetFloatVariable("Distance"),
-                    float2 = SilkenSisters.plugin.syncGatherDistance.Value,
+                    float2 = SilkenSisters.plugin.configManager.syncGatherDistance.Value,
                     tolerance = 0,
                     equal = FsmEvent.GetFsmEvent("FINISHED"),
                     lessThan = FsmEvent.GetFsmEvent("FINISHED"),
@@ -747,24 +746,24 @@ namespace SilkenSisters.Behaviors
 
         private void Update()
         {
-            if (SilkenSisters.plugin.syncWaitTime.Value != _control.GetFloatVariable("Wait Time").Value)
+            if (SilkenSisters.plugin.configManager.syncWaitTime.Value != _control.GetFloatVariable("Wait Time").Value)
             {
-                _control.GetFloatVariable("Wait Time").Value = SilkenSisters.plugin.syncWaitTime.Value;
+                _control.GetFloatVariable("Wait Time").Value = SilkenSisters.plugin.configManager.syncWaitTime.Value;
             }
 
-            if (SilkenSisters.plugin.syncDelay.Value != _control.GetFloatVariable("Async Delay").Value)
+            if (SilkenSisters.plugin.configManager.syncDelay.Value != _control.GetFloatVariable("Async Delay").Value)
             {
-                _control.GetFloatVariable("Async Delay").Value = SilkenSisters.plugin.syncDelay.Value;
+                _control.GetFloatVariable("Async Delay").Value = SilkenSisters.plugin.configManager.syncDelay.Value;
             }
 
-            if (SilkenSisters.plugin.syncGatherDistance.Value != _control.GetFloatVariable("Gather Distance").Value)
+            if (SilkenSisters.plugin.configManager.syncGatherDistance.Value != _control.GetFloatVariable("Gather Distance").Value)
             {
-                _control.GetFloatVariable("Gather Distance").Value = SilkenSisters.plugin.syncGatherDistance.Value;
+                _control.GetFloatVariable("Gather Distance").Value = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
             }
 
-            if (SilkenSisters.plugin.syncTeleDistance.Value != _control.GetFloatVariable("Tele Distance").Value)
+            if (SilkenSisters.plugin.configManager.syncTeleDistance.Value != _control.GetFloatVariable("Tele Distance").Value)
             {
-                _control.GetFloatVariable("Tele Distance").Value = SilkenSisters.plugin.syncTeleDistance.Value;
+                _control.GetFloatVariable("Tele Distance").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
             }
 
         }
@@ -776,7 +775,7 @@ namespace SilkenSisters.Behaviors
             FsmVector3 hornet_pos = _control.GetVector3Variable("Hornet Pos");
             float hornet_facing = _control.GetFloatVariable("Hornet Facing Right").Value;
 
-            float distance_offset = hornet_facing * SilkenSisters.plugin.ParryBaitDistance.Value;
+            float distance_offset = hornet_facing * SilkenSisters.plugin.configManager.ParryBaitDistance.Value;
 
             if (hornet_pos.value.x + distance_offset < _control.GetFloatVariable("Phase Left X").Value || 
                 hornet_pos.value.x + distance_offset > _control.GetFloatVariable("Phase Right X").Value) {
@@ -795,9 +794,9 @@ namespace SilkenSisters.Behaviors
 
             if (lace_pos.Value.x > hornet_pos.Value.x)
             {
-                lace_pos.value.x -= SilkenSisters.plugin.DefenseParryDistance.Value;
+                lace_pos.value.x -= SilkenSisters.plugin.configManager.DefenseParryDistance.Value;
             } else if (lace_pos.Value.x < hornet_pos.Value.x) {
-                lace_pos.value.x += SilkenSisters.plugin.DefenseParryDistance.Value;
+                lace_pos.value.x += SilkenSisters.plugin.configManager.DefenseParryDistance.Value;
             }
 
             lace_pos.value.y -= (0.5462f - 0.2494f);
@@ -853,7 +852,7 @@ namespace SilkenSisters.Behaviors
             target.gameObject = SilkenSisters.plugin.laceNPCFSMOwner;
             target.target = FsmEventTarget.EventTarget.GameObject;
 
-            SilkenSisters.Log.LogMessage($"[PhantomBoss.editFSMEvents] Trigger lace sit up");
+            SilkenSisters.Log.LogDebug($"[PhantomBoss.editFSMEvents] Trigger lace sit up");
             SendEventByName lace_stand_event = new SendEventByName();
             lace_stand_event.sendEvent = "ENTER";
             lace_stand_event.delay = 0;
@@ -874,7 +873,7 @@ namespace SilkenSisters.Behaviors
             _control.AddAction("Organ Hit", pausePhantom);
 
 
-            SilkenSisters.Log.LogMessage($"[PhantomBoss.editFSMEvents] Trigger lace jump");
+            SilkenSisters.Log.LogDebug($"[PhantomBoss.editFSMEvents] Trigger lace jump");
             SendEventByName lace_jump_event = new SendEventByName();
             lace_jump_event.sendEvent = "JUMP";
             lace_jump_event.delay = 0.2f;
@@ -904,7 +903,7 @@ namespace SilkenSisters.Behaviors
 
         private void setupHornetControl()
         {
-            SilkenSisters.Log.LogMessage("[PhantomBoss.setupHornetControl] Setting actions to give back hornet control");
+            SilkenSisters.Log.LogDebug("[PhantomBoss.setupHornetControl] Setting actions to give back hornet control");
             SendMessage message_control_idle = new SendMessage();
             FunctionCall fc_control_idle = new FunctionCall();
             fc_control_idle.FunctionName = "StartControlToIdle";
@@ -962,7 +961,7 @@ namespace SilkenSisters.Behaviors
 
         private void Awake()
         {
-            if (SilkenSisters.syncedFight.Value)
+            if (SilkenSisters.plugin.configManager.syncedFight.Value)
             {
                 Setup();
             } else
@@ -1033,8 +1032,8 @@ namespace SilkenSisters.Behaviors
         private void CreateVariables()
         {
 
-            _control.AddIntVariable("P2 HP").Value = SilkenSisters.plugin.P2HP.Value;
-            _control.AddIntVariable("P3 HP").Value = SilkenSisters.plugin.P3HP.Value;
+            _control.AddIntVariable("P2 HP").Value = SilkenSisters.plugin.configManager.P2HP.Value;
+            _control.AddIntVariable("P3 HP").Value = SilkenSisters.plugin.configManager.P3HP.Value;
 
             _control.AddBoolVariable("Did P2").Value = false;
             _control.AddBoolVariable("Did P3").Value = false;
@@ -1058,12 +1057,12 @@ namespace SilkenSisters.Behaviors
             _control.AddStringVariable("Phantom Alternate Attack String").Value = "";
             _control.AddStringVariable("Lace Alternate Attack String").Value = "";
 
-            _control.AddFloatVariable("Wait Time").Value = SilkenSisters.plugin.syncWaitTime.Value;
-            _control.AddFloatVariable("Async Delay").Value = SilkenSisters.plugin.syncDelay.Value;
+            _control.AddFloatVariable("Wait Time").Value = SilkenSisters.plugin.configManager.syncWaitTime.Value;
+            _control.AddFloatVariable("Async Delay").Value = SilkenSisters.plugin.configManager.syncDelay.Value;
 
-            _control.AddFloatVariable("Gather Distance").Value = SilkenSisters.plugin.syncGatherDistance.Value;
-            _control.AddFloatVariable("Tele Distance").Value = SilkenSisters.plugin.syncTeleDistance.Value;
-            _control.AddFloatVariable("Range Distance").Value = SilkenSisters.plugin.syncRangeDistance.Value;
+            _control.AddFloatVariable("Gather Distance").Value = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
+            _control.AddFloatVariable("Tele Distance").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
+            _control.AddFloatVariable("Range Distance").Value = SilkenSisters.plugin.configManager.syncRangeDistance.Value;
 
             _control.AddFloatVariable("Hornet Distance");
             _control.AddFloatVariable("Lace Hornet Distance");
@@ -2162,7 +2161,7 @@ namespace SilkenSisters.Behaviors
 
             // ---------------------
             _control.AddAction("Duo Charge Parry Bait", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Charge Parry Bait", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Charge Parry Bait", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction(
                 "Duo Charge Parry Bait",
                 new ConvertBoolToString
@@ -2234,7 +2233,7 @@ namespace SilkenSisters.Behaviors
 
             // ---------------------       
             _control.AddAction("Duo J Slash Parry", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo J Slash Parry", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo J Slash Parry", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction(
                 "Duo J Slash Parry",
                 new ConvertBoolToString
@@ -2307,19 +2306,19 @@ namespace SilkenSisters.Behaviors
 
             // ---------------------
             _control.AddAction("Duo Counter Stab", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Counter Stab", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Counter Stab", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction("Duo Counter Stab", new SendEventByName { eventTarget = LaceTarget, sendEvent = "COUNTER", delay = 0 });
             _control.AddAction("Duo Counter Stab", new SendEventByName { eventTarget = PhantomTarget, sendEvent = "STAB", delay = 0 });
 
             // ---------------------
             _control.AddAction("Duo Counter Parry", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Counter Parry", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Counter Parry", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction("Duo Counter Parry", new SendEventByName { eventTarget = LaceTarget, sendEvent = "COUNTER", delay = 0 });
             _control.AddAction("Duo Counter Parry", new SendEventByName { eventTarget = PhantomTarget, sendEvent = "PARRY", delay = 0 });
 
             // ---------------------
             _control.AddAction("Duo Combo Slash Parry", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Combo Slash Parry", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Combo Slash Parry", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction(
                 "Duo Combo Slash Parry",
                 new ConvertBoolToString
@@ -2435,7 +2434,7 @@ namespace SilkenSisters.Behaviors
 
             // ---------------------
             _control.AddAction("Duo Combo Slash Parry Bait", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Combo Slash Parry Bait", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Combo Slash Parry Bait", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction(
                 "Duo Combo Slash Parry Bait",
                 new ConvertBoolToString
@@ -2484,7 +2483,7 @@ namespace SilkenSisters.Behaviors
 
             // ---------------------
             _control.AddAction("Duo Cross Slash Parry Bait", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Cross Slash Parry Bait", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Cross Slash Parry Bait", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction("Duo Cross Slash Parry Bait", new SendEventByName { eventTarget = LaceTarget, sendEvent = "CROSS SLASH", delay = 0 });
             _control.AddAction("Duo Cross Slash Parry Bait", new SendEventByName { eventTarget = PhantomTarget, sendEvent = "PARRY BAIT", delay = 0 });
 
@@ -2500,13 +2499,13 @@ namespace SilkenSisters.Behaviors
 
             // ---------------------
             _control.AddAction("Duo Parry Bait Stab", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Parry Bait Stab", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Parry Bait Stab", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction("Duo Parry Bait Stab", new SendEventByName { eventTarget = LaceTarget, sendEvent = "PARRY BAIT", delay = 0 });
             _control.AddAction("Duo Parry Bait Stab", new SendEventByName { eventTarget = PhantomTarget, sendEvent = "STAB", delay = 0 });
 
             // ---------------------
             _control.AddAction("Duo Parry Bait A Throw", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Parry Bait A Throw", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Parry Bait A Throw", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction("Duo Parry Bait A Throw", new SendEventByName { eventTarget = LaceTarget, sendEvent = "PARRY BAIT", delay = 0 });
             _control.AddAction("Duo Parry Bait A Throw", new RandomBool { storeResult = _control.GetBoolVariable("Phantom Alternate Attack") });
             _control.AddAction(
@@ -2533,13 +2532,13 @@ namespace SilkenSisters.Behaviors
 
             // ---------------------
             _control.AddAction("Duo Parry Bait Dragoon", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Parry Bait Dragoon", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Parry Bait Dragoon", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction("Duo Parry Bait Dragoon", new SendEventByName { eventTarget = LaceTarget, sendEvent = "PARRY BAIT", delay = 0 });
             _control.AddAction("Duo Parry Bait Dragoon", new SendEventByName { eventTarget = PhantomTarget, sendEvent = "DRAGOON", delay = 0 });
 
             // ---------------------
             _control.AddAction("Duo Counter Parry Bait", new BoolTest { boolVariable = _control.GetBoolVariable("Can Parry"), isFalse = FsmEvent.GetFsmEvent("RETRY") });
-            _control.AddAction("Duo Counter Parry Bait", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.ParryCooldown.Value });
+            _control.AddAction("Duo Counter Parry Bait", new SetIntValue { intVariable = _control.GetIntVariable("Parry Cooldown"), intValue = SilkenSisters.plugin.configManager.ParryCooldown.Value });
             _control.AddAction("Duo Counter Parry Bait", new SendEventByName { eventTarget = LaceTarget, sendEvent = "PARRY BAIT", delay = 0 });
             _control.AddAction("Duo Counter Parry Bait", new SendEventByName { eventTarget = PhantomTarget, sendEvent = "PARRY BAIT", delay = 0 });
 
@@ -2565,39 +2564,39 @@ namespace SilkenSisters.Behaviors
         private void Update()
         {
 
-            if (SilkenSisters.plugin.syncWaitTime.Value != _control.GetFloatVariable("Wait Time").Value)
+            if (SilkenSisters.plugin.configManager.syncWaitTime.Value != _control.GetFloatVariable("Wait Time").Value)
             {
-                _control.GetFloatVariable("Wait Time").Value = SilkenSisters.plugin.syncWaitTime.Value;
+                _control.GetFloatVariable("Wait Time").Value = SilkenSisters.plugin.configManager.syncWaitTime.Value;
             }
 
-            if (SilkenSisters.plugin.syncDelay.Value != _control.GetFloatVariable("Async Delay").Value)
+            if (SilkenSisters.plugin.configManager.syncDelay.Value != _control.GetFloatVariable("Async Delay").Value)
             {
-                _control.GetFloatVariable("Async Delay").Value = SilkenSisters.plugin.syncDelay.Value;
+                _control.GetFloatVariable("Async Delay").Value = SilkenSisters.plugin.configManager.syncDelay.Value;
             }
 
-            if (SilkenSisters.plugin.syncGatherDistance.Value != _control.GetFloatVariable("Gather Distance").Value)
+            if (SilkenSisters.plugin.configManager.syncGatherDistance.Value != _control.GetFloatVariable("Gather Distance").Value)
             {
-                _control.GetFloatVariable("Gather Distance").Value = SilkenSisters.plugin.syncGatherDistance.Value;
+                _control.GetFloatVariable("Gather Distance").Value = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
             }
 
-            if (SilkenSisters.plugin.syncTeleDistance.Value != _control.GetFloatVariable("Tele Distance").Value)
+            if (SilkenSisters.plugin.configManager.syncTeleDistance.Value != _control.GetFloatVariable("Tele Distance").Value)
             {
-                _control.GetFloatVariable("Tele Distance").Value = SilkenSisters.plugin.syncTeleDistance.Value;
+                _control.GetFloatVariable("Tele Distance").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
             }
 
-            if (SilkenSisters.plugin.syncRangeDistance.Value != _control.GetFloatVariable("Range Distance").Value)
+            if (SilkenSisters.plugin.configManager.syncRangeDistance.Value != _control.GetFloatVariable("Range Distance").Value)
             {
-                _control.GetFloatVariable("Range Distance").Value = SilkenSisters.plugin.syncRangeDistance.Value;
+                _control.GetFloatVariable("Range Distance").Value = SilkenSisters.plugin.configManager.syncRangeDistance.Value;
             }
 
-            if (SilkenSisters.plugin.syncTeleDistance.Value != _control.GetFloatVariable("P2 HP").Value)
+            if (SilkenSisters.plugin.configManager.syncTeleDistance.Value != _control.GetFloatVariable("P2 HP").Value)
             {
-                _control.GetFloatVariable("P2 HP").Value = SilkenSisters.plugin.syncTeleDistance.Value;
+                _control.GetFloatVariable("P2 HP").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
             }
 
-            if (SilkenSisters.plugin.syncTeleDistance.Value != _control.GetFloatVariable("P3 HP").Value)
+            if (SilkenSisters.plugin.configManager.syncTeleDistance.Value != _control.GetFloatVariable("P3 HP").Value)
             {
-                _control.GetFloatVariable("P3 HP").Value = SilkenSisters.plugin.syncTeleDistance.Value;
+                _control.GetFloatVariable("P3 HP").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
             }
 
         }

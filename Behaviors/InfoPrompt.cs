@@ -18,11 +18,11 @@ namespace SilkenSisters.Behaviors
         {
             try
             {
-                SilkenSisters.Log.LogMessage($"[ChallengeRegion.Setup] Started setting up info prompt");
+                SilkenSisters.Log.LogDebug($"[ChallengeRegion.Setup] Started setting up info prompt");
                 getComponents();
                 setPosition();
                 setText();
-                SilkenSisters.Log.LogMessage($"[ChallengeRegion.Setup] Finished setting up info prompt");
+                SilkenSisters.Log.LogDebug($"[ChallengeRegion.Setup] Finished setting up info prompt");
             }
             catch (Exception e)
             {
@@ -45,7 +45,7 @@ namespace SilkenSisters.Behaviors
         {
             _npc.talkText[0].Sheet = $"Mods.{SilkenSisters.Id}";
             _npc.talkText[0].Key = "SILKEN_SISTERS_INFOPROMPT";
-            SilkenSisters.Log.LogMessage(Language.Get("SILKEN_SISTERS_INFOPROMPT", $"Mods.{SilkenSisters.Id}"));
+            SilkenSisters.Log.LogDebug(Language.Get("SILKEN_SISTERS_INFOPROMPT", $"Mods.{SilkenSisters.Id}"));
 
         }
 
