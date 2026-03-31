@@ -129,8 +129,8 @@ namespace SilkenSisters.Behaviors
 
             _control.AddState("Deep Memory Enter");
             SpawnObjectFromGlobalPool deepMemoryEffect = new SpawnObjectFromGlobalPool();
-            deepMemoryEffect.gameObject = sourceFSM.GetAction<SpawnObjectFromGlobalPool>("Deep Memory Enter", 3).gameObject;
-            deepMemoryEffect.spawnPoint = sourceFSM.GetAction<SpawnObjectFromGlobalPool>("Deep Memory Enter", 3).spawnPoint;
+            deepMemoryEffect.gameObject = sourceFSM.GetAction<SpawnObjectFromGlobalPool>("Deep Memory Enter", 4).gameObject;
+            deepMemoryEffect.spawnPoint = sourceFSM.GetAction<SpawnObjectFromGlobalPool>("Deep Memory Enter", 4).spawnPoint;
             deepMemoryEffect.storeObject = deepMemVar;
             deepMemoryEffect.position = new FsmVector3();
             deepMemoryEffect.rotation = new FsmVector3();
@@ -138,7 +138,7 @@ namespace SilkenSisters.Behaviors
             SetMainCameraFovOffset camOff = new SetMainCameraFovOffset();
             camOff.FovOffset = -1f;
             camOff.TransitionTime = 4.7f;
-            camOff.TransitionCurve = sourceFSM.GetAction<SetMainCameraFovOffset>("Deep Memory Enter", 4).TransitionCurve;
+            camOff.TransitionCurve = sourceFSM.GetAction<SetMainCameraFovOffset>("Deep Memory Enter", 5).TransitionCurve;
 
             Wait deepEnterWait = new Wait();
             deepEnterWait.time = 4.7f;
@@ -237,7 +237,7 @@ namespace SilkenSisters.Behaviors
             exitMemory.GetAction<StartPreloadingScene>(0).SceneName = "Organ_01";
             exitMemory.GetAction<BeginSceneTransition>(4).sceneName = "Organ_01";
             exitMemory.GetAction<BeginSceneTransition>(4).entryGateName = $"{SilkenSisters.plugin.respawnPointInstance.name}";
-            SilkenSisters.Log.LogInfo($"[PhantomBoss.prepareExitMemoryEffect] Transition Gate to exit memory: {SilkenSisters.plugin.respawnPointInstance.name}");
+            SilkenSisters.Log.LogDebug($"[PhantomBoss.prepareExitMemoryEffect] Transition Gate to exit memory: {SilkenSisters.plugin.respawnPointInstance.name}");
 
             exitMemory.GetAction<Wait>(2).time = 2f;
 
@@ -271,7 +271,7 @@ namespace SilkenSisters.Behaviors
         private void endHornetConstrain()
         {
             SilkenSisters.hornetConstrain.enabled = false;
-            SilkenSisters.Log.LogInfo($"[PhantomBoss.endHornetConstrain] HornetConstrain?:{SilkenSisters.hornetConstrain.enabled}");
+            SilkenSisters.Log.LogDebug($"[PhantomBoss.endHornetConstrain] HornetConstrain?:{SilkenSisters.hornetConstrain.enabled}");
         }
 
         private void addDamageDelegate()
@@ -285,9 +285,6 @@ namespace SilkenSisters.Behaviors
 
         private void TransferDamage()
         {
-            SilkenSisters.Log.LogInfo($"Phantom: {_healthManager.hp}");
-            SilkenSisters.Log.LogInfo($"Phantom: {_healthManager.lastHitInstance.DamageDealt}");
-
             HealthManager laceManager = SilkenSisters.plugin.laceBossInstance.GetComponent<HealthManager>();
 
             if (laceManager.hp - _healthManager.lastHitInstance.DamageDealt > 0) { laceManager.ApplyExtraDamage(_healthManager.lastHitInstance.DamageDealt); }
@@ -941,7 +938,7 @@ namespace SilkenSisters.Behaviors
         private void editBossTitle()
         {
             _control.GetAction<DisplayBossTitle>("Start Battle", 3).bossTitle = "SILKEN_SISTERS";
-            SilkenSisters.Log.LogInfo($"[PhantomBoss.editBossTitle] NewTitleBase:{_control.GetAction<DisplayBossTitle>("Start Battle", 3).bossTitle}");
+            SilkenSisters.Log.LogDebug($"[PhantomBoss.editBossTitle] NewTitleBase:{_control.GetAction<DisplayBossTitle>("Start Battle", 3).bossTitle}");
         }
         
     
@@ -2616,7 +2613,7 @@ namespace SilkenSisters.Behaviors
 
             float average = (laceDistance + phantomDistance) / 2;
 
-            SilkenSisters.Log.LogInfo($"Lace:{laceDistance}, Phantom:{phantomDistance}, Average:{average}");
+            SilkenSisters.Log.LogDebug($"Lace:{laceDistance}, Phantom:{phantomDistance}, Average:{average}");
 
             _control.GetFloatVariable("Hornet Distance").Value = average;
         }
@@ -2625,12 +2622,12 @@ namespace SilkenSisters.Behaviors
         {
 
             float gatherTeleX = UnityEngine.Random.Range(76, 93);
-            //SilkenSisters.Log.LogInfo($"{gatherTeleX} {hornetfsmowner.gameObject.Value.transform.position.x} {hornetfsmowner.gameObject.Value.transform.position.x - gatherTeleX}");
+            //SilkenSisters.Log.LogDebug($"{gatherTeleX} {hornetfsmowner.gameObject.Value.transform.position.x} {hornetfsmowner.gameObject.Value.transform.position.x - gatherTeleX}");
 
             while (Math.Abs(hornetfsmowner.gameObject.Value.transform.position.x - gatherTeleX) < 3)
             {
                 gatherTeleX = UnityEngine.Random.Range(76, 93);
-                //SilkenSisters.Log.LogInfo($"{gatherTeleX} {hornetfsmowner.gameObject.Value.transform.position.x} {hornetfsmowner.gameObject.Value.transform.position.x - gatherTeleX}");
+                //SilkenSisters.Log.LogDebug($"{gatherTeleX} {hornetfsmowner.gameObject.Value.transform.position.x} {hornetfsmowner.gameObject.Value.transform.position.x - gatherTeleX}");
             }
             
             if (gatherTeleX < hornetfsmowner.gameObject.Value.transform.position.x)
@@ -2650,13 +2647,13 @@ namespace SilkenSisters.Behaviors
 
             float splitTeleXLace = UnityEngine.Random.Range(76, 93);
             float splitTeleXPhantom = UnityEngine.Random.Range(76, 93);
-            //SilkenSisters.Log.LogInfo($"{gatherTeleX} {hornetfsmowner.gameObject.Value.transform.position.x} {hornetfsmowner.gameObject.Value.transform.position.x - gatherTeleX}");
+            //SilkenSisters.Log.LogDebug($"{gatherTeleX} {hornetfsmowner.gameObject.Value.transform.position.x} {hornetfsmowner.gameObject.Value.transform.position.x - gatherTeleX}");
 
             while (Math.Abs(splitTeleXPhantom - splitTeleXLace) < 4)
             {
                 splitTeleXLace = UnityEngine.Random.Range(76, 93);
                 splitTeleXPhantom = UnityEngine.Random.Range(76, 93);
-                //SilkenSisters.Log.LogInfo($"{gatherTeleX} {hornetfsmowner.gameObject.Value.transform.position.x} {hornetfsmowner.gameObject.Value.transform.position.x - gatherTeleX}");
+                //SilkenSisters.Log.LogDebug($"{gatherTeleX} {hornetfsmowner.gameObject.Value.transform.position.x} {hornetfsmowner.gameObject.Value.transform.position.x - gatherTeleX}");
             }
             
             _control.GetFloatVariable("Lace X").Value = splitTeleXLace;

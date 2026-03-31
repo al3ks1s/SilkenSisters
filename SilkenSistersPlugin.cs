@@ -148,7 +148,6 @@ namespace SilkenSisters
             _langagepatches.UnpatchSelf();
             _encounterpatches.UnpatchSelf();
         }
-        
 
         private IEnumerator WaitAndPatch()
         {
@@ -166,7 +165,7 @@ namespace SilkenSisters
             return SceneManager.GetActiveScene().name == "Organ_01" &&
                 !PlayerData._instance.defeatedLaceTower && 
                 PlayerData._instance.defeatedPhantom && 
-                !PlayerData._instance.blackThreadWorld;
+                !PlayerData._instance.blackThreadWorld && false;
         }
 
         public static bool canSetupMemoryFight()
@@ -203,7 +202,6 @@ namespace SilkenSisters
         }
         
 
-
         private void onSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             Log.LogDebug($"[onSceneLoaded] Scene loaded : {scene.name}, active scene : {SceneManager.GetActiveScene()}, Path:{scene.path}");
@@ -236,14 +234,6 @@ namespace SilkenSisters
         {
 
             yield return StartCoroutine(assetManager.CacheObjects());
-
-            if (ExitMemoryCache == null)
-            {
-                GameObject bossScene = assetManager.gameObjectCache.InstantiateAsset<GameObject>("coralBossSceneCache");
-                PlayMakerFSM control = bossScene.GetFsmPreprocessed("Control");
-                ExitMemoryCache = control.GetState("Exit Memory");
-                GameObject.Destroy(bossScene);
-            }
 
             if (!isMemory() && canSetupMemoryFight())
             {

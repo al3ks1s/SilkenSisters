@@ -114,8 +114,8 @@ namespace SilkenSisters.Behaviors
                 $"              Counter Antic {_control.GetAction<SetPosition2d>("Counter Antic", 1).y}"
             );
 
-            _control.GetAction<SetPosition>("Counter TeleIn", 4).y = 110f;
-            SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] TeleHeight: {_control.GetAction<SetPosition>("Counter TeleIn", 4).y}");
+            _control.GetAction<SetPosition>("Counter TeleIn", 5).y = 110f;
+            SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] TeleHeight: {_control.GetAction<SetPosition>("Counter TeleIn", 5).y}");
 
             FloatClamp clamp_pos = new FloatClamp();
             clamp_pos.floatVariable = _control.FindFloatVariable("Tele X");
@@ -285,9 +285,6 @@ namespace SilkenSisters.Behaviors
 
         private void TransferDamage()
         {
-            SilkenSisters.Log.LogDebug($"Lace: {_healthManager.hp}");
-            SilkenSisters.Log.LogDebug($"Lace: {_healthManager.lastHitInstance.DamageDealt}");
-
             HealthManager phantomManager = SilkenSisters.plugin.phantomBossScene.FindChild("Phantom").GetComponent<HealthManager>();
             if (phantomManager.hp - _healthManager.lastHitInstance.DamageDealt > 0) { phantomManager.ApplyExtraDamage(_healthManager.lastHitInstance.DamageDealt); }
         }

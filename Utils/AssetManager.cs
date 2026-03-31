@@ -1,4 +1,5 @@
 ﻿using Silksong.AssetHelper;
+using Silksong.FsmUtil;
 using Silksong.AssetHelper.ManagedAssets;
 using System;
 using System.Collections.Generic;
@@ -102,6 +103,12 @@ namespace SilkenSisters.Utils
             yield return audioClipTableCache.Load();
 
             //assetManager.gameObjectCache.InstantiateAsset<GameObject>("
+
+            GameObject bossScene = gameObjectCache.InstantiateAsset<GameObject>("coralBossSceneCache");
+            PlayMakerFSM control = bossScene.GetFsmPreprocessed("Control");
+            SilkenSisters.plugin.ExitMemoryCache = control.GetState("Exit Memory");
+            SilkenSisters.Log.LogMessage($"Exit Memory Cache:{SilkenSisters.plugin.ExitMemoryCache}");
+            GameObject.Destroy(bossScene);
 
             /**/
 
