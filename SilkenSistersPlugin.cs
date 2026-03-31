@@ -1,5 +1,4 @@
 using BepInEx;
-using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using HutongGames.PlayMaker;
@@ -12,8 +11,6 @@ using Silksong.FsmUtil;
 using Silksong.UnityHelper.Extensions;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -165,7 +162,7 @@ namespace SilkenSisters
             return SceneManager.GetActiveScene().name == "Organ_01" &&
                 !PlayerData._instance.defeatedLaceTower && 
                 PlayerData._instance.defeatedPhantom && 
-                !PlayerData._instance.blackThreadWorld && false;
+                !PlayerData._instance.blackThreadWorld;
         }
 
         public static bool canSetupMemoryFight()

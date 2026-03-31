@@ -2,9 +2,9 @@
 using HutongGames.PlayMaker.Actions;
 using Silksong.FsmUtil;
 using Silksong.UnityHelper.Extensions;
+using System.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using Silksong.AssetHelper.ManagedAssets;
@@ -453,8 +453,6 @@ namespace SilkenSisters.Behaviors
             
             gameObject.GetComponent<tk2dSpriteAnimator>().Library.clips = gameObject.GetComponent<tk2dSpriteAnimator>().Library.clips.AddToArray(crouch);
             gameObject.GetComponent<tk2dSpriteAnimator>().Library.lookup["Crouch"] = new tk2dSpriteAnimation.AnimationInfo { clip = crouch, id = gameObject.GetComponent<tk2dSpriteAnimator>().Library.clips.Length };
-
-
         }
 
         private void SetSleepingAnimation()
