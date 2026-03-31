@@ -437,7 +437,7 @@ namespace SilkenSisters.Behaviors
             tk2dSpriteAnimationClip backToSleep = new tk2dSpriteAnimationClip();
             backToSleep.CopyFrom(lieToWakeClip);
             backToSleep.name = "BackToSleep";
-            backToSleep.frames = backToSleep.frames.Reverse().Skip(2).ToArray();
+            backToSleep.frames = System.Linq.Enumerable.Reverse(backToSleep.frames).Skip(2).ToArray();
 
             gameObject.GetComponent<tk2dSpriteAnimator>().Library.clips = gameObject.GetComponent<tk2dSpriteAnimator>().Library.clips.AddToArray(backToSleep);
             gameObject.GetComponent<tk2dSpriteAnimator>().Library.lookup["BackToSleep"] = new tk2dSpriteAnimation.AnimationInfo { clip = backToSleep, id = gameObject.GetComponent<tk2dSpriteAnimator>().Library.clips.Length };
@@ -446,7 +446,7 @@ namespace SilkenSisters.Behaviors
             tk2dSpriteAnimationClip crouch = new tk2dSpriteAnimationClip();
             crouch.CopyFrom(lieToWakeClip);
             crouch.name = "Crouch";
-            crouch.frames = crouch.frames.Reverse().Take(4).ToArray();
+            crouch.frames = System.Linq.Enumerable.Reverse(crouch.frames).Take(4).ToArray();
 
             gameObject.GetComponent<tk2dSpriteAnimator>().Library.clips = gameObject.GetComponent<tk2dSpriteAnimator>().Library.clips.AddToArray(backToSleep);
             gameObject.GetComponent<tk2dSpriteAnimator>().Library.lookup["BackToSleep"] = new tk2dSpriteAnimation.AnimationInfo { clip = backToSleep, id = gameObject.GetComponent<tk2dSpriteAnimator>().Library.clips.Length };
