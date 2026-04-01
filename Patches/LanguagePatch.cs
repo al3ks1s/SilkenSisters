@@ -11,7 +11,7 @@ namespace SilkenSisters.Patches
         private static void Prefix(ref string key, ref string sheetTitle)
         {
             if (key.Contains("SILKEN_SISTERS")) sheetTitle = $"Mods.{SilkenSisters.Id}";
-            // if (key.Contains("SILKEN_SISTERS_SUB") && SilkenSisters.syncedFight.Value && SilkenSisters.isMemory()) key = $"SILKEN_SISTERS_SUB_DEBUG";
+            if (key.Contains("SILKEN_SISTERS_SUB") && SilkenSisters.plugin.configManager.syncedFight.Value && SilkenSisters.isMemory()) key = $"SILKEN_SISTERS_SUB_DEBUG";
         }
     }
     

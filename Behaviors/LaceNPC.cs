@@ -414,7 +414,7 @@ namespace SilkenSisters.Behaviors
 
             _control.AddGameObjectVariable("Hornet").Value = SilkenSisters.hornet;
             _control.AddGameObjectVariable("Lace").Value = gameObject;
-        }
+        } 
 
         private void disableRangeDetection()
         {
