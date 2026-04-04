@@ -136,7 +136,7 @@ namespace SilkenSisters.Behaviors
             faceRight.resetFrame = false;
             faceRight.everyFrame = false;
             faceRight.pauseBetweenTurns = 0.5f;
-            faceRight.objectA = SilkenSisters.plugin.laceBossFSMOwner;
+            faceRight.objectA = SilkenSisters.instance.laceBossFSMOwner;
             faceRight.objectB = SilkenSisters.hornet;
 
             _control.InsertAction("Init", faceRight, 4);
@@ -147,7 +147,7 @@ namespace SilkenSisters.Behaviors
             Tk2dPlayAnimation laceIdle = new Tk2dPlayAnimation();
             laceIdle.animLibName = "";
             laceIdle.clipName = "Idle";
-            laceIdle.gameObject = SilkenSisters.plugin.laceBossFSMOwner;
+            laceIdle.gameObject = SilkenSisters.instance.laceBossFSMOwner;
             _control.InsertAction("Dormant", 1, laceIdle);
             SilkenSisters.Log.LogDebug($"[Lace1.setLaceFacing] fsmowner:{laceIdle.gameObject}");
 

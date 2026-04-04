@@ -99,14 +99,14 @@ namespace SilkenSisters.Behaviors
 
         private void enableDoor()
         {
-            SilkenSisters.plugin.wakeupPointInstance.SetActive(true);
-            SilkenSisters.Log.LogDebug($"[DeepMemory.enableDoor] Door active?:{SilkenSisters.plugin.wakeupPointInstance.activeSelf}");
+            SilkenSisters.instance.wakeupPointInstance.SetActive(true);
+            SilkenSisters.Log.LogDebug($"[DeepMemory.enableDoor] Door active?:{SilkenSisters.instance.wakeupPointInstance.activeSelf}");
         }
         private void disableRespawn()
         {
-            SilkenSisters.plugin.respawnPointInstance.SetActive(false);
-            SilkenSisters.plugin.respawnPointInstance.GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
-            SilkenSisters.Log.LogDebug($"[DeepMemory.disableRespawn] Respawn active?:{SilkenSisters.plugin.respawnPointInstance.activeSelf}, Current state:{SilkenSisters.plugin.respawnPointInstance.GetComponent<PlayMakerFSM>().ActiveStateName}");
+            SilkenSisters.instance.respawnPointInstance.SetActive(false);
+            SilkenSisters.instance.respawnPointInstance.GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
+            SilkenSisters.Log.LogDebug($"[DeepMemory.disableRespawn] Respawn active?:{SilkenSisters.instance.respawnPointInstance.activeSelf}, Current state:{SilkenSisters.instance.respawnPointInstance.GetComponent<PlayMakerFSM>().ActiveStateName}");
         }
 
     }
@@ -165,7 +165,7 @@ namespace SilkenSisters.Behaviors
             _control.AddMethod("Take Control", enableRespawn);
             _control.AddMethod("Take Control", enableIsMemory);
             _control.AddMethod("Take Control", recordHeroState);
-            _control.AddMethod("Take Control", SilkenSisters.plugin.setupMemoryFight);
+            _control.AddMethod("Take Control", SilkenSisters.instance.setupMemoryFight);
             _control.AddMethod("End", disableSelf);
             _control.AddMethod("End", closeOffOrgan);
 
@@ -182,8 +182,8 @@ namespace SilkenSisters.Behaviors
 
         private void enableRespawn()
         {
-            SilkenSisters.plugin.respawnPointInstance.SetActive(true);
-            SilkenSisters.Log.LogDebug($"[WakeUpMemory.enableRespawn] respawnObject active:{SilkenSisters.plugin.respawnPointInstance.activeSelf}");
+            SilkenSisters.instance.respawnPointInstance.SetActive(true);
+            SilkenSisters.Log.LogDebug($"[WakeUpMemory.enableRespawn] respawnObject active:{SilkenSisters.instance.respawnPointInstance.activeSelf}");
         }
 
         private void disableSelf()
@@ -266,10 +266,10 @@ namespace SilkenSisters.Behaviors
         private void disableDoor()
         {
             SilkenSisters.Log.LogDebug("[WakeUpRespawn.disableDoor] Trying to disable door");
-            SilkenSisters.plugin.wakeupPointInstance.SetActive(false);
-            SilkenSisters.plugin.wakeupPointInstance.GetComponent<PlayMakerFSM>().fsm.Reinitialize();
-            SilkenSisters.plugin.wakeupPointInstance.FindChild("door_wakeInMemory_phantom").GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
-            SilkenSisters.Log.LogDebug($"[WakeUpRespawn.disableDoor] Door {SilkenSisters.plugin.wakeupPointInstance.name} enabled?:{SilkenSisters.plugin.wakeupPointInstance.activeSelf}");
+            SilkenSisters.instance.wakeupPointInstance.SetActive(false);
+            SilkenSisters.instance.wakeupPointInstance.GetComponent<PlayMakerFSM>().fsm.Reinitialize();
+            SilkenSisters.instance.wakeupPointInstance.FindChild("door_wakeInMemory_phantom").GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
+            SilkenSisters.Log.LogDebug($"[WakeUpRespawn.disableDoor] Door {SilkenSisters.instance.wakeupPointInstance.name} enabled?:{SilkenSisters.instance.wakeupPointInstance.activeSelf}");
         }
 
         private void disableSelf()

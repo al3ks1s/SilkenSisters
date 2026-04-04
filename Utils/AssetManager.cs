@@ -14,7 +14,7 @@ namespace SilkenSisters.Utils
     internal class AssetManager
     {
 
-        internal ManagedAssetGroup<GameObject> gameObjectCache;
+        internal ManagedAssetGroup<GameObject> sceneCache;
         internal ManagedAssetGroup<AudioClip> audioClipCache;
         internal ManagedAssetGroup<GameObject> prefabCache;
         internal ManagedAssetGroup<RandomAudioClipTable> audioClipTableCache;
@@ -22,7 +22,7 @@ namespace SilkenSisters.Utils
         internal void RequestAssets()
         {
 
-            gameObjectCache = ManagedAssetGroup<GameObject>.RequestAndCreate(
+            sceneCache = ManagedAssetGroup<GameObject>.RequestAndCreate(
                 new Dictionary<string, ManagedAssetGroup<GameObject>.SceneAssetInfo>()
                 {
                     { "laceNPCCache",               new ManagedAssetGroup<GameObject>.SceneAssetInfo("Coral_19", "Encounter Scene Control/Lace Meet/Lace NPC Blasted Bridge" ) },
@@ -86,7 +86,8 @@ namespace SilkenSisters.Utils
                     {"LaceGrunt",       new ManagedAssetGroup<RandomAudioClipTable>.NonSceneAssetInfo("sfxdynamic_assets_laceboss", "Assets/Audio/Voices/Lace_Silksong/lace_grunt.asset" )},
                     {"LaceWeakTalk",    new ManagedAssetGroup<RandomAudioClipTable>.NonSceneAssetInfo("sfxdynamic_assets_laceboss", "Assets/Audio/Voices/Lace_Silksong/Lace_defeated_talk_final.asset" )},
                     {"LaceSpeak",       new ManagedAssetGroup<RandomAudioClipTable>.NonSceneAssetInfo("sfxdynamic_assets_laceboss", "Assets/Audio/Voices/Lace_Silksong/lace_battle_admonish.asset" )},
-                    {"LaceAttack",       new ManagedAssetGroup<RandomAudioClipTable>.NonSceneAssetInfo("sfxdynamic_assets_laceboss", "Assets/Audio/Voices/Lace_Silksong/lace_attack_call.asset" )},
+                    {"LaceAttack",      new ManagedAssetGroup<RandomAudioClipTable>.NonSceneAssetInfo("sfxdynamic_assets_laceboss", "Assets/Audio/Voices/Lace_Silksong/lace_attack_call.asset" )},
+                    {"LaceCollapse",    new ManagedAssetGroup<RandomAudioClipTable>.NonSceneAssetInfo("sfxdynamic_assets_laceboss", "Assets/Audio/Voices/Lace_Silksong/Lace_after_battle_collapse.asset" )},
                     
                     {"HornetSpeak",     new ManagedAssetGroup<RandomAudioClipTable>.NonSceneAssetInfo("herodynamic_assets_all", "Assets/Audio/Voices/Hornet_Silksong/Hornet Voice Action Grunt.asset" )},
 
@@ -97,27 +98,22 @@ namespace SilkenSisters.Utils
         internal IEnumerator CacheObjects()
         {
 
-            yield return gameObjectCache.Load();
+            yield return sceneCache.Load();
             yield return audioClipCache.Load();
             yield return prefabCache.Load();
             yield return audioClipTableCache.Load();
 
             //assetManager.gameObjectCache.InstantiateAsset<GameObject>("
 
-            GameObject bossScene = gameObjectCache.InstantiateAsset<GameObject>("coralBossSceneCache");
+            GameObject bossScene = sceneCache.InstantiateAsset<GameObject>("coralBossSceneCache");
             PlayMakerFSM control = bossScene.GetFsmPreprocessed("Control");
-            SilkenSisters.plugin.ExitMemoryCache = control.GetState("Exit Memory");
-            SilkenSisters.Log.LogMessage($"Exit Memory Cache:{SilkenSisters.plugin.ExitMemoryCache}");
+            SilkenSisters.instance.ExitMemoryCache = control.GetState("Exit Memory");
             GameObject.Destroy(bossScene);
-
-            /**/
-
-
         }
 
         internal void ClearCache()
         {
-            gameObjectCache.Unload();
+            sceneCache.Unload();
             audioClipCache.Unload();
             prefabCache.Unload();
         }

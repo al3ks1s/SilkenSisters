@@ -52,9 +52,9 @@ namespace SilkenSisters.Behaviors
 
         private void register()
         {
-            SilkenSisters.plugin.laceNPCFSMOwner = new FsmOwnerDefault();
-            SilkenSisters.plugin.laceNPCFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
-            SilkenSisters.plugin.laceNPCFSMOwner.GameObject = gameObject;
+            SilkenSisters.instance.laceNPCFSMOwner = new FsmOwnerDefault();
+            SilkenSisters.instance.laceNPCFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
+            SilkenSisters.instance.laceNPCFSMOwner.GameObject = gameObject;
         }
 
         private void getComponents()
@@ -88,15 +88,15 @@ namespace SilkenSisters.Behaviors
             _control.AddMethod("Conduct", setConductPosition);
             _control.AddMethod("Conduct", SpawnFlies);
             
-            _control.AddAction("Conduct", new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, animLibName = "", clipName = "Conduct" });
+            _control.AddAction("Conduct", new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, animLibName = "", clipName = "Conduct" });
 
             _control.DisableAction("Take Control", 1);
-            _control.AddAction("Take Control", new tk2dPlayAnimationConditional { Target = SilkenSisters.plugin.laceNPCFSMOwner, AnimName = "NPC Idle Turn Left", Condition = _control.GetBoolVariable("IsConducting") });
+            _control.AddAction("Take Control", new tk2dPlayAnimationConditional { Target = SilkenSisters.instance.laceNPCFSMOwner, AnimName = "NPC Idle Turn Left", Condition = _control.GetBoolVariable("IsConducting") });
             
             _control.DisableAction("Sit Up", 1);
-            _control.InsertAction("Sit Up", new tk2dPlayAnimationConditional { Target = SilkenSisters.plugin.laceNPCFSMOwner, AnimName = "TurnToIdle", Condition = _control.GetBoolVariable("IsConducting") }, 1);
+            _control.InsertAction("Sit Up", new tk2dPlayAnimationConditional { Target = SilkenSisters.instance.laceNPCFSMOwner, AnimName = "TurnToIdle", Condition = _control.GetBoolVariable("IsConducting") }, 1);
             
-            _control.AddAction("Sit Up", new tk2dPlayAnimationConditional { Target = SilkenSisters.plugin.laceNPCFSMOwner, AnimName = "SitToIdle", Condition = _control.GetBoolVariable("IsNotConducting") });
+            _control.AddAction("Sit Up", new tk2dPlayAnimationConditional { Target = SilkenSisters.instance.laceNPCFSMOwner, AnimName = "SitToIdle", Condition = _control.GetBoolVariable("IsNotConducting") });
             
         }
 
@@ -189,7 +189,7 @@ namespace SilkenSisters.Behaviors
         {
             FsmOwnerDefault PhantomOrganOwner = new FsmOwnerDefault();
             PhantomOrganOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
-            PhantomOrganOwner.GameObject = SilkenSisters.plugin.phantomBossScene.FindChild("Organ Phantom");
+            PhantomOrganOwner.GameObject = SilkenSisters.instance.phantomBossScene.FindChild("Organ Phantom");
             _control.AddAction("Lace Ready", new Tk2dResumeAnimation { gameObject = PhantomOrganOwner });
         }
 
@@ -225,7 +225,7 @@ namespace SilkenSisters.Behaviors
             _control.AddAction("Take Control", new FaceObjectV2
             {
                 objectA = SilkenSisters.hornetFSMOwner,
-                objectB = SilkenSisters.plugin.laceNPCInstance,
+                objectB = SilkenSisters.instance.laceNPCInstance,
                 newAnimationClip = "",
                 playNewAnimation = false,
                 spriteFacesRight = false,
@@ -239,8 +239,8 @@ namespace SilkenSisters.Behaviors
         private void toggleChallenge()
         {
             if (SilkenSisters.isMemory()) { 
-                SilkenSisters.plugin.challengeDialogInstance.SetActive(false);
-                SilkenSisters.Log.LogDebug($"[LaceNPC.toggleChallenge] challenge?:{SilkenSisters.plugin.challengeDialogInstance.activeSelf}");
+                SilkenSisters.instance.challengeDialogInstance.SetActive(false);
+                SilkenSisters.Log.LogDebug($"[LaceNPC.toggleChallenge] challenge?:{SilkenSisters.instance.challengeDialogInstance.activeSelf}");
             }
         }
 
@@ -252,16 +252,16 @@ namespace SilkenSisters.Behaviors
 
         private void SpawnFlies()
         {
-            SilkenSisters.plugin.silkflies = SilkenSisters.plugin.assetManager.gameObjectCache.InstantiateAsset<GameObject>("silkfliesCache");
-            SilkenSisters.plugin.silkflies.SetActive(false);
-            SilkenSisters.plugin.silkflies.AddComponent<SilkFlies>();
-            SilkenSisters.plugin.silkflies.SetActive(true);
+            SilkenSisters.instance.silkflies = SilkenSisters.instance.assetManager.sceneCache.InstantiateAsset<GameObject>("silkfliesCache");
+            SilkenSisters.instance.silkflies.SetActive(false);
+            SilkenSisters.instance.silkflies.AddComponent<SilkFlies>();
+            SilkenSisters.instance.silkflies.SetActive(true);
         }
 
         private void makeFliesLeave()
         {
-            if (SilkenSisters.plugin.silkflies != null) { 
-                SilkenSisters.plugin.silkflies.GetComponent<SilkFlies>().Leave();
+            if (SilkenSisters.instance.silkflies != null) { 
+                SilkenSisters.instance.silkflies.GetComponent<SilkFlies>().Leave();
             }
         }
 
@@ -389,9 +389,9 @@ namespace SilkenSisters.Behaviors
 
         private void register()
         {
-            SilkenSisters.plugin.laceNPCFSMOwner = new FsmOwnerDefault();
-            SilkenSisters.plugin.laceNPCFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
-            SilkenSisters.plugin.laceNPCFSMOwner.GameObject = gameObject;
+            SilkenSisters.instance.laceNPCFSMOwner = new FsmOwnerDefault();
+            SilkenSisters.instance.laceNPCFSMOwner.OwnerOption = OwnerDefaultOption.SpecifyGameObject;
+            SilkenSisters.instance.laceNPCFSMOwner.GameObject = gameObject;
         }
 
         private void getComponents()
@@ -399,6 +399,17 @@ namespace SilkenSisters.Behaviors
             _control = gameObject.GetFsmPreprocessed("Control");
             _npcTransform = gameObject.transform;
             gameObject.FindChild("black_fader_moon").SetActive(false);
+
+            _control.AddGameObjectVariable("Charge Hit").Value = Instantiate(SilkenSisters.instance.assetManager.sceneCache["lace2BossSceneCache"].Result.FindChild("Lace Boss2 New/Charge Hit"));
+            _control.AddGameObjectVariable("Dash Burst").Value = Instantiate(SilkenSisters.instance.assetManager.sceneCache["lace2BossSceneCache"].Result.FindChild("Lace Boss2 New/Dash Burst"));
+        
+            _control.GetGameObjectVariable("Charge Hit").Value.transform.SetParent(gameObject.transform);
+            _control.GetGameObjectVariable("Charge Hit").Value.transform.localPosition = new Vector3(0, 0, 0);
+            _control.GetGameObjectVariable("Charge Hit").Value.transform.SetScaleX(1);
+
+            _control.GetGameObjectVariable("Dash Burst").Value.transform.SetParent(gameObject.transform);
+            _control.GetGameObjectVariable("Dash Burst").Value.transform.localPosition = new Vector3(-4.3759f, -1.1653f, -0.001f);
+            _control.GetGameObjectVariable("Dash Burst").Value.transform.SetScaleX(1);
 
         }
 
@@ -457,7 +468,7 @@ namespace SilkenSisters.Behaviors
 
         private void SetSleepingAnimation()
         {
-            _control.AddAction("Dormant", new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, animLibName = "", clipName = "Lie" });
+            _control.AddAction("Dormant", new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, animLibName = "", clipName = "Lie" });
         }
 
         private void disableAnim()
@@ -477,7 +488,7 @@ namespace SilkenSisters.Behaviors
                     new FaceObjectV2
                     {
                         objectA = SilkenSisters.hornetFSMOwner,
-                        objectB = SilkenSisters.plugin.laceNPCInstance,
+                        objectB = SilkenSisters.instance.laceNPCInstance,
                         newAnimationClip = "",
                         playNewAnimation = false,
                         spriteFacesRight = false,
@@ -501,7 +512,7 @@ namespace SilkenSisters.Behaviors
             _control.AddAction("Start Pause", new FaceObjectV2
                 {
                     objectA = SilkenSisters.hornetFSMOwner,
-                    objectB = SilkenSisters.plugin.laceNPCInstance,
+                    objectB = SilkenSisters.instance.laceNPCInstance,
                     newAnimationClip = "",
                     playNewAnimation = false,
                     spriteFacesRight = false,
@@ -520,8 +531,8 @@ namespace SilkenSisters.Behaviors
                     delay = 0,
                     pitchMax = 1,
                     pitchMin = 1,
-                    audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("hornetSword"),
-                    audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                    audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("hornetSword"),
+                    audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                     volume = 1,
                     storePlayer = new FsmGameObject { name = "", useVariable = true },
                 }
@@ -532,8 +543,8 @@ namespace SilkenSisters.Behaviors
                 "Mourn Dialogue", 
                 new AudioPlayRandomVoiceFromTableV2
                 {
-                    gameObject = SilkenSisters.plugin.laceNPCFSMOwner,
-                    audioClipTable = SilkenSisters.plugin.assetManager.audioClipTableCache["LaceWeakTalk"].Result,
+                    gameObject = SilkenSisters.instance.laceNPCFSMOwner,
+                    audioClipTable = SilkenSisters.instance.assetManager.audioClipTableCache["LaceWeakTalk"].Result,
                     pitchOffset = 0,
                     forcePlay = false,
                     stopPreviousSound = true
@@ -551,7 +562,7 @@ namespace SilkenSisters.Behaviors
                     HideDecorators = false,
                     TextAlignment = TextAlignment.Left,
                     OffsetY = 0,
-                    Target = SilkenSisters.plugin.laceNPCFSMOwner
+                    Target = SilkenSisters.instance.laceNPCFSMOwner
                 }
             );
 
@@ -563,7 +574,7 @@ namespace SilkenSisters.Behaviors
                 {
                     ReturnControl = false,
                     ReturnHUD = true,
-                    Target = SilkenSisters.plugin.laceNPCFSMOwner,
+                    Target = SilkenSisters.instance.laceNPCFSMOwner,
                     UseChildren = false
                 }
             );
@@ -606,7 +617,7 @@ namespace SilkenSisters.Behaviors
                 "Needolin Ready",
                 new CheckHeroPerformanceRegionV2
                 {
-                    Target = SilkenSisters.plugin.laceNPCFSMOwner,
+                    Target = SilkenSisters.instance.laceNPCFSMOwner,
                     Radius = _control.GetFloatVariable("Needolin Range"),
                     MinReactDelay = 0.5f,
                     MaxReactDelay = 1f,
@@ -659,7 +670,7 @@ namespace SilkenSisters.Behaviors
                 "Hornet Playing",
                 new CheckHeroPerformanceRegionV2
                 {
-                    Target = SilkenSisters.plugin.laceNPCFSMOwner,
+                    Target = SilkenSisters.instance.laceNPCFSMOwner,
                     Radius = _control.GetFloatVariable("Needolin Range"),
                     MinReactDelay = 0.5f,
                     MaxReactDelay = 1f,
@@ -687,7 +698,7 @@ namespace SilkenSisters.Behaviors
                 {
                     new SetStringValue { stringValue = "SLEEP", stringVariable = _control.GetStringVariable("NextState") },
                     new HutongGames.PlayMaker.Actions.SetPosition {
-                        gameObject = SilkenSisters.plugin.laceNPCFSMOwner,
+                        gameObject = SilkenSisters.instance.laceNPCFSMOwner,
                         x = 83.5752f,
                         y = 106.847f,
                         z = 3.4021f,
@@ -700,12 +711,12 @@ namespace SilkenSisters.Behaviors
                         delay = 0,
                         pitchMax = 1,
                         pitchMin = 1,
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceWake"),
-                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceWake"),
+                        audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                         volume = 1,
                         storePlayer = new FsmGameObject { name = "", useVariable = true },
                     },
-                    new Tk2dPlayAnimationWithEvents{ gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "LieToWake", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
+                    new Tk2dPlayAnimationWithEvents{ gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "LieToWake", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
 
                 }
             );
@@ -716,11 +727,11 @@ namespace SilkenSisters.Behaviors
                 "Lace Stand",
                 new FsmStateAction[]
                 {
-                    new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "NPC Idle Right", animLibName = "" },
+                    new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "NPC Idle Right", animLibName = "" },
                     new SetStringValue { stringValue = "CROUCH", stringVariable = _control.GetStringVariable("NextState") },
                     new CheckHeroPerformanceRegionV2
                     {
-                        Target = SilkenSisters.plugin.laceNPCFSMOwner,
+                        Target = SilkenSisters.instance.laceNPCFSMOwner,
                         Radius = _control.GetFloatVariable("Needolin Range"),
                         MinReactDelay = 0.5f,
                         MaxReactDelay = 0.8f,
@@ -743,7 +754,7 @@ namespace SilkenSisters.Behaviors
                 "Lace Sing",
                 new FsmStateAction[]
                 {
-                    new Tk2dPlayAnimation{ gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "Sing", animLibName = "" },
+                    new Tk2dPlayAnimation{ gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Sing", animLibName = "" },
                     new SetAudioPitch
                     {
                         gameObject = new FsmOwnerDefault(),
@@ -751,7 +762,7 @@ namespace SilkenSisters.Behaviors
                     },
                     new CheckHeroPerformanceRegionV2
                     {
-                        Target = SilkenSisters.plugin.laceNPCFSMOwner,
+                        Target = SilkenSisters.instance.laceNPCFSMOwner,
                         Radius = _control.GetFloatVariable("Needolin Range"),
                         MinReactDelay = 0f,
                         MaxReactDelay = 0.5f,
@@ -767,7 +778,7 @@ namespace SilkenSisters.Behaviors
                     new SetAudioClip
                     {
                         gameObject = new FsmOwnerDefault(),
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("phantomSing"),
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("phantomSing"),
                         autoPlay = true,
                         stopOnExit = true
                     },
@@ -827,7 +838,7 @@ namespace SilkenSisters.Behaviors
                 new FsmStateAction[]
                 {
                     // Proper sfx?
-                    new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "NPC Idle Right", animLibName = "" },
+                    new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "NPC Idle Right", animLibName = "" },
                     new Wait{ time = 1f, finishEvent = FsmEvent.GetFsmEvent("FINISHED") }
                 }
             );
@@ -837,15 +848,23 @@ namespace SilkenSisters.Behaviors
                 new FsmStateAction[]
                 {
                     //Put proper sfx
-                    new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "Crouch", animLibName = "" },
+                    new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Crouch", animLibName = "" },
                     new AudioPlayRandomVoiceFromTableBool
                     {
-                        gameObject = SilkenSisters.plugin.laceNPCFSMOwner,
-                        audioClipTable = SilkenSisters.plugin.assetManager.audioClipTableCache["LaceGrunt"].Result,
+                        gameObject = SilkenSisters.instance.laceNPCFSMOwner,
+                        audioClipTable = SilkenSisters.instance.assetManager.audioClipTableCache["LaceGrunt"].Result,
                         pitchOffset = 0,
                         forcePlay = false,
                         stopPreviousSound = true,
                         activeBool = _control.GetBoolVariable("Scoff")
+                    },
+                    new AudioPlayRandomVoiceFromTableV2
+                    {
+                        gameObject = SilkenSisters.instance.laceNPCFSMOwner,
+                        audioClipTable = SilkenSisters.instance.assetManager.audioClipTableCache["LaceCollapse"].Result,
+                        pitchOffset = 0,
+                        forcePlay = false,
+                        stopPreviousSound = true
                     },
                     new SetBoolValue
                     {
@@ -862,11 +881,11 @@ namespace SilkenSisters.Behaviors
                 new FsmStateAction[]
                 {
                     // Proper sfx
-                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "BackToSleep", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
+                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "BackToSleep", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
                     new AudioPlayRandomVoiceFromTableBool
                     {
-                        gameObject = SilkenSisters.plugin.laceNPCFSMOwner,
-                        audioClipTable = SilkenSisters.plugin.assetManager.audioClipTableCache["LaceGrunt"].Result,
+                        gameObject = SilkenSisters.instance.laceNPCFSMOwner,
+                        audioClipTable = SilkenSisters.instance.assetManager.audioClipTableCache["LaceGrunt"].Result,
                         pitchOffset = 0,
                         forcePlay = false,
                         stopPreviousSound = true,
@@ -884,9 +903,9 @@ namespace SilkenSisters.Behaviors
                 "Needolin Ready",
                 new FsmStateAction[]
                 {
-                    new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "Lie", animLibName = "" },
+                    new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Lie", animLibName = "" },
                     new HutongGames.PlayMaker.Actions.SetPosition {
-                        gameObject = SilkenSisters.plugin.laceNPCFSMOwner,
+                        gameObject = SilkenSisters.instance.laceNPCFSMOwner,
                         x = 83.5752f,
                         y = 107.0726f,
                         z = 3.4021f,
@@ -918,7 +937,7 @@ namespace SilkenSisters.Behaviors
             _control.AddTransition("Lace Tele In", "FINISHED", "Lace Charge Antic");
             _control.AddTransition("Lace Charge Antic", "FINISHED", "Lace Charge Break");
             _control.AddTransition("Lace Charge Break", "FINISHED", "Lace Charge");
-            _control.AddTransition("Lace Charge", "FINISHED", "Hornet Dies");
+            _control.AddTransition("Lace Charge", "MULTI HIT CONNECT", "Hornet Dies");
             _control.AddTransition("Hornet Dies", "FINISHED", "Lace Laughs");
 
             _control.AddActions(
@@ -970,8 +989,8 @@ namespace SilkenSisters.Behaviors
                         delay = 0,
                         pitchMax = 1,
                         pitchMin = 1,
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceStance"),
-                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceStance"),
+                        audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                         volume = 1,
                         storePlayer = new FsmGameObject { name = "", useVariable = true },
                     },
@@ -981,15 +1000,15 @@ namespace SilkenSisters.Behaviors
                         delay = 0,
                         pitchMax = 1,
                         pitchMin = 1,
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("miscRumble"),
-                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("miscRumble"),
+                        audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                         volume = 1,
                         storePlayer = new FsmGameObject { name = "", useVariable = true },
                     },
                     new AudioPlayRandomVoiceFromTableV2
                     {
-                        gameObject = SilkenSisters.plugin.laceNPCFSMOwner,
-                        audioClipTable = SilkenSisters.plugin.assetManager.audioClipTableCache["LaceWail"].Result,
+                        gameObject = SilkenSisters.instance.laceNPCFSMOwner,
+                        audioClipTable = SilkenSisters.instance.assetManager.audioClipTableCache["LaceWail"].Result,
                         pitchOffset = 0,
                         forcePlay = false,
                         stopPreviousSound = true
@@ -1014,15 +1033,15 @@ namespace SilkenSisters.Behaviors
             _control.AddActions(
                 "Lace Tele Out", 
                 new FsmStateAction[] {
-                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "Tele Out", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
+                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Tele Out", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
                     new AudioPlayerOneShotSingle
                     {
                         spawnPoint = _control.GetGameObjectVariable("Lace"),
                         delay = 0,
                         pitchMax = 1,
                         pitchMin = 1,
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceTeleOut"),
-                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceTeleOut"),
+                        audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                         volume = 1,
                         storePlayer = new FsmGameObject { name = "", useVariable = true },
                     },
@@ -1056,25 +1075,51 @@ namespace SilkenSisters.Behaviors
                         everyFrame = false,
                         pauseBetweenTurns = 0
                     },
-                    new AudioPlayerOneShotSingle 
+
+                    /*
+                    new Tk2dPlayAnimation { gameObject = SilkenSisters.hornetFSMOwner, clipName = "Challenge Talk Start", animLibName = "" },
+                    new AudioPlayerOneShotSingle
+                    {
+                        spawnPoint = _control.GetGameObjectVariable("Hornet"),
+                        delay = 0,
+                        pitchMax = 1,
+                        pitchMin = 1,
+                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("hornetSword"),
+                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        volume = 1,
+                        storePlayer = new FsmGameObject { name = "", useVariable = true },
+                    },
+                    new FaceObjectV2
+                    {
+                        objectA = SilkenSisters.hornetFSMOwner,
+                        objectB = gameObject,
+                        playNewAnimation = false,
+                        newAnimationClip = "",
+                        spriteFacesRight = false,
+                        resetFrame = false,
+                        everyFrame = false,
+                        pauseBetweenTurns = 0
+                    },//*/
+
+                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Tele In", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
+                    new AudioPlayerOneShotSingle
                     {
                         spawnPoint = _control.GetGameObjectVariable("Lace"),
                         delay = 0,
                         pitchMax = 1,
                         pitchMin = 1,
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceTeleIn"),
-                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceTeleIn"),
+                        audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                         volume = 1,
                         storePlayer = new FsmGameObject { name = "", useVariable = true },
                     },
-                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "Tele In", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
                 }
             );
 
             _control.AddActions(
                 "Lace Charge Antic",
                 new FsmStateAction[] {
-                    new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "Charge Antic", animLibName = "" },
+                    new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Charge Antic", animLibName = "" },
                     new SetVelocityByScale
                     {
                         gameObject = new FsmOwnerDefault(),
@@ -1095,15 +1140,15 @@ namespace SilkenSisters.Behaviors
                         delay = 0,
                         pitchMax = 1,
                         pitchMin = 1,
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceBackstep"),
-                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceBackstep"),
+                        audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                         volume = 1,
                         storePlayer = new FsmGameObject { name = "", useVariable = true },
                     },
                     new AudioPlayRandomVoiceFromTableV2
                     {
-                        gameObject = SilkenSisters.plugin.laceNPCFSMOwner,
-                        audioClipTable = SilkenSisters.plugin.assetManager.audioClipTableCache["LaceAttack"].Result,
+                        gameObject = SilkenSisters.instance.laceNPCFSMOwner,
+                        audioClipTable = SilkenSisters.instance.assetManager.audioClipTableCache["LaceAttack"].Result,
                         pitchOffset = 0,
                         forcePlay = false,
                         stopPreviousSound = true
@@ -1136,7 +1181,7 @@ namespace SilkenSisters.Behaviors
                     },
                     new PlayRandomAudioClipTableV3
                     {
-                        Table = SilkenSisters.plugin.assetManager.audioClipTableCache["HornetSpeak"].Result,
+                        Table = SilkenSisters.instance.assetManager.audioClipTableCache["HornetSpeak"].Result,
                         SpawnPoint = SilkenSisters.hornetFSMOwner,
                         SpawnPosition = new FsmVector3{ Value = new Vector3(0,0,0) },
                         ForcePlay = true,
@@ -1166,8 +1211,8 @@ namespace SilkenSisters.Behaviors
                         delay = 0,
                         pitchMax = 1,
                         pitchMin = 1,
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("hornetParry"),
-                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("hornetParry"),
+                        audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                         volume = 1,
                         storePlayer = new FsmGameObject { name = "", useVariable = true },
                     },
@@ -1189,7 +1234,7 @@ namespace SilkenSisters.Behaviors
             _control.AddActions(
                 "Lace Charge",
                 new FsmStateAction[] {
-                    new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "Charge", animLibName = "" },
+                    new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Charge", animLibName = "" },
                     new SetVelocityByScale
                     {
                         gameObject = new FsmOwnerDefault(),
@@ -1204,41 +1249,43 @@ namespace SilkenSisters.Behaviors
                         decelerationY = 0,
                         brakeOnExit = false
                     },
+                    new ActivateGameObject{
+                        gameObject = new FsmOwnerDefault{
+                            OwnerOption = OwnerDefaultOption.SpecifyGameObject,
+                            GameObject = _control.GetGameObjectVariable("Dash Burst").Value
+                        },
+                        activate = true,
+                        resetOnExit = false,
+                        recursive = false,
+                        everyFrame = false
+                    },
+                    new ActivateGameObject{
+                        gameObject = new FsmOwnerDefault{
+                            OwnerOption = OwnerDefaultOption.SpecifyGameObject,
+                            GameObject = _control.GetGameObjectVariable("Charge Hit").Value
+                        },
+                        activate = true,
+                        resetOnExit = true,
+                        recursive = false,
+                        everyFrame = false
+                    },
                     new AudioPlayerOneShotSingle
                     {
                         spawnPoint = _control.GetGameObjectVariable("Lace"),
                         delay = 0,
                         pitchMax = 1,
                         pitchMin = 1,
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceBackstep"),
-                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceBackstep"),
+                        audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                         volume = 1,
                         storePlayer = new FsmGameObject { name = "", useVariable = true },
-                    }, 
-                    new GetDistanceV2
-                    {
-                        gameObject = new FsmOwnerDefault(),
-                        target = SilkenSisters.hornet,
-                        targetOffsetX = 0,
-                        targetOffsetY = 0,
-                        storeResult = _control.GetFloatVariable("Distance"),
-                        everyFrame = true
                     },
-                    new FloatCompare
-                    {
-                        float1 = _control.GetFloatVariable("Distance"),
-                        float2 = _control.GetFloatVariable("HitDistance"),
-                        greaterThan = FsmEvent.GetFsmEvent(""),
-                        equal = FsmEvent.GetFsmEvent(""),
-                        lessThan = FsmEvent.GetFsmEvent("FINISHED"),
-                        everyFrame = true,
-                        tolerance = 0
-                    }
                     
                     // Change by a hit on hornet
                 }
             );
 
+            _control.AddMethod("Hornet Dies", SetLaceMet);
             _control.AddActions(
                 "Hornet Dies", 
                 new FsmStateAction[] {
@@ -1256,7 +1303,7 @@ namespace SilkenSisters.Behaviors
                         decelerationY = 0,
                         brakeOnExit = true
                     },
-                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "Charge Recover", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
+                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Charge Recover", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
                 }
             );
             _control.AddMethod("Hornet Dies", KnockOutHornet);
@@ -1275,15 +1322,15 @@ namespace SilkenSisters.Behaviors
                         everyFrame = false,
                         pauseBetweenTurns = 0
                     },
-                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "Laugh", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
+                    new Tk2dPlayAnimationWithEvents { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Laugh", animationCompleteEvent = FsmEvent.GetFsmEvent("FINISHED") },
                     new AudioPlayerOneShotSingle
                     {
                         spawnPoint = _control.GetGameObjectVariable("Hornet"),
                         delay = 0,
                         pitchMax = 1,
                         pitchMin = 1,
-                        audioClip = SilkenSisters.plugin.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceLaugh"),
-                        audioPlayer = SilkenSisters.plugin.assetManager.prefabCache["AudioPlayerActor"].Result,
+                        audioClip = SilkenSisters.instance.assetManager.audioClipCache.InstantiateAsset<AudioClip>("laceLaugh"),
+                        audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                         volume = 1,
                         storePlayer = new FsmGameObject { name = "", useVariable = true },
                     },
@@ -1301,7 +1348,7 @@ namespace SilkenSisters.Behaviors
                 "Stop Singing", 
                 new FsmStateAction[]
                 {
-                    new Tk2dPlayAnimation { gameObject = SilkenSisters.plugin.laceNPCFSMOwner, clipName = "NPC Idle Right", animLibName = "" },
+                    new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "NPC Idle Right", animLibName = "" },
                     new SendEventToRegister { eventName = "FSM CANCEL" },
                     new SendMessage
                     {
@@ -1331,8 +1378,8 @@ namespace SilkenSisters.Behaviors
 
                     new AudioPlayRandomVoiceFromTableV2
                     {
-                        gameObject = SilkenSisters.plugin.laceNPCFSMOwner,
-                        audioClipTable = SilkenSisters.plugin.assetManager.audioClipTableCache["LaceSpeak"].Result,
+                        gameObject = SilkenSisters.instance.laceNPCFSMOwner,
+                        audioClipTable = SilkenSisters.instance.assetManager.audioClipTableCache["LaceSpeak"].Result,
                         pitchOffset = 0,
                         forcePlay = false,
                         stopPreviousSound = true
@@ -1347,12 +1394,13 @@ namespace SilkenSisters.Behaviors
                         HideDecorators = false,
                         TextAlignment = TextAlignment.Left,
                         OffsetY = 0,
-                        Target = SilkenSisters.plugin.laceNPCFSMOwner
+                        Target = SilkenSisters.instance.laceNPCFSMOwner
                     }
                 }
             );
 
 
+            _control.AddMethod("Lace Laughs", SetLaceMet);
             _control.AddTransition("Lace Thanks", "CONVO_END", "End Dialogue");
         }
 
@@ -1371,10 +1419,10 @@ namespace SilkenSisters.Behaviors
 
         private void SpawnFlies()
         {
-            SilkenSisters.plugin.silkflies = SilkenSisters.plugin.assetManager.gameObjectCache.InstantiateAsset<GameObject>("silkfliesCache");
-            SilkenSisters.plugin.silkflies.SetActive(false);
-            SilkenSisters.plugin.silkflies.AddComponent<MourningSilkFlies>();
-            SilkenSisters.plugin.silkflies.SetActive(true);
+            SilkenSisters.instance.silkflies = SilkenSisters.instance.assetManager.sceneCache.InstantiateAsset<GameObject>("silkfliesCache");
+            SilkenSisters.instance.silkflies.SetActive(false);
+            SilkenSisters.instance.silkflies.AddComponent<MourningSilkFlies>();
+            SilkenSisters.instance.silkflies.SetActive(true);
 
             _control.AddMethod("Jump Away", makeFliesLeave);
 
@@ -1394,25 +1442,25 @@ namespace SilkenSisters.Behaviors
 
         private void WakeFlies()
         {
-            if (SilkenSisters.plugin.silkflies != null)
+            if (SilkenSisters.instance.silkflies != null)
             {
-                SilkenSisters.plugin.silkflies.GetComponent<MourningSilkFlies>().Wake();
+                SilkenSisters.instance.silkflies.GetComponent<MourningSilkFlies>().Wake();
             }
         }
 
         private void makeFliesLeave()
         {
-            if (SilkenSisters.plugin.silkflies != null)
+            if (SilkenSisters.instance.silkflies != null)
             {
-                SilkenSisters.plugin.silkflies.GetComponent<MourningSilkFlies>().Leave();
+                SilkenSisters.instance.silkflies.GetComponent<MourningSilkFlies>().Leave();
             }
         }
 
         private void makeFliesPerch()
         {
-            if (SilkenSisters.plugin.silkflies != null)
+            if (SilkenSisters.instance.silkflies != null)
             {
-                SilkenSisters.plugin.silkflies.GetComponent<MourningSilkFlies>().Perch();
+                SilkenSisters.instance.silkflies.GetComponent<MourningSilkFlies>().Perch();
             }
         }
 
@@ -1420,6 +1468,12 @@ namespace SilkenSisters.Behaviors
         {
             StartCoroutine(HeroController.instance.Die(true, false));
         }
+
+        private void SetLaceMet()
+        {
+            SilkenSisters.instance.SaveData.laceMourned = true;
+        }
+
 
     }
 
