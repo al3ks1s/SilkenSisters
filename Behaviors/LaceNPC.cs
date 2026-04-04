@@ -1471,7 +1471,7 @@ namespace SilkenSisters.Behaviors
 
         private void SetLaceMet()
         {
-            SilkenSisters.instance.SaveData.laceMourned = true;
+            //SilkenSisters.instance.SaveData.laceMourned = true;
         }
 
 

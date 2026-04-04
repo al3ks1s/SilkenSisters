@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using HutongGames.PlayMaker;
 using System;
+using UnityEngine.SceneManagement;
 
 
 
@@ -34,9 +35,15 @@ namespace SilkenSisters.Patches
         [HarmonyPatch(typeof(GameManager), "SaveGame", new Type[] { typeof(int), typeof(Action<bool>), typeof(bool), typeof(AutoSaveName) })]
         private static bool setSaveListener(GameManager __instance, ref int saveSlot, ref Action<bool> ogCallback, ref bool withAutoSave, ref AutoSaveName autoSaveName)
         {
-            ogCallback?.Invoke(true);
             SilkenSisters.Log.LogDebug($"[SaveListener] Trying to save game. isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}. Skipping?:{SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene()}");
-            return !(SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene());
+
+            if (SceneManager.GetActiveScene().name == "Organ_01" && GameManager._instance.IsMemoryScene())
+            {
+                ogCallback?.Invoke(true);
+                return false;
+            }
+
+            return true;
         }
     }
 }

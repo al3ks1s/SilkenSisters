@@ -10,7 +10,6 @@ using UnityEngine;
 namespace SilkenSisters.Utils
 {
 
-    
     internal class AssetManager
     {
 
