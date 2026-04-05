@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
 using HutongGames.PlayMaker;
+using PrepatcherPlugin;
+using SilkenSisters.Utils;
 using System;
 using UnityEngine.SceneManagement;
 
@@ -15,36 +17,18 @@ namespace SilkenSisters.Patches
         [HarmonyPatch(typeof(HeroController), "Die")]
         private static void setDeathListener(HeroController __instance, ref bool nonLethal, ref bool frostDeath)
         {
-            SilkenSisters.Log.LogDebug($"[DeathListener] Hornet died / isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}");
-            if (SilkenSisters.isMemory() && GameManager._instance.IsMemoryScene())
+            SilkenSisters.Log.LogDebug($"[DeathListener] Hornet died / isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager.instance.IsMemoryScene()}");
+            if (SilkenSisters.isMemory() && GameManager.instance.IsMemoryScene())
             {
 
-                PlayerData._instance.defeatedPhantom = true;
-                PlayerData._instance.blackThreadWorld = true;
+                SilkenSisters.Log.LogDebug($"[DeathListener] Hornet died in memory, removing the Prepatcher hook");
+
+                PlayerDataVariableEvents.OnGetBool -= PrepatcherUtils.SilkenSisterMonitor;
                 if (SilkenSisters.hornetConstrain != null)
                 {
                     SilkenSisters.hornetConstrain.enabled = false;
                 }
-
-                SilkenSisters.Log.LogDebug($"[DeathListener] Hornet died in memory, variable reset: defeatedPhantom:{PlayerData._instance.defeatedPhantom}, blackThreadWorld:{PlayerData._instance.blackThreadWorld}");
-
             }
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(GameManager), "SaveGame", new Type[] { typeof(int), typeof(Action<bool>), typeof(bool), typeof(AutoSaveName) })]
-        [HarmonyPriority(-1)]
-        private static bool setSaveListener(GameManager __instance, ref int saveSlot, ref Action<bool> ogCallback, ref bool withAutoSave, ref AutoSaveName autoSaveName)
-        {
-            SilkenSisters.Log.LogDebug($"[SaveListener] Trying to save game. isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}. Skipping?:{SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene()}");
-
-            if (SceneManager.GetActiveScene().name == "Organ_01" && GameManager._instance.IsMemoryScene())
-            {
-                ogCallback?.Invoke(true);
-                return false;
-            }
-
-            return true;
         }
     }
 }

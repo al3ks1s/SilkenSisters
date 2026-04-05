@@ -18,11 +18,13 @@ For now, the bosses have their vanilla behaviors, there will be changes on that 
 ### Manual Installation is not recommended due to the dependencies needed by the mod. Use Thunderstore, r2modman or Gale to install the mod with minimal issues.
 
 This mod requires the following mods to function: 
-- [BepinEx version 5.4.2304](https://thunderstore.io/c/hollow-knight-silksong/p/BepInEx/BepInExPack_Silksong/)
-- [FSMUtils 0.3.5](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/FsmUtil/)
-- [I18N 1.0.2](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/I18N/)
-- [UnityHelper 1.1.1](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/UnityHelper/)
-- [AssetHelper 1.0.1](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/AssetHelper/)
+- [BepinEx version](https://thunderstore.io/c/hollow-knight-silksong/p/BepInEx/BepInExPack_Silksong/)
+- [FSMUtils](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/FsmUtil/)
+- [I18N](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/I18N/)
+- [UnityHelper](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/UnityHelper/)
+- [AssetHelper](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/AssetHelper/)
+- [DataManager](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/DataManager/)
+- [SilksongPrepatcher](https://thunderstore.io/c/hollow-knight-silksong/p/silksong_modding/SilksongPrepatcher/)
 - [MonoDetour BepInEx 5](https://thunderstore.io/c/hollow-knight-silksong/p/MonoDetour/MonoDetour_BepInEx_5/)
 - [MonoDetour](https://thunderstore.io/c/hollow-knight-silksong/p/MonoDetour/MonoDetour/)
 
@@ -35,18 +37,21 @@ This mod requires the following mods to function:
 The expected file structure is as follow :
 ```
 BepInEx/
-﻿	plugins/
+	plugins/
 		SilkenSisters/
 			<SilkenSisters files>
 		silksong_modding-I18N-1.0.2/
 			<I18N files>
-		﻿﻿silksong_modding-FsmUtil-0.3.5/
-		﻿﻿﻿﻿	<FSMUtil files>
+		silksong_modding-FsmUtil-0.3.5/
+			<FSMUtil files>
 		silksong_modding-AssetHelper-1.0.1/
 			<AssetHelper files>
 		silksong_modding-UnityHelper-1.1.1/
 			<UnityHelper files>
+		<Other mods>
 	patchers/
 		<monodetour bepinex 5 dlls directly in the folder>
+		<Silksong Prepatchers files from /patchers>
 	core/
-		<monodetour dlls directly in the folder>
+		<monodetour dlls directly in the folder
+```

@@ -117,12 +117,9 @@ namespace SilkenSisters.Behaviors
             _control.GetAction<SetPosition>("Counter TeleIn", 5).y = 110f;
             SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] TeleHeight: {_control.GetAction<SetPosition>("Counter TeleIn", 5).y}");
 
-            FloatClamp clamp_pos = new FloatClamp();
-            clamp_pos.floatVariable = _control.FindFloatVariable("Tele X");
-            clamp_pos.maxValue = 96f;
-            clamp_pos.minValue = 73f;
 
-            _control.InsertAction("Counter TeleIn", clamp_pos, 4);
+            _control.GetAction<FloatClamp>("Counter TeleIn", 4).minValue = 73f;
+            _control.GetAction<FloatClamp>("Counter TeleIn", 4).maxValue = 96f;
             SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] TeleXClamp: min:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).minValue}, max:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).maxValue}");
 
 
