@@ -39,7 +39,7 @@ namespace SilkenSisters.Behaviors
 
         private void addInfo()
         {
-            infoPrompt = SilkenSisters.plugin.assetManager.gameObjectCache.InstantiateAsset<GameObject>("infoPromptCache");
+            infoPrompt = SilkenSisters.instance.assetManager.sceneCache.InstantiateAsset<GameObject>("infoPromptCache");
             promptnpc = infoPrompt.GetComponent<BasicNPC>();
             infoPrompt.transform.SetParent(gameObject.FindChild("Levers/Lever Top/Lever").transform, true);
             infoPrompt.transform.position = new Vector3(62.6255f, 53.961f, 1.8055f);
@@ -50,7 +50,7 @@ namespace SilkenSisters.Behaviors
         private void SetLeverText()
         {
             promptnpc.talkText[0].Sheet = $"Mods.{SilkenSisters.Id}";
-            if (SilkenSisters.plugin.configManager.syncedFight.Value) {
+            if (SilkenSisters.instance.configManager.syncedFight.Value) {
                 promptnpc.talkText[0].Key = "SILKEN_SISTERS_SYNC_FIGHT_ON"; 
             } else { 
                 promptnpc.talkText[0].Key = "SILKEN_SISTERS_SYNC_FIGHT_OFF"; 
@@ -66,7 +66,7 @@ namespace SilkenSisters.Behaviors
 
         private void FlipSync()
         {
-            SilkenSisters.plugin.configManager.syncedFight.Value = !SilkenSisters.plugin.configManager.syncedFight.Value;
+            SilkenSisters.instance.configManager.syncedFight.Value = !SilkenSisters.instance.configManager.syncedFight.Value;
         }
 
     

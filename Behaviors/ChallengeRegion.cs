@@ -66,7 +66,7 @@ namespace SilkenSisters.Behaviors
             battle_begin_event.sendEvent = "ENTER";
             battle_begin_event.delay = 0;
             FsmEventTarget target = new FsmEventTarget();
-            target.gameObject = SilkenSisters.plugin.phantomBossSceneFSMOwner;
+            target.gameObject = SilkenSisters.instance.phantomBossSceneFSMOwner;
             target.target = FsmEventTarget.EventTarget.GameObject;
             battle_begin_event.eventTarget = target;
 

@@ -54,7 +54,7 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogDebug($"[Lace2.getComponents] position:{gameObject.transform.position}");
             _control = gameObject.GetFsmPreprocessed("Control");
             _healthManager = gameObject.GetComponent<HealthManager>();
-            _healthManager.damageScaling = SilkenSisters.plugin.phantomBossScene.FindChild("Phantom").GetComponent<HealthManager>().damageScaling;
+            _healthManager.damageScaling = SilkenSisters.instance.phantomBossScene.FindChild("Phantom").GetComponent<HealthManager>().damageScaling;
         }
 
         private void disableParticleEffects()
@@ -117,12 +117,9 @@ namespace SilkenSisters.Behaviors
             _control.GetAction<SetPosition>("Counter TeleIn", 5).y = 110f;
             SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] TeleHeight: {_control.GetAction<SetPosition>("Counter TeleIn", 5).y}");
 
-            FloatClamp clamp_pos = new FloatClamp();
-            clamp_pos.floatVariable = _control.FindFloatVariable("Tele X");
-            clamp_pos.maxValue = 96f;
-            clamp_pos.minValue = 73f;
 
-            _control.InsertAction("Counter TeleIn", clamp_pos, 4);
+            _control.GetAction<FloatClamp>("Counter TeleIn", 4).minValue = 73f;
+            _control.GetAction<FloatClamp>("Counter TeleIn", 4).maxValue = 96f;
             SilkenSisters.Log.LogDebug($"[Lace2.fixActionsPositions] TeleXClamp: min:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).minValue}, max:{_control.GetAction<FloatClamp>("Counter TeleIn", 4).maxValue}");
 
 
@@ -206,7 +203,7 @@ namespace SilkenSisters.Behaviors
             faceRight.resetFrame = false;
             faceRight.everyFrame = false;
             faceRight.pauseBetweenTurns = 0.5f;
-            faceRight.objectA = SilkenSisters.plugin.laceBossFSMOwner;
+            faceRight.objectA = SilkenSisters.instance.laceBossFSMOwner;
             faceRight.objectB = SilkenSisters.hornet;
 
             _control.InsertAction("Init", faceRight, 4);
@@ -221,9 +218,7 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.Log.LogDebug("Started setting corpse handler");
             GameObject laceCorpse = gameObject.FindChild("Corpse Lace2(Clone)");
             GameObject laceCorpseNPC = laceCorpse.FindChild("NPC");
-            SilkenSisters.Log.LogDebug($"{laceCorpseNPC}");
 
-            SilkenSisters.Log.LogDebug("Fixing facing");
             PlayMakerFSM laceCorpseFSM = FsmUtil.GetFsmPreprocessed(laceCorpse, "Control");
             laceCorpseFSM.GetAction<CheckXPosition>("Set Facing", 0).compareTo = 72;
             laceCorpseFSM.GetAction<CheckXPosition>("Set Facing", 1).compareTo = 96;
@@ -243,15 +238,13 @@ namespace SilkenSisters.Behaviors
             lace_death_event.eventTarget = target;
             laceCorpseFSM.AddAction("NPC Ready", lace_death_event);
 
-            SilkenSisters.Log.LogDebug("Editing NPC routes to skip dialogue");
+
             PlayMakerFSM laceCorpseNPCFSM = FsmUtil.GetFsmPreprocessed(laceCorpseNPC, "Control");
-            SilkenSisters.Log.LogDebug("Editing Idle");
+
             laceCorpseNPCFSM.ChangeTransition("Idle", "INTERACT", "Drop Pause");
-            SilkenSisters.Log.LogDebug("Drop Pause");
             laceCorpseNPCFSM.DisableAction("Drop Pause", 0);
             laceCorpseNPCFSM.ChangeTransition("Drop Down", "FINISHED", "End Pause");
             laceCorpseNPCFSM.ChangeTransition("Drop Down", "IS_HURT", "End Pause");
-            SilkenSisters.Log.LogDebug("End Pause");
             laceCorpseNPCFSM.DisableAction("End Pause", 0);
             laceCorpseNPCFSM.GetAction<Wait>("End Pause", 1).time = 0.5f;
 
@@ -276,23 +269,23 @@ namespace SilkenSisters.Behaviors
 
         private void addDamageDelegate()
         {
-            _healthManager.initHp = SilkenSisters.plugin.configManager.MaxHP.Value;
+            _healthManager.initHp = SilkenSisters.instance.configManager.MaxHP.Value;
             _healthManager.HealToMax();
-            _control.GetIntVariable("P2 HP").Value = SilkenSisters.plugin.configManager.P2HP.Value;
-            _control.GetIntVariable("P3 HP").Value = SilkenSisters.plugin.configManager.P3HP.Value;
+            _control.GetIntVariable("P2 HP").Value = SilkenSisters.instance.configManager.P2HP.Value;
+            _control.GetIntVariable("P3 HP").Value = SilkenSisters.instance.configManager.P3HP.Value;
             _healthManager.TookDamage += TransferDamage;
         }
 
         private void TransferDamage()
         {
-            HealthManager phantomManager = SilkenSisters.plugin.phantomBossScene.FindChild("Phantom").GetComponent<HealthManager>();
+            HealthManager phantomManager = SilkenSisters.instance.phantomBossScene.FindChild("Phantom").GetComponent<HealthManager>();
             if (phantomManager.hp - _healthManager.lastHitInstance.DamageDealt > 0) { phantomManager.ApplyExtraDamage(_healthManager.lastHitInstance.DamageDealt); }
         }
 
         // Sync fight edits
         private void prepareSync()
         {
-            if (SilkenSisters.plugin.configManager.syncedFight.Value) {
+            if (SilkenSisters.instance.configManager.syncedFight.Value) {
 
                 _control.enabled = false;
 
@@ -315,13 +308,13 @@ namespace SilkenSisters.Behaviors
 
         private void AddVars()
         {
-            _control.AddGameObjectVariable("Phantom").Value = SilkenSisters.plugin.phantomBossFSMOwner.GameObject.Value;
+            _control.AddGameObjectVariable("Phantom").Value = SilkenSisters.instance.phantomBossFSMOwner.GameObject.Value;
 
-            _control.AddFloatVariable("Wait Time").Value = SilkenSisters.plugin.configManager.syncWaitTime.Value;
-            _control.AddFloatVariable("Async Delay").Value = SilkenSisters.plugin.configManager.syncDelay.Value;
+            _control.AddFloatVariable("Wait Time").Value = SilkenSisters.instance.configManager.syncWaitTime.Value;
+            _control.AddFloatVariable("Async Delay").Value = SilkenSisters.instance.configManager.syncDelay.Value;
 
-            _control.AddFloatVariable("Gather Distance").Value = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
-            _control.AddFloatVariable("Tele Distance").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
+            _control.AddFloatVariable("Gather Distance").Value = SilkenSisters.instance.configManager.syncGatherDistance.Value;
+            _control.AddFloatVariable("Tele Distance").Value = SilkenSisters.instance.configManager.syncTeleDistance.Value;
 
             _control.AddFloatVariable("Phase Left X").Value = 73;
             _control.AddFloatVariable("Phase Right X").Value = 96;
@@ -408,7 +401,7 @@ namespace SilkenSisters.Behaviors
                 "SyncWait", 
                 new SendEventByName { 
                     eventTarget = new FsmEventTarget { 
-                        gameObject = SilkenSisters.plugin.phantomBossSceneFSMOwner, 
+                        gameObject = SilkenSisters.instance.phantomBossSceneFSMOwner, 
                         fsmName = "Silken Sisters Sync Control", 
                         target = FsmEventTarget.EventTarget.GameObjectFSM 
                     }, 
@@ -454,7 +447,7 @@ namespace SilkenSisters.Behaviors
                 new SetFloatValue
                 {
                     floatVariable = _control.GetFloatVariable("Target Distance"),
-                    floatValue = SilkenSisters.plugin.configManager.syncGatherDistance.Value
+                    floatValue = SilkenSisters.instance.configManager.syncGatherDistance.Value
                 },
                 0
             );
@@ -470,7 +463,7 @@ namespace SilkenSisters.Behaviors
 
             _control.GetAction<GetXDistance>("Hop Check Phantom", 3).target = _control.GetGameObjectVariable("Phantom");
             _control.GetAction<GetXDistance>("Hop Phantom", 2).target = _control.GetGameObjectVariable("Phantom");
-            _control.GetAction<FloatCompare>("Hop Phantom", 3).float2 = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
+            _control.GetAction<FloatCompare>("Hop Phantom", 3).float2 = SilkenSisters.instance.configManager.syncGatherDistance.Value;
             _control.GetAction<FaceObjectV2>("Hop Antic Phantom", 1).objectB = _control.GetGameObjectVariable("Phantom");
 
 
@@ -512,7 +505,7 @@ namespace SilkenSisters.Behaviors
                 {
                     float1 = _control.GetFloatVariable("Distance"),
                     float2 = _control.GetFloatVariable("Gather Distance"),
-                    tolerance = 0,
+                    tolerance = 0.5f,
                     lessThan = FsmEvent.GetFsmEvent("FINISHED"),
                     equal = FsmEvent.GetFsmEvent("FINISHED")
                 } 
@@ -668,7 +661,7 @@ namespace SilkenSisters.Behaviors
                 "Tele In Defense",
                 new GetPosition
                 {
-                    gameObject = SilkenSisters.plugin.phantomBossFSMOwner,
+                    gameObject = SilkenSisters.instance.phantomBossFSMOwner,
                     vector = _control.GetVector3Variable("Phantom Pos"),
                     x = new FsmFloat(),
                     y = new FsmFloat(),
@@ -707,7 +700,7 @@ namespace SilkenSisters.Behaviors
                 new SendEventByNameV3 { 
                     eventTarget = new FsmEventTarget
                     {
-                        gameObject = SilkenSisters.plugin.phantomBossFSMOwner,
+                        gameObject = SilkenSisters.instance.phantomBossFSMOwner,
                         fsmName = "Control",
                         target = FsmEventTarget.EventTarget.GameObjectFSM
                     }, 
@@ -757,24 +750,24 @@ namespace SilkenSisters.Behaviors
 
         private void Update()
         {
-            if (SilkenSisters.plugin.configManager.syncWaitTime.Value != _control.GetFloatVariable("Wait Time").Value)
+            if (SilkenSisters.instance.configManager.syncWaitTime.Value != _control.GetFloatVariable("Wait Time").Value)
             {
-                _control.GetFloatVariable("Wait Time").Value = SilkenSisters.plugin.configManager.syncWaitTime.Value;
+                _control.GetFloatVariable("Wait Time").Value = SilkenSisters.instance.configManager.syncWaitTime.Value;
             }
 
-            if (SilkenSisters.plugin.configManager.syncDelay.Value != _control.GetFloatVariable("Async Delay").Value)
+            if (SilkenSisters.instance.configManager.syncDelay.Value != _control.GetFloatVariable("Async Delay").Value)
             {
-                _control.GetFloatVariable("Async Delay").Value = SilkenSisters.plugin.configManager.syncDelay.Value;
+                _control.GetFloatVariable("Async Delay").Value = SilkenSisters.instance.configManager.syncDelay.Value;
             }
 
-            if (SilkenSisters.plugin.configManager.syncGatherDistance.Value != _control.GetFloatVariable("Gather Distance").Value)
+            if (SilkenSisters.instance.configManager.syncGatherDistance.Value != _control.GetFloatVariable("Gather Distance").Value)
             {
-                _control.GetFloatVariable("Gather Distance").Value = SilkenSisters.plugin.configManager.syncGatherDistance.Value;
+                _control.GetFloatVariable("Gather Distance").Value = SilkenSisters.instance.configManager.syncGatherDistance.Value;
             }
 
-            if (SilkenSisters.plugin.configManager.syncTeleDistance.Value != _control.GetFloatVariable("Tele Distance").Value)
+            if (SilkenSisters.instance.configManager.syncTeleDistance.Value != _control.GetFloatVariable("Tele Distance").Value)
             {
-                _control.GetFloatVariable("Tele Distance").Value = SilkenSisters.plugin.configManager.syncTeleDistance.Value;
+                _control.GetFloatVariable("Tele Distance").Value = SilkenSisters.instance.configManager.syncTeleDistance.Value;
             }
 
         }
@@ -787,7 +780,7 @@ namespace SilkenSisters.Behaviors
             FsmVector3 hornet_pos = _control.GetVector3Variable("Hornet Pos");
             float hornet_facing = _control.GetFloatVariable("Hornet Facing Right").Value;
 
-            float distance_offset = hornet_facing * SilkenSisters.plugin.configManager.ParryBaitDistance.Value;
+            float distance_offset = hornet_facing * SilkenSisters.instance.configManager.ParryBaitDistance.Value;
 
             if (hornet_pos.value.x - distance_offset < _control.GetFloatVariable("Phase Left X").Value ||
                 hornet_pos.value.x - distance_offset > _control.GetFloatVariable("Phase Right X").Value)
@@ -807,11 +800,11 @@ namespace SilkenSisters.Behaviors
 
             if (phantom_pos.Value.x > hornet_pos.Value.x)
             {
-                phantom_pos.value.x -= SilkenSisters.plugin.configManager.DefenseParryDistance.Value;
+                phantom_pos.value.x -= SilkenSisters.instance.configManager.DefenseParryDistance.Value;
             }
             else if (phantom_pos.Value.x < hornet_pos.Value.x)
             {
-                phantom_pos.value.x += SilkenSisters.plugin.configManager.DefenseParryDistance.Value;
+                phantom_pos.value.x += SilkenSisters.instance.configManager.DefenseParryDistance.Value;
             }
 
             phantom_pos.value.y += (0.5462f - 0.2494f);
@@ -819,7 +812,7 @@ namespace SilkenSisters.Behaviors
 
         private void GetTelePos()
         {
-            _control.GetFloatVariable("Tele X").Value = SilkenSisters.plugin.phantomBossScene.GetFsm("Silken Sisters Sync Control").GetFloatVariable("Lace X").Value;
+            _control.GetFloatVariable("Tele X").Value = SilkenSisters.instance.phantomBossScene.GetFsm("Silken Sisters Sync Control").GetFloatVariable("Lace X").Value;
         }
 
 
@@ -864,22 +857,6 @@ namespace SilkenSisters.Behaviors
             gameObject.FindChild("Arena R").transform.position = new Vector3(97f, 104f, 0f);
             gameObject.FindChild("Centre").transform.position = new Vector3(84.5f, 104f, 0f);
         }
-    }
-
-    internal class SilkenController : MonoBehaviour
-    {
-        private PlayMakerFSM _control;
-        private void Awake()
-        {
-            Setup();
-        }
-
-        private void Setup()
-        {
-            
-        }
-
-
     }
 
 }

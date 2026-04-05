@@ -94,6 +94,17 @@
         "resolved": "1.1.0-silksong1.0.29315",
         "contentHash": "HHAt52uzuBXi8cn90/D7WC7YEptcW9yST5fo43lThzRaN6d/TLiXhy7d1Cv3UyACTnryKqINSYPqa2hSbLR+Qg=="
       },
+      "Silksong.PrepatcherPlugin": {
+        "type": "Direct",
+        "requested": "[1.4.0, )",
+        "resolved": "1.4.0",
+        "contentHash": "LvPs6okxm1z53RWo32XA7S3GUYWCK2n950ab7XOjp03m2Hcmus1q5tN5NCX3h0cN+k8yzM6C3BevF0SScNyDwQ==",
+        "dependencies": {
+          "BepInEx.Core": "5.4.21",
+          "HarmonyX": "2.9.0",
+          "UnityEngine.Modules": "6000.0.50"
+        }
+      },
       "Silksong.UnityHelper": {
         "type": "Direct",
         "requested": "[1.2.0, )",
