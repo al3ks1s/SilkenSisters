@@ -205,7 +205,6 @@ namespace SilkenSisters
         private void onSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             Log.LogDebug($"[onSceneLoaded] Scene loaded : {scene.name}, active scene : {SceneManager.GetActiveScene()}, Path:{scene.path}");
-            Log.LogMessage($"SaveData is null: {SaveData == null}, LaceMournedValue:{SaveData.laceMourned}");
 
             if (scene.name == "Organ_01") {
                 Log.LogDebug($"[onSceneLoaded] Organ Detected, preloading");

@@ -33,6 +33,7 @@ namespace SilkenSisters.Patches
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(GameManager), "SaveGame", new Type[] { typeof(int), typeof(Action<bool>), typeof(bool), typeof(AutoSaveName) })]
+        [HarmonyPriority(-1)]
         private static bool setSaveListener(GameManager __instance, ref int saveSlot, ref Action<bool> ogCallback, ref bool withAutoSave, ref AutoSaveName autoSaveName)
         {
             SilkenSisters.Log.LogDebug($"[SaveListener] Trying to save game. isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager._instance.IsMemoryScene()}. Skipping?:{SilkenSisters.isMemory() || GameManager._instance.IsMemoryScene()}");

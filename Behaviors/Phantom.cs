@@ -1162,11 +1162,6 @@ namespace SilkenSisters.Behaviors
 
             _control.AddState("Attack End").Position = new Rect(z + 200, -200, 20, 10);
 
-            // -------------
-            // -------------
-            // -------------
-
-
             //SendRandomEventV3ActiveBool
 
         }
@@ -2490,7 +2485,7 @@ namespace SilkenSisters.Behaviors
 
             float average = (laceDistance + phantomDistance) / 2;
 
-            SilkenSisters.Log.LogDebug($"Lace:{laceDistance}, Phantom:{phantomDistance}, Average:{average}");
+            //SilkenSisters.Log.LogDebug($"Lace:{laceDistance}, Phantom:{phantomDistance}, Average:{average}");
 
             _control.GetFloatVariable("Hornet Distance").Value = average;
         }

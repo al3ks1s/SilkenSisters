@@ -508,7 +508,7 @@ namespace SilkenSisters.Behaviors
                 {
                     float1 = _control.GetFloatVariable("Distance"),
                     float2 = _control.GetFloatVariable("Gather Distance"),
-                    tolerance = 0,
+                    tolerance = 0.5f,
                     lessThan = FsmEvent.GetFsmEvent("FINISHED"),
                     equal = FsmEvent.GetFsmEvent("FINISHED")
                 } 
@@ -860,22 +860,6 @@ namespace SilkenSisters.Behaviors
             gameObject.FindChild("Arena R").transform.position = new Vector3(97f, 104f, 0f);
             gameObject.FindChild("Centre").transform.position = new Vector3(84.5f, 104f, 0f);
         }
-    }
-
-    internal class SilkenController : MonoBehaviour
-    {
-        private PlayMakerFSM _control;
-        private void Awake()
-        {
-            Setup();
-        }
-
-        private void Setup()
-        {
-            
-        }
-
-
     }
 
 }
