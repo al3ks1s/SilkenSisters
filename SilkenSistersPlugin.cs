@@ -168,7 +168,7 @@ namespace SilkenSisters
             return SceneManager.GetActiveScene().name == "Organ_01" &&
                 !PlayerDataAccess.defeatedLaceTower && 
                 PlayerDataAccess.defeatedPhantom && 
-                !PlayerDataAccess.blackThreadWorld && !SilkenSisters.instance.SaveData.laceMourned;
+                !PlayerDataAccess.blackThreadWorld && !SilkenSisters.instance.SaveData.laceMourned && false;
         }
 
         public static bool canSetupMemoryFight()
