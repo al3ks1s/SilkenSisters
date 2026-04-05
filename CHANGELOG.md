@@ -1,5 +1,9 @@
 # Changelog 
 
+## 0.4.5
+
+- Finished a first version of synchronized fight
+
 ## 0.4.1
 
 - Added a properly synchronized fight, access it by changing the config value
