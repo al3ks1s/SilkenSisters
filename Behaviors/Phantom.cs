@@ -106,21 +106,23 @@ namespace SilkenSisters.Behaviors
 
         private void listenForLaceDead()
         {
-            FsmGameObject laceBossVar = _control.AddGameObjectVariable("LaceBoss");
-            laceBossVar.SetName("LaceBoss");
-
-            FindGameObject laceObject = new FindGameObject();
-            laceObject.objectName = $"{SilkenSisters.instance.laceBossInstance.name}";
-            laceObject.store = laceBossVar;
-            laceObject.withTag = "Untagged";
-
-            GameObjectIsNull laceIsNull = new GameObjectIsNull();
-            laceIsNull.gameObject = laceBossVar;
-            laceIsNull.isNotNull = FsmEvent.GetFsmEvent("BLOCKED HIT");
 
             _control.AddTransition("Final Parry", "BLOCKED HIT", "Counter Stance");
-            _control.InsertAction("Final Parry", laceIsNull, 0);
-            _control.InsertAction("Final Parry", laceObject, 0);
+            _control.InsertActions("Final Parry", 0, new FsmStateAction[] {
+                new FindGameObject
+                {
+                    objectName = $"{SilkenSisters.instance.laceBossInstance.name}",
+                    store = _control.GetGameObjectVariable("LaceBoss"),
+                    withTag = "Untagged"
+                },
+                new GameObjectIsNull
+                {
+                    gameObject = _control.GetGameObjectVariable("LaceBoss"),
+                    isNull = FsmEvent.GetFsmEvent(""),
+                    isNotNull = FsmEvent.GetFsmEvent("BLOCKED HIT"),
+                }
+            });
+
         }
 
         private void prepareExitMemoryEffect()
@@ -289,10 +291,12 @@ namespace SilkenSisters.Behaviors
 
         private void TransferDamage()
         {
-            HealthManager laceManager = SilkenSisters.instance.laceBossInstance.GetComponent<HealthManager>();
+            if (SilkenSisters.instance.laceBossInstance != null)
+            {
+                HealthManager laceManager = SilkenSisters.instance.laceBossInstance.GetComponent<HealthManager>();
 
-            if (laceManager.hp - _healthManager.lastHitInstance.DamageDealt > 0) { laceManager.ApplyExtraDamage(_healthManager.lastHitInstance.DamageDealt); }
-            
+                if (laceManager.hp - _healthManager.lastHitInstance.DamageDealt > 0) { laceManager.ApplyExtraDamage(_healthManager.lastHitInstance.DamageDealt); }
+            }
         }
 
         private void TriggerLace1Jump()
@@ -1011,8 +1015,9 @@ namespace SilkenSisters.Behaviors
             SetupSplitRunMovements();
             SetupSplitTeleMovements();
             SetupAttackChoice();
+            SetupSoloPhantom();
             OrderAround();
-
+            
             StartFSM();
         }
 
@@ -1126,9 +1131,10 @@ namespace SilkenSisters.Behaviors
             _control.AddState("Lace Busy Mock").Position = new Rect(-50, 200, 20, 10);
             _control.AddState("Lace Busy Defend").Position = new Rect(-50, 200, 20, 10);
 
-
             _control.AddState("P3?").Position = new Rect(500, -100, 20, 10);
             _control.AddState("P3!").Position = new Rect(900, 600, 20, 10);
+
+            _control.AddState("Phantom Range Check").Position = new Rect(-50, 400, 20, 10);
 
             // -------------
             int x = 2;
@@ -1974,21 +1980,67 @@ namespace SilkenSisters.Behaviors
                 {
                     events = new FsmEvent[] {
                         FsmEvent.GetFsmEvent("RAGE"),
-                        FsmEvent.GetFsmEvent("DUO CHARGE AHDRAGOON"),
-                        FsmEvent.GetFsmEvent("DUO JSLASH GHDRAGOON"),
-                        FsmEvent.GetFsmEvent("DUO COMBOSLASH AHDRAGOON"),
+                        //FsmEvent.GetFsmEvent("DUO CHARGE AHDRAGOON"),
+                        //FsmEvent.GetFsmEvent("DUO JSLASH GHDRAGOON"),
+                        //FsmEvent.GetFsmEvent("DUO COMBOSLASH AHDRAGOON"),
                         FsmEvent.GetFsmEvent("DUO CROSSSLASH PARRYBAIT"),
-                        FsmEvent.GetFsmEvent("DUO CROSSSLASH AHDRAGOON"),
-                        FsmEvent.GetFsmEvent("DUO CROSSSLASH GHDRAGOON"),
+                        //FsmEvent.GetFsmEvent("DUO CROSSSLASH AHDRAGOON"),
+                        //FsmEvent.GetFsmEvent("DUO CROSSSLASH GHDRAGOON"),
                     },
-                    weights = new FsmFloat[] { 0.05f, 1, 1, 1, 1, 1, 1 },
-                    eventMax = new FsmInt[] { 1, 1, 1, 1, 1, 1, 1, },
-                    missedMax = new FsmInt[] { 10, 10, 10, 10, 10, 10, 10 },
+                    weights = new FsmFloat[] { 0.05f, 1,  },
+                    eventMax = new FsmInt[] { 1, 1,  },
+                    missedMax = new FsmInt[] { 10, 10, },
                     activeBool = true
                 }
             });
 
         }
+
+        private void SetupSoloPhantom()
+        {
+
+            _control.AddTransition("Wait Lace", "LACE DEAD", "Phantom Range Check");
+            _control.AddTransition("Phantom Range Check", "FAR", "Hornet Far");
+            _control.AddTransition("Phantom Range Check", "CLOSE", "Hornet Close");
+
+            _control.InsertActions("Wait Lace", 0, new FsmStateAction[] {
+                new FindGameObject
+                {
+                    objectName = $"{SilkenSisters.instance.laceBossInstance.name}",
+                    store = _control.GetGameObjectVariable("Lace"),
+                    withTag = "Untagged"
+                },
+                new GameObjectIsNull
+                {
+                    gameObject = _control.GetGameObjectVariable("Lace"),
+                    isNull = FsmEvent.GetFsmEvent("LACE DEAD"),
+                    isNotNull = FsmEvent.GetFsmEvent(""),
+                }
+            });
+
+            _control.AddActions("Phantom Range Check", new FsmStateAction[]
+            {
+                new GetXDistance
+                {
+                    gameObject = phantomfsmowner,
+                    target = _control.GetGameObjectVariable("Hornet"),
+                    storeResult = _control.GetFloatVariable("Phantom Hornet Distance")
+                },                
+                new FloatCompare
+                {
+                    float1 = _control.GetFloatVariable("Phantom Hornet Distance"),
+                    float2 = _control.GetFloatVariable("Range Distance"),
+                    lessThan = FsmEvent.GetFsmEvent("CLOSE"),
+                    equal = FsmEvent.GetFsmEvent("CLOSE"),
+                    greaterThan = FsmEvent.GetFsmEvent("FAR"),
+                    tolerance = 0
+                }
+
+            });
+
+
+        }
+
 
         private void OrderAround()
         {
@@ -2484,16 +2536,26 @@ namespace SilkenSisters.Behaviors
         private void GetDuoDistanceToHornet()
         {
 
-            float laceX = lacefsmowner.gameObject.Value.transform.position.x;
-            float phantomX = phantomfsmowner.gameObject.Value.transform.position.x;
             float hornetX = hornetfsmowner.gameObject.Value.transform.position.x;
 
-            float laceDistance = Math.Abs(hornetX - laceX);
+            float phantomX = phantomfsmowner.gameObject.Value.transform.position.x;
             float phantomDistance = Math.Abs(hornetX - phantomX);
+
+            float laceDistance = phantomDistance;
+            if (lacefsmowner.gameObject.Value != null)
+            {
+                float laceX = lacefsmowner.gameObject.Value.transform.position.x;
+                laceDistance = Math.Abs(hornetX - laceX);
+            }
+            else
+            {
+                SilkenSisters.Log.LogWarning("Lace not found");
+            }
+
 
             float average = (laceDistance + phantomDistance) / 2;
 
-            //SilkenSisters.Log.LogDebug($"Lace:{laceDistance}, Phantom:{phantomDistance}, Average:{average}");
+            SilkenSisters.Log.LogDebug($"Lace:{laceDistance}, Phantom:{phantomDistance}, Average:{average}");
 
             _control.GetFloatVariable("Hornet Distance").Value = average;
         }

@@ -84,10 +84,10 @@ namespace SilkenSisters
         
         public FsmState ExitMemoryCache = null;
 
+        public GameObject silkflies = null;
+
         public GameObject laceNPCInstance = null;
         public FsmOwnerDefault laceNPCFSMOwner = null;
-
-        public GameObject silkflies = null;
 
         public GameObject laceBossInstance = null;
         public GameObject laceBossSceneInstance = null;
@@ -105,6 +105,7 @@ namespace SilkenSisters
 
         public GameObject phantomBossScene = null;
         public FsmOwnerDefault phantomBossSceneFSMOwner = null;
+
 
         public static GameObject hornet = null;
         public static FsmOwnerDefault hornetFSMOwner = null;
@@ -433,6 +434,7 @@ namespace SilkenSisters
 
         }
 
+
         public void FindHornet()
         {
             if (SilkenSisters.hornet == null)
@@ -463,7 +465,6 @@ namespace SilkenSisters
             }
         }
 
-
         private void Update()
         {
 
@@ -471,10 +472,10 @@ namespace SilkenSisters
 
             if (Input.GetKey(configManager.modifierKey.Value) && Input.GetKeyDown(KeyCode.Y))
             {
-                PlayerData.instance.defeatedPhantom = true;
-                PlayerData.instance.defeatedLaceTower = true;
-                PlayerData.instance.blackThreadWorld = true;
-                PlayerData.instance.hasNeedolinMemoryPowerup = true;
+                PlayerDataAccess.defeatedPhantom = true;
+                PlayerDataAccess.defeatedLaceTower = true;
+                PlayerDataAccess.blackThreadWorld = true;
+                PlayerDataAccess.hasNeedolinMemoryPowerup = true;
                 SilkenSisters.Log.LogWarning($"[CanSetup] Scene:{SceneManager.GetActiveScene().name} " +
                                                         $"DefeatedLace2:{PlayerDataAccess.defeatedLaceTower} " +
                                                         $"DefeatedPhantom:{PlayerDataAccess.defeatedPhantom} " +
@@ -610,8 +611,8 @@ namespace SilkenSisters
 
             if (Input.GetKey(configManager.modifierKey.Value) && Input.GetKeyDown(KeyCode.U))
             {
-                PlayerData.instance.defeatedPhantom = true;
-                PlayerData.instance.blackThreadWorld = true;
+                PlayerDataAccess.defeatedPhantom = true;
+                PlayerDataAccess.blackThreadWorld = true;
                 HeroController.instance.RefillSilkToMaxSilent();
                 var op = SceneManager.LoadSceneAsync("Organ_01", LoadSceneMode.Single);
                 op.completed += (AsyncOperation op) =>
@@ -622,9 +623,9 @@ namespace SilkenSisters
 
             if (Input.GetKey(configManager.modifierKey.Value) && Input.GetKeyDown(KeyCode.K))
             {
-                PlayerData.instance.defeatedPhantom = true;
-                PlayerData.instance.blackThreadWorld = false;
-                PlayerData.instance.defeatedLaceTower = false;
+                PlayerDataAccess.defeatedPhantom = true;
+                PlayerDataAccess.blackThreadWorld = false;
+                PlayerDataAccess.defeatedLaceTower = false;
                 HeroController.instance.RefillSilkToMaxSilent();
                 var op = SceneManager.LoadSceneAsync("Organ_01", LoadSceneMode.Single);
                 op.completed += (AsyncOperation op) =>
@@ -635,15 +636,15 @@ namespace SilkenSisters
 
             if (Input.GetKey(configManager.modifierKey.Value) && Input.GetKeyDown(KeyCode.P))
             {
-                PlayerData.instance.defeatedPhantom = true;
-                PlayerData.instance.defeatedLaceTower = true;
-                PlayerData.instance.blackThreadWorld = true;
-                PlayerData.instance.hasNeedolinMemoryPowerup = true;
+                PlayerDataAccess.defeatedPhantom = true;
+                PlayerDataAccess.defeatedLaceTower = true;
+                PlayerDataAccess.blackThreadWorld = true;
+                PlayerDataAccess.hasNeedolinMemoryPowerup = true;
                 SilkenSisters.Log.LogWarning($"[CanSetup] Scene:{SceneManager.GetActiveScene().name} " +
-                    $"DefeatedLace2:{PlayerData.instance.defeatedLaceTower} " +
-                    $"DefeatedPhantom:{PlayerData.instance.defeatedPhantom} " +
-                    $"Act3:{PlayerData.instance.blackThreadWorld} " +
-                    $"Needolin:{PlayerData.instance.hasNeedolinMemoryPowerup}");
+                    $"DefeatedLace2:{PlayerDataAccess.defeatedLaceTower} " +
+                    $"DefeatedPhantom:{PlayerDataAccess.defeatedPhantom} " +
+                    $"Act3:{PlayerDataAccess.blackThreadWorld} " +
+                    $"Needolin:{PlayerDataAccess.hasNeedolinMemoryPowerup}");
                 var op = SceneManager.LoadSceneAsync("Organ_01", LoadSceneMode.Single);
                 op.completed += (AsyncOperation op) =>
                 {
@@ -653,16 +654,16 @@ namespace SilkenSisters
 
             if (Input.GetKey(configManager.modifierKey.Value) && Input.GetKeyDown(KeyCode.L))
             {
-                PlayerData.instance.defeatedPhantom = false;
-                PlayerData.instance.defeatedLace1 = false;
-                PlayerData.instance.defeatedLaceTower = false;
-                PlayerData.instance.blackThreadWorld = false;
-                PlayerData.instance.hasNeedolinMemoryPowerup = false;
-                PlayerData.instance.encounteredLace1 = false;
+                PlayerDataAccess.defeatedPhantom = false;
+                PlayerDataAccess.defeatedLace1 = false;
+                PlayerDataAccess.defeatedLaceTower = false;
+                PlayerDataAccess.blackThreadWorld = false;
+                PlayerDataAccess.hasNeedolinMemoryPowerup = false;
+                PlayerDataAccess.encounteredLace1 = false;
                 SilkenSisters.Log.LogWarning($"[CanSetup] Scene:{SceneManager.GetActiveScene().name} " +
-                    $"DefeatedLace2:{PlayerData.instance.defeatedLaceTower} " +
-                    $"DefeatedPhantom:{PlayerData.instance.defeatedPhantom} " +
-                    $"Act3:{PlayerData.instance.blackThreadWorld}");
+                    $"DefeatedLace2:{PlayerDataAccess.defeatedLaceTower} " +
+                    $"DefeatedPhantom:{PlayerDataAccess.defeatedPhantom} " +
+                    $"Act3:{PlayerDataAccess.blackThreadWorld}");
                 var op = SceneManager.LoadSceneAsync("Organ_01", LoadSceneMode.Single);
                 op.completed += (AsyncOperation op) =>
                 {
