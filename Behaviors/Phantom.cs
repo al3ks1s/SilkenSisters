@@ -1,5 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
+using PrepatcherPlugin;
+using SilkenSisters.Utils;
 using Silksong.AssetHelper.ManagedAssets;
 using Silksong.FsmUtil;
 using Silksong.UnityHelper.Extensions;
@@ -256,16 +258,18 @@ namespace SilkenSisters.Behaviors
 
         private void resetPlayerData()
         {
-            HutongGames.PlayMaker.Actions.SetPlayerDataBool disablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
-            disablePhantom.boolName = "defeatedPhantom";
-            disablePhantom.value = true;
+            //HutongGames.PlayMaker.Actions.SetPlayerDataBool disablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+            //disablePhantom.boolName = "defeatedPhantom";
+            //disablePhantom.value = true;
 
-            HutongGames.PlayMaker.Actions.SetPlayerDataBool world_black_thread = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
-            world_black_thread.boolName = "blackThreadWorld";
-            world_black_thread.value = true;
+            //HutongGames.PlayMaker.Actions.SetPlayerDataBool world_black_thread = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+            //world_black_thread.boolName = "blackThreadWorld";
+            //world_black_thread.value = true;
 
-            _control.InsertAction("Collapse", disablePhantom, 0);
-            _control.InsertAction("Collapse", world_black_thread, 0);
+            //_control.InsertAction("Collapse", disablePhantom, 0);
+            //_control.InsertAction("Collapse", world_black_thread, 0);
+
+            _control.InsertMethod("Collapse", ResetPlayerData, 0);
         }
 
         private void endHornetConstrain()
@@ -805,6 +809,10 @@ namespace SilkenSisters.Behaviors
             _control.GetFloatVariable("Tele X").Value = SilkenSisters.instance.phantomBossScene.GetFsm("Silken Sisters Sync Control").GetFloatVariable("Phantom X").Value;
         }
 
+        private void ResetPlayerData()
+        {
+            PlayerDataVariableEvents.OnGetBool -= PrepatcherUtils.SilkenSisterMonitor;
+        }
     }
 
     internal class PhantomScene : MonoBehaviour

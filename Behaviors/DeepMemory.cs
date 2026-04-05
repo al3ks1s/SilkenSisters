@@ -1,5 +1,7 @@
 ﻿using HutongGames.PlayMaker;
 using HutongGames.PlayMaker.Actions;
+using PrepatcherPlugin;
+using SilkenSisters.Utils;
 using Silksong.FsmUtil;
 using Silksong.UnityHelper.Extensions;
 using System;
@@ -72,16 +74,18 @@ namespace SilkenSisters.Behaviors
 
         private void editPlayerData()
         {
-            HutongGames.PlayMaker.Actions.SetPlayerDataBool enablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
-            enablePhantom.boolName = "defeatedPhantom";
-            enablePhantom.value = false;
+            //HutongGames.PlayMaker.Actions.SetPlayerDataBool enablePhantom = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+            //enablePhantom.boolName = "defeatedPhantom";
+            //enablePhantom.value = false;
 
-            HutongGames.PlayMaker.Actions.SetPlayerDataBool world_normal = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
-            world_normal.boolName = "blackThreadWorld";
-            world_normal.value = false;
+            //HutongGames.PlayMaker.Actions.SetPlayerDataBool world_normal = new HutongGames.PlayMaker.Actions.SetPlayerDataBool();
+            //world_normal.boolName = "blackThreadWorld";
+            //world_normal.value = false;
 
-            _control.InsertAction("Transition Scene", enablePhantom, 0);
-            _control.InsertAction("Transition Scene", world_normal, 0);
+            //_control.InsertAction("Transition Scene", enablePhantom, 0);
+            //_control.InsertAction("Transition Scene", world_normal, 0);
+
+            _control.InsertMethod("Transition Scene", HookPlayerData, 0);
         }
 
         private void bypassToolPickup()
@@ -107,6 +111,11 @@ namespace SilkenSisters.Behaviors
             SilkenSisters.instance.respawnPointInstance.SetActive(false);
             SilkenSisters.instance.respawnPointInstance.GetComponent<PlayMakerFSM>().fsm.SetState("Pause");
             SilkenSisters.Log.LogDebug($"[DeepMemory.disableRespawn] Respawn active?:{SilkenSisters.instance.respawnPointInstance.activeSelf}, Current state:{SilkenSisters.instance.respawnPointInstance.GetComponent<PlayMakerFSM>().ActiveStateName}");
+        }
+
+        private void HookPlayerData()
+        {
+            PlayerDataVariableEvents.OnGetBool += PrepatcherUtils.SilkenSisterMonitor;
         }
 
     }
@@ -209,7 +218,6 @@ namespace SilkenSisters.Behaviors
             PlayerData.instance.CaptureToolAmountsOverride();
 
         }
-
     }
 
     internal class WakeUpRespawn : MonoBehaviour
