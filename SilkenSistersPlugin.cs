@@ -145,7 +145,8 @@ namespace SilkenSisters
                      PlayerDataAccess.defeatedPhantom && 
                     !PlayerDataAccess.blackThreadWorld && 
                     //!PlayerDataAccess.encounteredLaceTower && 
-                    !SilkenSisters.instance.SaveData.laceMourned;
+                    !SilkenSisters.instance.SaveData.laceMourned &&
+                    false;
         }
 
         public static bool canSetupMemoryFight()
