@@ -20,35 +20,10 @@ using SD = System.Diagnostics;
 
 // Idea by AidaCamelia0516
 
-// Challenge : Cradle_03 - Boss Scene/Intro Sequence
-
-// Common health pool -> Sync fight phases
-// 
-
 // Three levels of fight :
 // Lvl 1: Lace 1 Skipped -> Fight lace 1 and phantom at the same time       -> Cutscene shows hornet and lace instead of phantom, the moment parry is hit, phantom kicks lace out and take the bullet
 // Lvl 2: Deep memory in organ chamber -> Lace 2 + Phantom                  -> This time lace takes the bullet, single final phase of dragoon dash
 // Lvl 3: Taunt challenge in deep memory -> Lace 2 + Phantom on steroids    -> Fakeout cutscene, goes on normally until lace repels hornet + Hard phase
-
-// Hidden interaction if phantom beaten alone                               -> Lace mourning over Phantom's remains, TeleOut after quick dialogue
-
-// How to make Phantom stronger :
-//      - Less idle time
-//      - Faster Throws
-//      - Less timeout between dives
-//      - Multi dives - With patterns?
-//      - Fog clone
-
-// How to make Lace stronger:
-//      - Less idle time
-//      - Multiple cross slash like lost lace
-
-// Sync Lace and Phantom
-
-// __instance.GetComponent<tk2dSpriteAnimator>().Library.GetClipByName("Jump Antic").fps = 40;
-
-// Todo
-// whenever lace does the circle slash attack, smoke should rise up from around her when she does the downward thrust, similar to how it happens when Phantom does her steam slam
 
 // ^.*SilkenSisters.*$
 
@@ -62,10 +37,10 @@ namespace SilkenSisters
 
 
     [BepInAutoPlugin(id: "io.github.al3ks1s.silkensisters")]
-    [BepInDependency("org.silksong-modding.fsmutil")]
+    [BepInDependency(Silksong.FsmUtil.Plugin.Id)]
     [BepInDependency("org.silksong-modding.i18n")]
-    [BepInDependency("org.silksong-modding.assethelper")]
-    [BepInDependency("org.silksong-modding.prepatcher")]
+    [BepInDependency(Silksong.AssetHelper.AssetHelperPlugin.Id)]
+    [BepInDependency(PrepatcherPlugin.PrepatcherPlugin.Id)]
     [BepInDependency(Silksong.DataManager.DataManagerPlugin.Id)]
     [BepInDependency("io.github.flibber-hk.filteredlogs", BepInDependency.DependencyFlags.SoftDependency)]
     public partial class SilkenSisters : BaseUnityPlugin, ISaveDataMod<SaveData>
@@ -121,7 +96,7 @@ namespace SilkenSisters
 
         private void Awake()
         {
-            FilteredLogs.API.ApplyFilter(Name, BepInEx.Logging.LogLevel.Fatal | BepInEx.Logging.LogLevel.Error);
+            //FilteredLogs.API.ApplyFilter(Name, BepInEx.Logging.LogLevel.Fatal | BepInEx.Logging.LogLevel.Error);
 
             SilkenSisters.instance = this;
             SilkenSisters.Log = new ManualLogSource("SilkenSisters");
@@ -166,9 +141,12 @@ namespace SilkenSisters
                 $"DefeatedPhantom:{PlayerDataAccess.defeatedPhantom} " +
                 $"Act3:{PlayerDataAccess.blackThreadWorld}");
             return SceneManager.GetActiveScene().name == "Organ_01" &&
-                !PlayerDataAccess.defeatedLaceTower && 
-                PlayerDataAccess.defeatedPhantom && 
-                !PlayerDataAccess.blackThreadWorld && !SilkenSisters.instance.SaveData.laceMourned && false;
+                    !PlayerDataAccess.defeatedLaceTower && 
+                     PlayerDataAccess.defeatedPhantom && 
+                    !PlayerDataAccess.blackThreadWorld && 
+                    //!PlayerDataAccess.encounteredLaceTower && 
+                    !SilkenSisters.instance.SaveData.laceMourned &&
+                    false;
         }
 
         public static bool canSetupMemoryFight()
@@ -178,7 +156,11 @@ namespace SilkenSisters
                 $"DefeatedPhantom:{PlayerDataAccess.defeatedPhantom} " +
                 $"Act3:{PlayerDataAccess.blackThreadWorld} " +
                 $"Needolin:{PlayerDataAccess.hasNeedolinMemoryPowerup}");
-            return SceneManager.GetActiveScene().name == "Organ_01" && PlayerDataAccess.defeatedLaceTower && PlayerDataAccess.defeatedPhantom && PlayerDataAccess.blackThreadWorld && PlayerDataAccess.hasNeedolinMemoryPowerup;
+            return SceneManager.GetActiveScene().name == "Organ_01" && 
+                    PlayerDataAccess.defeatedLaceTower &&
+                    PlayerDataAccess.defeatedPhantom && 
+                    PlayerDataAccess.blackThreadWorld && 
+                    PlayerDataAccess.hasNeedolinMemoryPowerup;
         }
 
         public static bool canSetupNormalFight()
@@ -189,10 +171,10 @@ namespace SilkenSisters
                 $"DefeatedPhantom:{PlayerDataAccess.defeatedPhantom} " +
                 $"Act3:{PlayerDataAccess.blackThreadWorld}");
             return SceneManager.GetActiveScene().name == "Organ_01" &&
-                !PlayerDataAccess.defeatedLace1 &&
-                !PlayerDataAccess.defeatedLaceTower &&
-                !PlayerDataAccess.defeatedPhantom && 
-                !PlayerDataAccess.blackThreadWorld;
+                    !PlayerDataAccess.defeatedLace1 &&
+                    !PlayerDataAccess.defeatedLaceTower &&
+                    !PlayerDataAccess.defeatedPhantom && 
+                    !PlayerDataAccess.blackThreadWorld;
         }
 
         public static bool isMemory()

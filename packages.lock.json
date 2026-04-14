@@ -56,9 +56,9 @@
       },
       "Silksong.DataManager": {
         "type": "Direct",
-        "requested": "[1.2.1, )",
-        "resolved": "1.2.1",
-        "contentHash": "qUhd5uCyhjNWUosnAjyb5qndmObPVBa5sTGgn8Jl8d7zsbnMoyqqzopNB1Hl94ULrYa2cGxOIyNWxyCBBU8/uw==",
+        "requested": "[1.2.2, )",
+        "resolved": "1.2.2",
+        "contentHash": "xqm5gC1scpak43W98DQDHxDoGhCmjrJnSHL6Ah8HQBJiUL1ewI3zmg5ZsgwviRDa4YA2Zwn96VaGHxc2A52w7g==",
         "dependencies": {
           "BepInEx.Core": "5.4.21",
           "HarmonyX": "2.9.0",
