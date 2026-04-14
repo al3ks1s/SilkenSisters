@@ -67,6 +67,8 @@ namespace SilkenSisters.Utils
                     {"hornetParry", new ManagedAssetGroup<AudioClip>.NonSceneAssetInfo("sfxstatic_assets_shared", "Assets/Audio/SFX/Enemy/Bosses/Hornet/hornet_parry_prepare.wav")},
 
                     {"miscRumble",  new ManagedAssetGroup<AudioClip>.NonSceneAssetInfo("sfxstatic_assets_shared", "Assets/Audio/SFX/Props/misc_rumble_impact.wav")},
+
+                    {"focusReady",  new ManagedAssetGroup<AudioClip>.NonSceneAssetInfo("herosfxstatic_assets_all", "Assets/Audio/SFX/Heroes/Knight/focus_ready.wav")},
                 }
             );
             

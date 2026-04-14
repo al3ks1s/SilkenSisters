@@ -1013,6 +1013,23 @@ namespace SilkenSisters.Behaviors
                     audioPlayer = SilkenSisters.instance.assetManager.prefabCache["AudioPlayerActor"].Result,
                     volume = 1,
                     storePlayer = new FsmGameObject { name = "", useVariable = true },
+                }
+            });
+
+            _control.AddMethod("Lace Tele In", setTeleXPos);
+
+            _control.AddActions("Lace Tele In", new FsmStateAction[] 
+            {
+                new SetPosition
+                {
+                    x = _control.GetFloatVariable("TeleX"),
+                    y = 104.5677f,
+                    z = 0,
+                    gameObject = new FsmOwnerDefault(),
+                    space = 0,
+                    vector = new FsmVector3 { UseVariable = true, Name = "" },
+                    everyFrame = false,
+                    lateUpdate = false,
                 },
                 new Tk2dPlayAnimation { gameObject = SilkenSisters.hornetFSMOwner, clipName = "Challenge Talk Start", animLibName = "" },
                 new AudioPlayerOneShotSingle
@@ -1037,24 +1054,6 @@ namespace SilkenSisters.Behaviors
                     everyFrame = false,
                     pauseBetweenTurns = 0
                 },//*/
-                // Add the sfx
-            });
-
-            _control.AddMethod("Lace Tele In", setTeleXPos);
-
-            _control.AddActions("Lace Tele In", new FsmStateAction[] 
-            {
-                new SetPosition
-                {
-                    x = _control.GetFloatVariable("TeleX"),
-                    y = 104.5677f,
-                    z = 0,
-                    gameObject = new FsmOwnerDefault(),
-                    space = 0,
-                    vector = new FsmVector3 { UseVariable = true, Name = "" },
-                    everyFrame = false,
-                    lateUpdate = false,
-                },
                 new FaceObjectV2
                 {
                     objectA = new FsmOwnerDefault(),
@@ -1551,92 +1550,96 @@ namespace SilkenSisters.Behaviors
                 fly.AddTransition("Perch", "LEAVE", "Leave");
 
                 
-                fly.AddActions(
-                    "Perched",
-                    new FsmStateAction[]
+                fly.AddActions("Perched",new FsmStateAction[]
+                {
+                    new SetVelocity2d
                     {
-                        new SetVelocity2d
-                        {
-                            gameObject = new FsmOwnerDefault(),
-                            x = 0,
-                            y = 0,
-                            vector = new Vector2(0,0),
-                            everyFrame = false,
+                        gameObject = new FsmOwnerDefault(),
+                        x = 0,
+                        y = 0,
+                        vector = new Vector2(0,0),
+                        everyFrame = false,
                             
-                        },
-                        new AnimatorPlay
-                        {
-                            gameObject = new FsmOwnerDefault
-                            {
-                                OwnerOption = OwnerDefaultOption.UseOwner
-                            },
-                            stateName = "silk_fly_perched",
-                            everyFrame = false,
-                            normalizedTime = 1,
-                            layer = new FsmInt { useVariable = true, name = "" }
-                        }
-                    }
-                );
-                
-                fly.AddAction(
-                    "Idle",
+                    },
                     new AnimatorPlay
                     {
                         gameObject = new FsmOwnerDefault
                         {
                             OwnerOption = OwnerDefaultOption.UseOwner
                         },
-                        stateName = "silk_fly",
+                        stateName = "silk_fly_perched",
                         everyFrame = false,
                         normalizedTime = 1,
                         layer = new FsmInt { useVariable = true, name = "" }
-                    });
-
-                fly.AddActions(
-                    "Perch",
-                    new FsmStateAction[] {
-                        new IdleBuzzV3
-                        {
-                            gameObject = new FsmOwnerDefault(),
-                            waitMax = 0.3f,
-                            waitMin = 0f,
-                            speedMax = 5,
-                            accelerationMax = 30,
-                            accelerationMin = 1,
-                            roamingRangeX = 0,
-                            roamingRangeY = 0,
-                            manualStartPos = new FsmVector3{ name = "Target", Value = _positions[i] }
-                        },
-                        new GetPosition2D
-                        {
-                            gameObject = new FsmOwnerDefault(),
-                            vector = fly.GetVector2Variable("Position"),
-                            x = new FsmFloat(),
-                            y = new FsmFloat(),
-                            space = Space.World,
-                            everyFrame = true,
-                        },
-                        new DistanceBetweenPoints2D
-                        {
-                            point1 = fly.GetVector2Variable("Position"),
-                            point2 = new Vector2(_positions[i].x, _positions[i].y),
-                            everyFrame = true,
-                            distanceResult = fly.GetFloatVariable("DistanceToPerch")
-                        },
-                        new FloatCompare
-                        {
-                            float1 = fly.GetFloatVariable("DistanceToPerch"),
-                            float2 = 0,
-                            tolerance = 0.01f,
-                            equal = FsmEvent.GetFsmEvent("FINISHED"),
-                            greaterThan = FsmEvent.GetFsmEvent(""),
-                            lessThan = FsmEvent.GetFsmEvent(""),
-                            everyFrame = true
-                        }
-                        
                     }
+                });
+                
+                fly.AddAction("Idle", new AnimatorPlay
+                {
+                    gameObject = new FsmOwnerDefault
+                    {
+                        OwnerOption = OwnerDefaultOption.UseOwner
+                    },
+                    stateName = "silk_fly",
+                    everyFrame = false,
+                    normalizedTime = 1,
+                    layer = new FsmInt { useVariable = true, name = "" }
+                });
 
-                );
+                fly.AddActions("Perch", new FsmStateAction[] 
+                {
+                    new IdleBuzzV3
+                    {
+                        gameObject = new FsmOwnerDefault(),
+                        waitMax = 0.3f,
+                        waitMin = 0f,
+                        speedMax = 5,
+                        accelerationMax = 30,
+                        accelerationMin = 1,
+                        roamingRangeX = 0,
+                        roamingRangeY = 0,
+                        manualStartPos = new FsmVector3{ name = "Target", Value = _positions[i] }
+                    },
+                    new GetPosition2D
+                    {
+                        gameObject = new FsmOwnerDefault(),
+                        vector = fly.GetVector2Variable("Position"),
+                        x = new FsmFloat(),
+                        y = new FsmFloat(),
+                        space = Space.World,
+                        everyFrame = true,
+                    },
+                    new DistanceBetweenPoints2D
+                    {
+                        point1 = fly.GetVector2Variable("Position"),
+                        point2 = new Vector2(_positions[i].x, _positions[i].y),
+                        everyFrame = true,
+                        distanceResult = fly.GetFloatVariable("DistanceToPerch")
+                    },
+                    new FloatCompare
+                    {
+                        float1 = fly.GetFloatVariable("DistanceToPerch"),
+                        float2 = 0,
+                        tolerance = 0.01f,
+                        equal = FsmEvent.GetFsmEvent("FINISHED"),
+                        greaterThan = FsmEvent.GetFsmEvent(""),
+                        lessThan = FsmEvent.GetFsmEvent(""),
+                        everyFrame = true
+                    }
+                        
+                });
+
+                fly.AddAction("Leave", new PlayAudioEvent
+                {
+                    audioClip = SilkenSisters.instance.assetManager.audioClipCache["focusReady"].Result,
+                    pitchMax = 1.15f,
+                    pitchMin = 1.45f,
+                    volume = 0.6f,
+                    audioPlayerPrefab = new FsmObject { UseVariable = true, Name = ""},
+                    spawnPoint = new FsmOwnerDefault(),
+                    spawnPosition = new FsmVector3 { Value = Vector3.zero },
+                    SpawnedPlayerRef = new FsmGameObject { UseVariable = true, Name = "" }
+                });
 
                 i++;
             }
