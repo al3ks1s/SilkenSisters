@@ -117,15 +117,9 @@ namespace SilkenSisters
 
         void OnDestroy()
         {
-            clearInstances();
-
-            StopCoroutine(preloadOrgan());
-            StopCoroutine(assetManager.CacheObjects());
-            
+            clearInstances();       
             
             assetManager.ClearCache();
-
-
 
             _langagepatches.UnpatchSelf();
             _encounterpatches.UnpatchSelf();

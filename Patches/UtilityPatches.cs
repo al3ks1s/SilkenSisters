@@ -19,7 +19,7 @@ namespace SilkenSisters.Patches
         {
             SilkenSisters.Log.LogDebug($"[DeathListener] Hornet died / isMemory? Mod:{SilkenSisters.isMemory()} Scene:{GameManager.instance.IsMemoryScene()}");
             if (SilkenSisters.isMemory() && GameManager.instance.IsMemoryScene())
-            {
+            { 
                 SilkenSisters.Log.LogDebug($"[DeathListener] Hornet died in memory, removing the Prepatcher hook");
 
                 PlayerDataVariableEvents.OnGetBool -= PrepatcherUtils.SilkenSisterMonitor;
