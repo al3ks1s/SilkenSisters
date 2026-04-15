@@ -20,7 +20,6 @@ namespace SilkenSisters.Utils
     
         internal void RequestAssets()
         {
-
             sceneCache = ManagedAssetGroup<GameObject>.RequestAndCreate(
                 new Dictionary<string, ManagedAssetGroup<GameObject>.SceneAssetInfo>()
                 {
@@ -43,7 +42,7 @@ namespace SilkenSisters.Utils
                 },
                 null
             );
-
+             
 
             audioClipCache = ManagedAssetGroup<AudioClip>.RequestAndCreate(null,
                 new Dictionary<string, ManagedAssetGroup<AudioClip>.NonSceneAssetInfo>()
@@ -65,20 +64,19 @@ namespace SilkenSisters.Utils
 
                     {"hornetSword", new ManagedAssetGroup<AudioClip>.NonSceneAssetInfo("sfxstatic_assets_shared", "Assets/Audio/SFX/sword_5.wav")},
                     {"hornetParry", new ManagedAssetGroup<AudioClip>.NonSceneAssetInfo("sfxstatic_assets_shared", "Assets/Audio/SFX/Enemy/Bosses/Hornet/hornet_parry_prepare.wav")},
-
                     {"miscRumble",  new ManagedAssetGroup<AudioClip>.NonSceneAssetInfo("sfxstatic_assets_shared", "Assets/Audio/SFX/Props/misc_rumble_impact.wav")},
 
                     {"focusReady",  new ManagedAssetGroup<AudioClip>.NonSceneAssetInfo("herosfxstatic_assets_all", "Assets/Audio/SFX/Heroes/Knight/focus_ready.wav")},
                 }
             );
-            
+             
             prefabCache = ManagedAssetGroup<GameObject>.RequestAndCreate(null,
                 new Dictionary<string, ManagedAssetGroup<GameObject>.NonSceneAssetInfo>()
                 {
                     {"AudioPlayerActor", new ManagedAssetGroup<GameObject>.NonSceneAssetInfo("globalpoolprefabs_assets_all", "Assets/Audio/Audio Player Actor.prefab" )},
-
+                     
                 }
-            );
+            ); 
 
             audioClipTableCache = ManagedAssetGroup<RandomAudioClipTable>.RequestAndCreate(null,
                 new Dictionary<string, ManagedAssetGroup<RandomAudioClipTable>.NonSceneAssetInfo>()
@@ -94,6 +92,7 @@ namespace SilkenSisters.Utils
 
                 }
             );
+            SilkenSisters.Log.LogInfo("Requested stuff");
         }
 
         internal IEnumerator CacheObjects()
@@ -105,7 +104,6 @@ namespace SilkenSisters.Utils
             yield return audioClipTableCache.Load();
 
             //assetManager.gameObjectCache.InstantiateAsset<GameObject>("
-
             GameObject bossScene = sceneCache.InstantiateAsset<GameObject>("coralBossSceneCache");
             PlayMakerFSM control = bossScene.GetFsmPreprocessed("Control");
             SilkenSisters.instance.ExitMemoryCache = control.GetState("Exit Memory");

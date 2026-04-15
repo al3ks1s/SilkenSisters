@@ -1190,7 +1190,7 @@ namespace SilkenSisters.Behaviors
                 },
                 new Wait { time = 0.2f, finishEvent = FsmEvent.GetFsmEvent("FINISHED") }
             });
-
+            
             _control.AddActions("Lace Charge", new FsmStateAction[] 
             {
                 new Tk2dPlayAnimation { gameObject = SilkenSisters.instance.laceNPCFSMOwner, clipName = "Charge", animLibName = "" },

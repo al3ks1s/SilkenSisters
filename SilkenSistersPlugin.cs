@@ -96,7 +96,7 @@ namespace SilkenSisters
 
         private void Awake()
         {
-            //FilteredLogs.API.ApplyFilter(Name, BepInEx.Logging.LogLevel.Fatal | BepInEx.Logging.LogLevel.Error);
+            //FilteredLogs.API.ApplyFilter(Name, BepInEx.Logging.LogLevel.Fatal | BepInEx.Logging.LogLevel.Error | BepInEx.Logging.LogLevel.Warning);
 
             SilkenSisters.instance = this;
             SilkenSisters.Log = new ManualLogSource("SilkenSisters");
@@ -113,12 +113,18 @@ namespace SilkenSisters
             StartCoroutine(WaitAndPatch());
 
             Log.LogMessage($"Plugin loaded and initialized");
-        }
+        } 
 
         void OnDestroy()
         {
             clearInstances();
+
+            StopCoroutine(preloadOrgan());
+            StopCoroutine(assetManager.CacheObjects());
+            
+            
             assetManager.ClearCache();
+
 
 
             _langagepatches.UnpatchSelf();
@@ -126,7 +132,7 @@ namespace SilkenSisters
             _utilitypatches.UnpatchSelf();
 
             DebugPatches.RemoveDebugPatch();
-        }
+        } 
 
         private IEnumerator WaitAndPatch()
         {
@@ -209,7 +215,7 @@ namespace SilkenSisters
         
         private IEnumerator preloadOrgan()
         {
-
+             
             yield return StartCoroutine(assetManager.CacheObjects());
 
             if (!isMemory() &&  canSetupMemoryFight())
@@ -593,8 +599,8 @@ namespace SilkenSisters
 
             if (Input.GetKey(configManager.modifierKey.Value) && Input.GetKeyDown(KeyCode.U))
             {
-                PlayerDataAccess.defeatedPhantom = true;
-                PlayerDataAccess.blackThreadWorld = true;
+                PlayerData.instance.defeatedPhantom = true;
+                PlayerData.instance.blackThreadWorld = true;
                 HeroController.instance.RefillSilkToMaxSilent();
                 var op = SceneManager.LoadSceneAsync("Organ_01", LoadSceneMode.Single);
                 op.completed += (AsyncOperation op) =>
@@ -605,9 +611,9 @@ namespace SilkenSisters
 
             if (Input.GetKey(configManager.modifierKey.Value) && Input.GetKeyDown(KeyCode.K))
             {
-                PlayerDataAccess.defeatedPhantom = true;
-                PlayerDataAccess.blackThreadWorld = false;
-                PlayerDataAccess.defeatedLaceTower = false;
+                PlayerData.instance.defeatedPhantom = true;
+                PlayerData.instance.blackThreadWorld = false;
+                PlayerData.instance.defeatedLaceTower = false;
                 HeroController.instance.RefillSilkToMaxSilent();
                 var op = SceneManager.LoadSceneAsync("Organ_01", LoadSceneMode.Single);
                 op.completed += (AsyncOperation op) =>
@@ -618,10 +624,10 @@ namespace SilkenSisters
 
             if (Input.GetKey(configManager.modifierKey.Value) && Input.GetKeyDown(KeyCode.P))
             {
-                PlayerDataAccess.defeatedPhantom = true;
-                PlayerDataAccess.defeatedLaceTower = true;
-                PlayerDataAccess.blackThreadWorld = true;
-                PlayerDataAccess.hasNeedolinMemoryPowerup = true;
+                PlayerData.instance.defeatedPhantom = true;
+                PlayerData.instance.defeatedLaceTower = true;
+                PlayerData.instance.blackThreadWorld = true;
+                PlayerData.instance.hasNeedolinMemoryPowerup = true;
                 SilkenSisters.Log.LogWarning($"[CanSetup] Scene:{SceneManager.GetActiveScene().name} " +
                     $"DefeatedLace2:{PlayerDataAccess.defeatedLaceTower} " +
                     $"DefeatedPhantom:{PlayerDataAccess.defeatedPhantom} " +
